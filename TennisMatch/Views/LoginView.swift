@@ -13,6 +13,7 @@ struct LoginView: View {
     @State private var appeared = false
     @State private var ballFloat = false
     @State private var glowPulse = false
+    @State private var showVerification = false
 
     // MARK: Theme
     private let bgTop    = Color(red: 0.02, green: 0.04, blue: 0.02)
@@ -50,6 +51,9 @@ struct LoginView: View {
         }
         .onAppear(perform: startAnimations)
         .preferredColorScheme(.dark)
+        .navigationDestination(isPresented: $showVerification) {
+            PhoneVerificationView(phoneNumber: "+86 138****8888")
+        }
     }
 
     // MARK: - Background
@@ -118,16 +122,17 @@ struct LoginView: View {
         VStack(spacing: 12) {
             // Phone — primary CTA
             loginButton(
-                title: "手機號碼登入",
+                title: "手機號碼登陆",
                 icon: "phone.fill",
                 bg: chartreuse,
                 fg: bgTop,
-                delay: 0.50
+                delay: 0.50,
+                action: { showVerification = true }
             )
 
             // WeChat
             loginButton(
-                title: "微信登入",
+                title: "微信登录",
                 icon: "bubble.left.fill",
                 bg: wechat,
                 fg: .white,
@@ -139,7 +144,7 @@ struct LoginView: View {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
                         .font(.system(size: 18, weight: .semibold))
-                    Text("Apple 登入")
+                    Text("Apple 登录")
                         .font(.system(size: 16, weight: .semibold))
                 }
                 .foregroundColor(.white)
@@ -161,9 +166,10 @@ struct LoginView: View {
 
     private func loginButton(
         title: String, icon: String,
-        bg: Color, fg: Color, delay: Double
+        bg: Color, fg: Color, delay: Double,
+        action: @escaping () -> Void = {}
     ) -> some View {
-        Button(action: {}) {
+        Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
                     .font(.system(size: 16, weight: .semibold))
@@ -198,6 +204,17 @@ struct LoginView: View {
                     .underline()
             )
             .font(.system(size: 11))
+
+            HStack(spacing: 3) {
+                Text("還沒有帳號？")
+                    .foregroundColor(sage.opacity(0.55))
+                Button(action: {}) {
+                    Text("立即註冊")
+                        .foregroundColor(chartreuse)
+                        .underline()
+                }
+            }
+            .font(.system(size: 12))
 
             HStack(spacing: 3) {
                 Text("需要幫助？")

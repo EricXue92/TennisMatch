@@ -11,7 +11,9 @@ import SwiftUI
 struct TennisMatchApp: App {
     var body: some Scene {
         WindowGroup {
-            LoginView()
+            NavigationStack {
+                LoginView()
+            }
         }
     }
 }
