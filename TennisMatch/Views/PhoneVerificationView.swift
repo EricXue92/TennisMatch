@@ -111,8 +111,7 @@ struct PhoneVerificationView: View {
                 .focused($isFieldFocused)
                 .frame(width: 1, height: 1)
                 .opacity(0.01)
-                .onChange(of: code) { newValue in
-                    // Limit to digits only, max codeLength
+                .onChange(of: code) { oldValue, newValue in
                     let filtered = String(newValue.filter(\.isNumber).prefix(codeLength))
                     if filtered != newValue { code = filtered }
                 }
@@ -251,5 +250,4 @@ private struct CursorView: View {
     NavigationStack {
         PhoneVerificationView(phoneNumber: "+86 138****8888")
     }
-    .previewDevice("iPhone 15 Pro")
 }

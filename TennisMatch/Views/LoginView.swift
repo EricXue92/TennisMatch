@@ -50,7 +50,8 @@ struct LoginView: View {
             .ignoresSafeArea()
         }
         .onAppear(perform: startAnimations)
-        .preferredColorScheme(.dark)
+        .toolbar(.hidden, for: .navigationBar)
+        .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(isPresented: $showVerification) {
             PhoneVerificationView(phoneNumber: "+86 138****8888")
         }
@@ -191,19 +192,9 @@ struct LoginView: View {
 
     private var footer: some View {
         VStack(spacing: 5) {
-            (
-                Text("登入即表示您同意 ")
-                    .foregroundColor(sage.opacity(0.55)) +
-                Text("服務條款")
-                    .foregroundColor(sage)
-                    .underline() +
-                Text(" 和 ")
-                    .foregroundColor(sage.opacity(0.55)) +
-                Text("隱私政策")
-                    .foregroundColor(sage)
-                    .underline()
-            )
-            .font(.system(size: 11))
+            Text("登入即表示您同意 \(Text("服務條款").foregroundColor(sage).underline()) 和 \(Text("隱私政策").foregroundColor(sage).underline())")
+                .foregroundColor(sage.opacity(0.55))
+                .font(.system(size: 11))
 
             HStack(spacing: 3) {
                 Text("還沒有帳號？")
