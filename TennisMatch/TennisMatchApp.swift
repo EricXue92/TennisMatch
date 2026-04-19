@@ -12,7 +12,8 @@ struct TennisMatchApp: App {
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                LoginView()
+                // LoginView()
+                HomeView()
             }
         }
     }

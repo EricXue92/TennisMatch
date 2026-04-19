@@ -1147,7 +1147,7 @@ let allCourts: [TennisCourt] = [
 
 // MARK: - Court Picker View
 
-private struct CourtPickerView: View {
+struct CourtPickerView: View {
     @Binding var selected: Set<TennisCourt>
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""

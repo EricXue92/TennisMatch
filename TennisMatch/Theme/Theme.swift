@@ -61,6 +61,15 @@ enum Theme {
     // MARK: - Body Text
     static let textBody      = Color(hex: 0x4B5563)
     static let textCaption   = Color(hex: 0x6B7280)
+
+    // MARK: - Match Status
+    static let confirmedBg   = Color(hex: 0xE7F4EC)
+    static let pendingBg     = Color(hex: 0xFEF3E3)
+    static let pendingBadge  = Color(hex: 0xEA9319)
+
+    // MARK: - Tournament Create
+    static let tournamentBg    = Color(hex: 0xFFF0F0, alpha: 0.3)
+    static let selectedCardBg  = Color(hex: 0xECFDF5)
 }
 
 // MARK: - Hex Initializer

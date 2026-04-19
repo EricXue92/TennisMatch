@@ -1,0 +1,722 @@
+//
+//  TournamentView.swift
+//  TennisMatch
+//
+//  賽事列表 + 賽事詳情
+//
+
+import SwiftUI
+
+// MARK: - Tournament List
+
+struct TournamentView: View {
+    @Environment(\.dismiss) private var dismiss
+    @State private var selectedFilter = "全部"
+    @State private var selectedTournament: MockTournament?
+    @State private var showCreateTournament = false
+    @State private var tournaments: [MockTournament] = mockTournaments
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                headerBar
+                filterTabs
+                ScrollView {
+                    VStack(spacing: Spacing.md) {
+                        ForEach(filteredTournaments) { tournament in
+                            tournamentCard(tournament)
+                                .onTapGesture {
+                                    selectedTournament = tournament
+                                }
+                        }
+                    }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, 100)
+                }
+            }
+            .background(Theme.inputBg)
+            .navigationBarHidden(true)
+            .navigationDestination(item: $selectedTournament) { tournament in
+                TournamentDetailView(tournament: tournament)
+            }
+            .navigationDestination(isPresented: $showCreateTournament) {
+                CreateTournamentView(onPublish: { info in
+                    addPublishedTournament(info)
+                })
+            }
+        }
+    }
+
+    private var filteredTournaments: [MockTournament] {
+        let base = selectedFilter == "全部" ? tournaments : tournaments.filter { $0.status == selectedFilter }
+        return base.sorted { $0.isOwnTournament && !$1.isOwnTournament }
+    }
+
+    private func addPublishedTournament(_ info: PublishedTournamentInfo) {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        let dateRange = "\(formatter.string(from: info.startDate)) - \(formatter.string(from: info.endDate))"
+
+        let tournament = MockTournament(
+            name: info.name.isEmpty ? "我的賽事" : info.name,
+            format: info.format,
+            matchType: info.matchType,
+            ntrpRange: info.level,
+            status: "報名中",
+            dateRange: dateRange,
+            location: info.courtName.isEmpty ? "待定" : info.courtName,
+            participants: "0/\(info.participantCount.isEmpty ? "16" : info.participantCount)",
+            fee: info.fee.isEmpty ? "免費" : "\(info.fee) 港幣",
+            organizer: "小李",
+            gradientColors: [Color(hex: 0x34D399), Color(hex: 0x16A34A)],
+            rules: info.rules.isEmpty ? [] : [info.rules],
+            playerList: [],
+            isOwnTournament: true
+        )
+        tournaments.insert(tournament, at: 0)
+    }
+}
+
+// MARK: - Header & Filters
+
+private extension TournamentView {
+    var headerBar: some View {
+        HStack {
+            Button {
+                dismiss()
+            } label: {
+                Text("←")
+                    .font(.system(size: 22))
+                    .foregroundColor(Theme.textPrimary)
+                    .frame(width: 44, height: 44)
+            }
+            Text("賽事")
+                .font(.system(size: 20, weight: .semibold))
+                .foregroundColor(Theme.textPrimary)
+            Spacer()
+            Button {
+                showCreateTournament = true
+            } label: {
+                Text("+ 建立賽事")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.sm)
+                    .frame(height: 28)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            }
+        }
+        .padding(.horizontal, Spacing.md)
+        .padding(.top, Spacing.xs)
+        .background(.white)
+    }
+
+    var filterTabs: some View {
+        VStack(spacing: 0) {
+            HStack(spacing: 0) {
+                ForEach(tournamentFilterOptions, id: \.self) { option in
+                    Button {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            selectedFilter = option
+                        }
+                    } label: {
+                        VStack(spacing: Spacing.xs) {
+                            Text(option)
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(selectedFilter == option ? Theme.primary : Theme.textSecondary)
+                                .frame(maxWidth: .infinity)
+
+                            Rectangle()
+                                .fill(selectedFilter == option ? Theme.primary : .clear)
+                                .frame(width: 40, height: 3)
+                                .clipShape(Capsule())
+                        }
+                    }
+                }
+            }
+            .padding(.top, Spacing.sm)
+
+            Theme.inputBorder.frame(height: 1)
+        }
+        .background(.white)
+    }
+}
+
+// MARK: - Tournament Card
+
+private extension TournamentView {
+    func tournamentCard(_ t: MockTournament) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // Top: icon + title + tags
+            HStack(alignment: .top, spacing: Spacing.sm) {
+                // Trophy icon with gradient
+                ZStack {
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(
+                            LinearGradient(
+                                colors: t.gradientColors,
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 48, height: 48)
+                    Text("🏆")
+                        .font(.system(size: 24))
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(t.name)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+
+                    // Tags
+                    HStack(spacing: 4) {
+                        tagPill(t.format, style: .gray)
+                        tagPill(t.matchType, style: .gray)
+                        tagPill(t.ntrpRange, style: .gray)
+                        if t.isOwnTournament {
+                            Text("我發起的")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .frame(height: 20)
+                                .background(Theme.accentGreen)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        } else {
+                            statusPill(t.status)
+                        }
+                    }
+                }
+            }
+
+            // Info rows
+            VStack(alignment: .leading, spacing: 4) {
+                infoRow(icon: "📅", text: t.dateRange)
+                infoRow(icon: "📍", text: t.location)
+                infoRow(icon: "👥", text: t.participants)
+                infoRow(icon: "💰", text: t.fee)
+            }
+            .padding(.leading, 60)
+
+            // Bottom: organizer + action button
+            HStack {
+                HStack(spacing: 6) {
+                    Circle()
+                        .fill(Color(hex: 0xE0E0E0))
+                        .frame(width: 20, height: 20)
+                    Text("發起人: \(t.organizer)")
+                        .font(.system(size: 11))
+                        .foregroundColor(Theme.textSecondary)
+                }
+                .padding(.leading, 60)
+
+                Spacer()
+
+                if !t.isOwnTournament {
+                    if t.status == "報名中" {
+                        Button {
+                            selectedTournament = t
+                        } label: {
+                            Text("報名")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.white)
+                                .frame(width: 70, height: 26)
+                                .background(Theme.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        }
+                    } else if t.status == "進行中" {
+                        Button {
+                            selectedTournament = t
+                        } label: {
+                            Text("查看")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Theme.primary)
+                                .frame(width: 70, height: 26)
+                                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .overlay {
+                                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                        .stroke(Theme.primary, lineWidth: 1)
+                                }
+                        }
+                    }
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
+        .overlay(alignment: .leading) {
+            if t.isOwnTournament {
+                Theme.primary
+                    .frame(width: 4)
+                    .clipShape(RoundedRectangle(cornerRadius: 2))
+                    .padding(.vertical, 8)
+            }
+        }
+    }
+
+    func tagPill(_ text: String, style: TagStyle) -> some View {
+        Text(text)
+            .font(.system(size: 10, weight: .medium))
+            .foregroundColor(style == .gray ? Theme.textSecondary : .white)
+            .padding(.horizontal, 6)
+            .frame(height: 20)
+            .background(style == .gray ? Theme.chipUnselectedBg : Theme.primary)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    func statusPill(_ status: String) -> some View {
+        Text(status)
+            .font(.system(size: 10, weight: .medium))
+            .foregroundColor(.white)
+            .padding(.horizontal, 6)
+            .frame(height: 20)
+            .background(statusColor(status))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    func infoRow(icon: String, text: String) -> some View {
+        HStack(spacing: 6) {
+            Text(icon)
+                .font(.system(size: 12))
+            Text(text)
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textSecondary)
+        }
+    }
+}
+
+private func statusColor(_ status: String) -> Color {
+    switch status {
+    case "報名中": return Color(hex: 0x16A34A)
+    case "進行中": return Color(hex: 0x2674DD)
+    case "已完成": return Color(hex: 0x9CA3AF)
+    default: return Color(hex: 0x16A34A)
+    }
+}
+
+private enum TagStyle { case gray, colored }
+
+// MARK: - Tournament Detail
+
+struct TournamentDetailView: View {
+    let tournament: MockTournament
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ZStack(alignment: .bottom) {
+            ScrollView {
+                VStack(spacing: Spacing.md) {
+                    headerCard
+                    infoCard
+                    organizerCard
+                    participantsCard
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.bottom, 100)
+            }
+            .background(Theme.inputBg)
+
+            bottomBar
+        }
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Text("←")
+                        .font(.system(size: 22))
+                        .foregroundColor(Theme.textPrimary)
+                }
+            }
+            ToolbarItem(placement: .principal) {
+                Text("賽事詳情")
+                    .font(.system(size: 18, weight: .semibold))
+            }
+        }
+    }
+}
+
+// MARK: - Detail Sections
+
+private extension TournamentDetailView {
+    // Gradient header card
+    var headerCard: some View {
+        HStack(spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: 0xFFF299), Color(hex: 0xFFBF4D)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 52, height: 44)
+                Text("🏆")
+                    .font(.system(size: 28))
+            }
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text(tournament.name)
+                    .font(.system(size: 17, weight: .bold))
+                    .foregroundColor(.white)
+
+                HStack(spacing: 6) {
+                    detailBadge(tournament.format)
+                    detailBadge(tournament.matchType)
+                    detailBadge(tournament.ntrpRange)
+                    Text(tournament.status)
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.xs)
+                        .padding(.vertical, 3)
+                        .background(Color(hex: 0x26AD61))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(
+            LinearGradient(
+                colors: tournament.gradientColors,
+                startPoint: .leading,
+                endPoint: .trailing
+            )
+        )
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    func detailBadge(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11, weight: .medium))
+            .foregroundColor(.white)
+            .padding(.horizontal, Spacing.xs)
+            .padding(.vertical, 3)
+            .background(.white.opacity(0.25))
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+    }
+
+    // Info card
+    var infoCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("賽事資訊")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(Color(hex: 0x1A1A1A))
+
+            detailInfoRow(icon: "📅", label: "比賽日期", value: tournament.dateRange)
+            detailInfoRow(icon: "📍", label: "比賽場地", value: tournament.location)
+            detailInfoRow(icon: "👥", label: "參賽人數", value: tournament.participants)
+            detailInfoRow(icon: "💰", label: "報名費用", value: tournament.fee)
+
+            Rectangle()
+                .fill(Color(hex: 0xEBEBEB))
+                .frame(height: 1)
+
+            Text("賽事規則")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(hex: 0x1A1A1A))
+
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(tournament.rules, id: \.self) { rule in
+                    Text("• \(rule)")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: 0x666666))
+                        .lineSpacing(4)
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+    }
+
+    func detailInfoRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Text(icon)
+                .font(.system(size: 16))
+            Text(label)
+                .font(.system(size: 13))
+                .foregroundColor(Color(hex: 0x737373))
+                .frame(width: 70, alignment: .leading)
+            Text(value)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Color(hex: 0x262626))
+        }
+    }
+
+    // Organizer card
+    var organizerCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("主辦方")
+                .font(.system(size: 16, weight: .bold))
+                .foregroundColor(Color(hex: 0x1A1A1A))
+
+            HStack(spacing: Spacing.sm) {
+                Circle()
+                    .fill(Color(hex: 0xE0E0E0))
+                    .frame(width: 40, height: 40)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(tournament.organizer)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Color(hex: 0x1A1A1A))
+                    Text("NTRP 4.0 · 賽事組織者")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: 0x8C8C8C))
+                }
+
+                Spacer()
+
+                Button {
+                    // TODO: follow
+                } label: {
+                    Text("關注")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(Color(hex: 0x333333))
+                        .padding(.horizontal, 14)
+                        .frame(height: 44)
+                        .background(Color(hex: 0xF2F2F2))
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+    }
+
+    // Participants card
+    var isCompleted: Bool { tournament.status == "已完成" }
+
+    var participantsCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack {
+                Text(isCompleted ? "比賽成績" : "已報名選手")
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(Color(hex: 0x1A1A1A))
+                Spacer()
+                Text(tournament.participants)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color(hex: 0x8C8C8C))
+            }
+
+            ForEach(Array(tournament.playerList.enumerated()), id: \.offset) { index, player in
+                HStack(spacing: Spacing.sm) {
+                    if isCompleted && index < 3 {
+                        Text(["🥇", "🥈", "🥉"][index])
+                            .font(.system(size: 16))
+                            .frame(width: 22, height: 22)
+                    } else {
+                        Text("\(index + 1)")
+                            .font(.system(size: 11, weight: .medium))
+                            .foregroundColor(Color(hex: 0x737373))
+                            .frame(width: 22, height: 22)
+                            .background(Color(hex: 0xF2F2F2))
+                            .clipShape(Circle())
+                    }
+
+                    Circle()
+                        .fill(Color(hex: 0xE0E0E0))
+                        .frame(width: 32, height: 32)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(player.name)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(Color(hex: 0x262626))
+                        Text("NTRP \(player.ntrp)")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color(hex: 0x8C8C8C))
+                    }
+
+                    Spacer()
+                }
+                .padding(.vertical, 4)
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
+    }
+
+    // Bottom action bar
+    @ViewBuilder
+    var bottomBar: some View {
+        if !isCompleted {
+            VStack {
+                Button {
+                    // TODO: sign up
+                } label: {
+                    Text("立即報名 · \(tournament.fee)")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 14)
+                        .background(Color(hex: 0x26AD61))
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.top, Spacing.sm)
+            .padding(.bottom, Spacing.xl)
+            .background(
+                Rectangle()
+                    .fill(.white)
+                    .shadow(color: .black.opacity(0.06), radius: 4, y: -2)
+                    .ignoresSafeArea(edges: .bottom)
+            )
+        }
+    }
+}
+
+// MARK: - Data
+
+private let tournamentFilterOptions = ["全部", "報名中", "進行中", "已完成"]
+
+struct MockTournament: Identifiable, Hashable {
+    let id = UUID()
+    let name: String
+    let format: String       // 淘汰賽, 階梯賽, 循環賽
+    let matchType: String    // 單打, 雙打
+    let ntrpRange: String
+    let status: String       // 報名中, 進行中, 已完成
+    let dateRange: String
+    let location: String
+    let participants: String
+    let fee: String
+    let organizer: String
+    let gradientColors: [Color]
+    let rules: [String]
+    let playerList: [TournamentPlayer]
+    var isOwnTournament: Bool = false
+}
+
+struct TournamentPlayer: Hashable {
+    let name: String
+    let ntrp: String
+}
+
+let mockTournaments: [MockTournament] = [
+    MockTournament(
+        name: "香港春季網球公開賽",
+        format: "淘汰賽", matchType: "單打", ntrpRange: "3.0-4.0",
+        status: "報名中",
+        dateRange: "2026/05/01 - 05/03",
+        location: "維多利亞公園網球場",
+        participants: "4/16",
+        fee: "300 港幣",
+        organizer: "莎拉",
+        gradientColors: [Color(hex: 0xFACC2E), Color(hex: 0xF28C1A)],
+        rules: [
+            "單淘汰制，一局定勝負",
+            "每場比賽採用三盤兩勝制",
+            "選手需提前15分鐘到場",
+            "遲到超過10分鐘視為棄權"
+        ],
+        playerList: [
+            TournamentPlayer(name: "莎拉", ntrp: "4.0"),
+            TournamentPlayer(name: "小明", ntrp: "3.5"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.5"),
+            TournamentPlayer(name: "志明", ntrp: "4.0"),
+        ]
+    ),
+    MockTournament(
+        name: "香港網球階梯挑戰賽",
+        format: "階梯賽", matchType: "單打", ntrpRange: "3.5-5.0",
+        status: "進行中",
+        dateRange: "2026/04/20 - 06/30",
+        location: "多個球場",
+        participants: "3/30",
+        fee: "200 港幣",
+        organizer: "王強",
+        gradientColors: [Color(hex: 0x66B2FF), Color(hex: 0x2673DE)],
+        rules: [
+            "階梯積分制，可隨時挑戰排名更高的選手",
+            "每場比賽採用兩盤一勝制",
+            "雙方需在7天內完成比賽",
+            "無故棄權將扣除積分"
+        ],
+        playerList: [
+            TournamentPlayer(name: "王強", ntrp: "4.5"),
+            TournamentPlayer(name: "大衛", ntrp: "4.0"),
+            TournamentPlayer(name: "Peter", ntrp: "5.0"),
+        ]
+    ),
+    MockTournament(
+        name: "九龍區業餘雙打賽",
+        format: "循環賽", matchType: "雙打", ntrpRange: "2.5-3.5",
+        status: "報名中",
+        dateRange: "2026/05/15 - 05/17",
+        location: "九龍仔公園",
+        participants: "6/16",
+        fee: "250 港幣",
+        organizer: "美琪",
+        gradientColors: [Color(hex: 0xA78BFA), Color(hex: 0x7C3AED)],
+        rules: [
+            "小組循環賽 + 淘汰賽",
+            "每場比賽採用一盤定勝負（搶七）",
+            "雙打搭檔需在報名時確定",
+            "選手需自備球拍"
+        ],
+        playerList: [
+            TournamentPlayer(name: "美琪", ntrp: "3.0"),
+            TournamentPlayer(name: "小美", ntrp: "3.0"),
+            TournamentPlayer(name: "Kelly", ntrp: "3.5"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.0"),
+            TournamentPlayer(name: "林叔", ntrp: "3.5"),
+            TournamentPlayer(name: "阿杰", ntrp: "2.5"),
+        ]
+    ),
+    MockTournament(
+        name: "新界友誼邀請賽",
+        format: "淘汰賽", matchType: "單打", ntrpRange: "4.0-5.5",
+        status: "已完成",
+        dateRange: "2026/03/10 - 03/12",
+        location: "沙田公園",
+        participants: "16/16",
+        fee: "350 港幣",
+        organizer: "陳教練",
+        gradientColors: [Color(hex: 0x9CA3AF), Color(hex: 0x6B7280)],
+        rules: [
+            "單淘汰制",
+            "每場比賽採用三盤兩勝制",
+            "獎金分配：冠軍60%、亞軍30%、季軍10%",
+            "選手需穿著正式網球服裝"
+        ],
+        playerList: [
+            TournamentPlayer(name: "老張", ntrp: "5.0"),
+            TournamentPlayer(name: "Peter", ntrp: "5.0"),
+            TournamentPlayer(name: "志明", ntrp: "4.5"),
+            TournamentPlayer(name: "王強", ntrp: "4.5"),
+            TournamentPlayer(name: "大衛", ntrp: "4.5"),
+            TournamentPlayer(name: "陳教練", ntrp: "4.0"),
+            TournamentPlayer(name: "俊傑", ntrp: "4.0"),
+            TournamentPlayer(name: "林叔", ntrp: "4.0"),
+            TournamentPlayer(name: "阿杰", ntrp: "4.0"),
+            TournamentPlayer(name: "莎拉", ntrp: "4.5"),
+            TournamentPlayer(name: "麗莎", ntrp: "5.0"),
+            TournamentPlayer(name: "美琪", ntrp: "4.0"),
+            TournamentPlayer(name: "嘉欣", ntrp: "4.5"),
+            TournamentPlayer(name: "Kelly", ntrp: "4.0"),
+            TournamentPlayer(name: "小美", ntrp: "4.0"),
+            TournamentPlayer(name: "小玲", ntrp: "4.0"),
+        ]
+    ),
+]
+
+// MARK: - Preview
+
+#Preview("iPhone SE") {
+    TournamentView()
+}
+
+#Preview("iPhone 15 Pro") {
+    TournamentView()
+}
