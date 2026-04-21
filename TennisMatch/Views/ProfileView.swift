@@ -9,6 +9,9 @@ import SwiftUI
 
 struct ProfileView: View {
     @State private var showEditProfile = false
+    @State private var showSettings = false
+    @State private var showTournaments = false
+    @State private var showAchievements = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +29,15 @@ struct ProfileView: View {
         }
         .background(Theme.background)
         .ignoresSafeArea(edges: .top)
+        .navigationDestination(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .navigationDestination(isPresented: $showAchievements) {
+            AchievementsView()
+        }
+        .fullScreenCover(isPresented: $showTournaments) {
+            TournamentView()
+        }
     }
 
     // MARK: - Header
@@ -78,7 +90,7 @@ struct ProfileView: View {
 
                 // Settings button
                 Button {
-                    // TODO: settings
+                    showSettings = true
                 } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 18, weight: .medium))
@@ -207,7 +219,7 @@ struct ProfileView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
-                    // TODO: show all tournament records
+                    showTournaments = true
                 } label: {
                     Text("全部")
                         .font(.system(size: 12))
@@ -294,7 +306,7 @@ struct ProfileView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
-                    // TODO: show all achievements
+                    showAchievements = true
                 } label: {
                     Text("全部")
                         .font(.system(size: 12))
