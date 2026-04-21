@@ -8,7 +8,38 @@
 import SwiftUI
 
 struct MyMatchesView: View {
+    @Binding var acceptedMatches: [AcceptedMatchInfo]
     @State private var selectedFilter = "即將到來"
+    @State private var selectedChat: MockChat?
+    @State private var matchToCancel: MyMatchItem?
+    @State private var showCancelAlert = false
+    @State private var showCancelledToast = false
+    @State private var showManageSheet = false
+    @State private var matchToManage: MyMatchItem?
+    @State private var showRejectToast = false
+    @State private var rejectedInvitations: Set<UUID> = []
+    @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
+
+    private var acceptedMatchItems: [MyMatchItem] {
+        acceptedMatches.map { info in
+            let timeStr = info.time
+            let startHour = Int(timeStr.prefix(2)) ?? 10
+            let endHour = startHour + 2
+            let endTime = String(format: "%02d:00", endHour)
+            return MyMatchItem(
+                title: "\(info.organizerName) 發起的\(info.matchType)",
+                isOrganizer: false,
+                status: .confirmed,
+                dateLabel: "\(info.dateString)",
+                location: "\(info.location)網球場",
+                timeRange: "\(timeStr) - \(endTime)",
+                players: "2/2 · NTRP 3.0-4.0",
+                weather: "☀️ 24°C",
+                matchType: info.matchType,
+                acceptedMatchID: info.id
+            )
+        }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -17,10 +48,13 @@ struct MyMatchesView: View {
             ScrollView {
                 VStack(spacing: Spacing.md) {
                     if selectedFilter == "即將到來" {
-                        ForEach(mockUpcomingMatches) { match in
+                        ForEach(acceptedMatchItems) { match in
                             myMatchCard(match)
                         }
-                        ForEach(mockInvitations) { invitation in
+                        ForEach(upcomingMatches) { match in
+                            myMatchCard(match)
+                        }
+                        ForEach(mockInvitations.filter { !rejectedInvitations.contains($0.id) }) { invitation in
                             invitationCard(invitation)
                         }
                     } else {
@@ -35,6 +69,110 @@ struct MyMatchesView: View {
             }
         }
         .background(Theme.inputBg)
+        .navigationDestination(item: $selectedChat) { chat in
+            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches)
+        }
+        .alert("取消約球", isPresented: $showCancelAlert) {
+            Button("再想想", role: .cancel) {
+                matchToCancel = nil
+            }
+            Button("確認取消", role: .destructive) {
+                if let match = matchToCancel {
+                    withAnimation {
+                        if let aid = match.acceptedMatchID {
+                            acceptedMatches.removeAll { $0.id == aid }
+                        }
+                        upcomingMatches.removeAll { $0.id == match.id }
+                    }
+                    showCancelledToast = true
+                }
+                matchToCancel = nil
+            }
+        } message: {
+            if let match = matchToCancel {
+                Text("確定要取消「\(match.title)」嗎？取消後將通知所有參與者。")
+            }
+        }
+        .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
+            Button("編輯約球") {
+                // TODO: edit match
+            }
+            Button("查看報名者") {
+                // TODO: view applicants
+            }
+            Button("關閉報名") {
+                // TODO: close signups
+            }
+            Button("取消約球", role: .destructive) {
+                matchToCancel = match
+                showCancelAlert = true
+            }
+            Button("取消", role: .cancel) {}
+        } message: { match in
+            Text(match.title)
+        }
+        .overlay(alignment: .top) {
+            if showCancelledToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.white)
+                    Text("已取消約球，已通知所有參與者")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(
+                    Capsule().fill(Theme.textBody)
+                )
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                        withAnimation { showCancelledToast = false }
+                    }
+                }
+            }
+        }
+        .overlay(alignment: .top) {
+            if showRejectToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "xmark.circle.fill")
+                        .foregroundColor(.white)
+                    Text("已拒絕邀請")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { showRejectToast = false }
+                    }
+                }
+            }
+        }
+    }
+
+    private func openChat(for match: MyMatchItem) {
+        // Extract location name from "XXX網球場" → "XXX"
+        let locationBase = match.location
+            .replacingOccurrences(of: "網球場", with: "")
+            .replacingOccurrences(of: "遊樂場", with: "")
+        let chatTitle = "\(locationBase) \(match.matchType)"
+        // Extract date/time from timeRange "10:00 - 12:00" → "10:00"
+        let startTime = match.timeRange.components(separatedBy: " - ").first ?? ""
+        let dateTime = "\(match.dateLabel.replacingOccurrences(of: "明天 · ", with: "")) \(startTime)"
+
+        selectedChat = MockChat(
+            type: .match(title: chatTitle, dateTime: dateTime),
+            lastMessage: "點擊開始聊天",
+            time: "now",
+            unreadCount: 0
+        )
     }
 }
 
@@ -140,10 +278,22 @@ private extension MyMatchesView {
                     HStack {
                         Spacer()
                         if match.isOrganizer {
-                            matchActionButton("管理", style: .filled)
+                            matchActionButton("管理", style: .filled) {
+                                matchToManage = match
+                                showManageSheet = true
+                            }
+                            matchActionButton("取消", style: .outlined) {
+                                matchToCancel = match
+                                showCancelAlert = true
+                            }
                         } else {
-                            matchActionButton("💬 聊天", style: .filled)
-                            matchActionButton("取消", style: .outlined)
+                            matchActionButton("💬 聊天", style: .filled) {
+                                openChat(for: match)
+                            }
+                            matchActionButton("取消", style: .outlined) {
+                                matchToCancel = match
+                                showCancelAlert = true
+                            }
                         }
                     }
                 }
@@ -187,9 +337,9 @@ private extension MyMatchesView {
         .padding(.leading, 48)
     }
 
-    func matchActionButton(_ title: String, style: MatchActionStyle) -> some View {
+    func matchActionButton(_ title: String, style: MatchActionStyle, action: (() -> Void)? = nil) -> some View {
         Button {
-            // TODO
+            action?()
         } label: {
             Text(title)
                 .font(.system(size: 12, weight: .medium))
@@ -241,7 +391,10 @@ private extension MyMatchesView {
                 Spacer()
 
                 Button {
-                    // TODO: decline
+                    withAnimation {
+                        rejectedInvitations.insert(invitation.id)
+                    }
+                    showRejectToast = true
                 } label: {
                     Text("拒絕")
                         .font(.system(size: 11, weight: .medium))
@@ -255,7 +408,20 @@ private extension MyMatchesView {
                 }
 
                 Button {
-                    // TODO: accept
+                    acceptedMatches.append(AcceptedMatchInfo(
+                        organizerName: invitation.inviterName,
+                        matchType: invitation.matchType,
+                        dateString: invitation.details.components(separatedBy: " · ").first ?? "",
+                        time: "10:00",
+                        location: invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
+                    ))
+                    let chatTitle = "\(invitation.details.components(separatedBy: " · ").dropFirst().first ?? "") \(invitation.matchType)"
+                    selectedChat = MockChat(
+                        type: .match(title: chatTitle, dateTime: invitation.details.components(separatedBy: " · ").first ?? ""),
+                        lastMessage: "已加入約球",
+                        time: "now",
+                        unreadCount: 0
+                    )
                 } label: {
                     Text("接受")
                         .font(.system(size: 11, weight: .medium))
@@ -313,6 +479,8 @@ private struct MyMatchItem: Identifiable {
     let timeRange: String
     let players: String
     let weather: String
+    var matchType: String = "單打"
+    var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
 }
 
 private struct MyMatchInvitation: Identifiable {
@@ -322,7 +490,7 @@ private struct MyMatchInvitation: Identifiable {
     let details: String
 }
 
-private let mockUpcomingMatches: [MyMatchItem] = [
+private let mockUpcomingMatchesInitial: [MyMatchItem] = [
     MyMatchItem(
         title: "莎拉 發起的單打",
         isOrganizer: false,
@@ -379,9 +547,9 @@ private let mockInvitations: [MyMatchInvitation] = [
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    MyMatchesView()
+    MyMatchesView(acceptedMatches: .constant([]))
 }
 
 #Preview("iPhone 15 Pro") {
-    MyMatchesView()
+    MyMatchesView(acceptedMatches: .constant([]))
 }
