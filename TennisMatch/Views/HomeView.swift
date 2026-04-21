@@ -30,6 +30,16 @@ struct HomeView: View {
     @State private var successMatch: SignUpMatchInfo?
     @State private var matches: [MockMatch] = initialMockMatches
     @State private var signUpMatchId: UUID?
+    @State private var chatUnreadCount = 4
+    @State private var acceptedMatches: [AcceptedMatchInfo] = []
+    @State private var showMatchAssistant = false
+    @State private var showReviews = false
+    @State private var showNotifications = false
+    @State private var showFollowing = false
+    @State private var showBlockList = false
+    @State private var showInviteFriends = false
+    @State private var showSettings = false
+    @State private var showHelp = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,9 +47,9 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView()
+                case 1: MyMatchesView(acceptedMatches: $acceptedMatches)
                 case 2: placeholderTab("一鍵約球")
-                case 3: placeholderTab("消息")
+                case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches)
                 case 4: ProfileView()
                 default: homeTab
                 }
@@ -81,6 +91,30 @@ struct HomeView: View {
         .navigationDestination(item: $selectedMatchDetail) { detail in
             MatchDetailView(match: detail)
         }
+        .navigationDestination(isPresented: $showMatchAssistant) {
+            MatchAssistantView()
+        }
+        .navigationDestination(isPresented: $showReviews) {
+            ReviewsView()
+        }
+        .navigationDestination(isPresented: $showNotifications) {
+            NotificationsView()
+        }
+        .navigationDestination(isPresented: $showFollowing) {
+            FollowingView()
+        }
+        .navigationDestination(isPresented: $showBlockList) {
+            BlockListView()
+        }
+        .navigationDestination(isPresented: $showInviteFriends) {
+            InviteFriendsView()
+        }
+        .navigationDestination(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .navigationDestination(isPresented: $showHelp) {
+            HelpView()
+        }
     }
 
     private func placeholderTab(_ title: String) -> some View {
@@ -102,7 +136,7 @@ struct HomeView: View {
             tabBarItem(icon: "🎯", label: "首頁", tag: 0)
             tabBarItem(icon: "🗓", label: "我的約球", tag: 1)
             centerTabButton
-            tabBarItem(icon: "💬", label: "消息", tag: 3, badgeCount: 2)
+            tabBarItem(icon: "💬", label: "聊天", tag: 3, badgeCount: chatUnreadCount)
             tabBarItem(icon: "👤", label: "我的", tag: 4)
         }
         .padding(.top, Spacing.sm)
@@ -218,12 +252,24 @@ private extension HomeView {
                     drawerMenuItem(icon: "🏆", label: "賽事") {
                         showTournaments = true
                     }
-                    drawerMenuItem(icon: "🤖", label: "約球助理")
-                    drawerMenuItem(icon: "⭐", label: "評價", badge: 2)
-                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5)
-                    drawerMenuItem(icon: "👥", label: "關注")
-                    drawerMenuItem(icon: "🚫", label: "封鎖名單")
-                    drawerMenuItem(icon: "📨", label: "邀請好友")
+                    drawerMenuItem(icon: "🤖", label: "約球助理") {
+                        showMatchAssistant = true
+                    }
+                    drawerMenuItem(icon: "⭐", label: "評價", badge: 2) {
+                        showReviews = true
+                    }
+                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5) {
+                        showNotifications = true
+                    }
+                    drawerMenuItem(icon: "👥", label: "關注") {
+                        showFollowing = true
+                    }
+                    drawerMenuItem(icon: "🚫", label: "封鎖名單") {
+                        showBlockList = true
+                    }
+                    drawerMenuItem(icon: "📨", label: "邀請好友") {
+                        showInviteFriends = true
+                    }
 
                     // Divider
                     Rectangle()
@@ -232,8 +278,12 @@ private extension HomeView {
                         .padding(.horizontal, 20)
                         .padding(.vertical, Spacing.sm)
 
-                    drawerMenuItem(icon: "⚙️", label: "設定", isSecondary: true)
-                    drawerMenuItem(icon: "❓", label: "幫助", isSecondary: true)
+                    drawerMenuItem(icon: "⚙️", label: "設定", isSecondary: true) {
+                        showSettings = true
+                    }
+                    drawerMenuItem(icon: "❓", label: "幫助", isSecondary: true) {
+                        showHelp = true
+                    }
                 }
             }
 
@@ -1065,7 +1115,8 @@ private extension HomeView {
             weather: MatchWeather(temp: temp, humidity: "65%", uv: "6", wind: "10"),
             participantList: [
                 MatchParticipant(name: match.name, gender: match.gender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
-            ]
+            ],
+            isOwnMatch: match.isOwnMatch
         )
     }
 
