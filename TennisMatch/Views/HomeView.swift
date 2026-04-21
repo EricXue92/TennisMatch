@@ -51,15 +51,18 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onMatchCancelled: { orgName, location in
-                    // Decrement player count so match reappears as available
-                    if let idx = matches.firstIndex(where: { $0.name == orgName && $0.location == location }) {
-                        if matches[idx].currentPlayers > 0 {
-                            matches[idx].currentPlayers -= 1
-                        }
+                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onMatchCancelled: { sourceMatchID in
+                    // Decrement player count and clear the "已報名" flag for the originating HomeView match.
+                    // sourceMatchID is nil for mock upcoming items / invitation-accept flows, which correctly no-op.
+                    guard let id = sourceMatchID,
+                          let idx = matches.firstIndex(where: { $0.id == id })
+                    else { return }
+                    if matches[idx].currentPlayers > 0 {
+                        matches[idx].currentPlayers -= 1
                     }
+                    signedUpMatchIDs.remove(id)
                 })
-                case 2: placeholderTab("一鍵約球")
+                case 2: MatchAssistantView()
                 case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches)
                 case 4: ProfileView()
                 default: homeTab
@@ -117,7 +120,7 @@ struct HomeView: View {
             })
         }
         .navigationDestination(item: $selectedMatchDetail) { detail in
-            MatchDetailView(match: detail)
+            MatchDetailView(match: detail, acceptedMatches: $acceptedMatches)
         }
         .navigationDestination(isPresented: $showMatchAssistant) {
             MatchAssistantView()

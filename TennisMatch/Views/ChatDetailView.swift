@@ -11,6 +11,7 @@ import PhotosUI
 struct ChatDetailView: View {
     let chat: MockChat
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    var matchContext: String? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
@@ -54,14 +55,19 @@ struct ChatDetailView: View {
 
     private var allMessages: [ChatBubble] {
         var messages: [ChatBubble] = []
-        for msg in mockMessages {
-            messages.append(msg)
-            // After an accepted invitation, insert a system confirmation
-            if case .invitation(let date, let location) = msg.content,
-               isInvitationAccepted(date: date, location: location) {
-                messages.append(ChatBubble(
-                    .systemMessage("🎾 約球已確認！\(date) 在\(location)，記得準時到達！")
-                ))
+        if let context = matchContext {
+            // From sign-up success → show match info as context, no generic mock messages
+            messages.append(ChatBubble(.systemMessage(context)))
+        } else {
+            for msg in mockMessages {
+                messages.append(msg)
+                // After an accepted invitation, insert a system confirmation
+                if case .invitation(let date, let location) = msg.content,
+                   isInvitationAccepted(date: date, location: location) {
+                    messages.append(ChatBubble(
+                        .systemMessage("🎾 約球已確認！\(date) 在\(location)，記得準時到達！")
+                    ))
+                }
             }
         }
         messages.append(contentsOf: sentMessages)
@@ -254,17 +260,38 @@ struct ChatDetailView: View {
     // MARK: - System Message
 
     private func systemMessageBubble(_ text: String) -> some View {
-        HStack {
+        let isMatchContext = text.contains("約球已確認") || text.contains("賽事報名確認") || text.contains("已接受約球邀請")
+        return HStack {
             Spacer()
-            Text(text)
-                .font(.system(size: 12, weight: .medium))
-                .foregroundColor(Theme.textCaption)
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.xs)
+            if isMatchContext {
+                VStack(alignment: .leading, spacing: 6) {
+                    ForEach(text.components(separatedBy: "\n"), id: \.self) { line in
+                        Text(line)
+                            .font(.system(size: 13, weight: line == text.components(separatedBy: "\n").first ? .bold : .regular))
+                            .foregroundColor(Theme.textDark)
+                    }
+                }
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
-                    RoundedRectangle(cornerRadius: 8)
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
                         .fill(Theme.confirmedBg)
                 )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12, style: .continuous)
+                        .stroke(Theme.primary.opacity(0.3), lineWidth: 1)
+                )
+            } else {
+                Text(text)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textCaption)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .background(
+                        RoundedRectangle(cornerRadius: 8)
+                            .fill(Theme.confirmedBg)
+                    )
+            }
             Spacer()
         }
     }

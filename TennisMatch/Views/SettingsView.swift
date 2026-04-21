@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("isLoggedIn") private var isLoggedIn = true
     @State private var matchReminders = true
     @State private var chatNotifications = true
     @State private var tournamentUpdates = true
@@ -46,7 +47,7 @@ struct SettingsView: View {
         .alert("退出登錄", isPresented: $showLogoutAlert) {
             Button("取消", role: .cancel) {}
             Button("確認退出", role: .destructive) {
-                // TODO: clear user state, navigate to LoginView
+                isLoggedIn = false
             }
         } message: {
             Text("確定要退出登錄嗎？")

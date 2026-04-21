@@ -392,6 +392,36 @@ private let mockTournamentRecords: [TournamentRecord] = [
         isWin: true,
         isChampion: false
     ),
+    TournamentRecord(
+        name: "沙田區秋季友誼賽",
+        date: "2025/10",
+        draw: "16 簽",
+        round: "冠軍",
+        scores: ["6-1", "6-4"],
+        result: "勝",
+        isWin: true,
+        isChampion: true
+    ),
+    TournamentRecord(
+        name: "香港業餘網球巡迴賽",
+        date: "2025/08",
+        draw: "32 簽",
+        round: "16 強",
+        scores: ["3-6", "6-4", "4-6"],
+        result: "負",
+        isWin: false,
+        isChampion: false
+    ),
+    TournamentRecord(
+        name: "將軍澳夏季公開賽",
+        date: "2025/06",
+        draw: "16 簽",
+        round: "亞軍",
+        scores: ["6-7", "6-3", "3-6"],
+        result: "負",
+        isWin: false,
+        isChampion: false
+    ),
 ]
 
 // MARK: - Preview

@@ -9,11 +9,16 @@ import SwiftUI
 
 @main
 struct TennisMatchApp: App {
+    @AppStorage("isLoggedIn") private var isLoggedIn = true
+
     var body: some Scene {
         WindowGroup {
             NavigationStack {
-                // LoginView()
-                HomeView()
+                if isLoggedIn {
+                    HomeView()
+                } else {
+                    LoginView()
+                }
             }
         }
     }

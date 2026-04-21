@@ -9,12 +9,14 @@ import SwiftUI
 
 struct MatchDetailView: View {
     let match: MatchDetailData
+    @Binding var acceptedMatches: [AcceptedMatchInfo]
     @Environment(\.dismiss) private var dismiss
     @State private var showInviteSheet = false
     @State private var isFollowing = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
     @State private var navigateToChat = false
+    @State private var pendingContactOrganizer = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,8 +39,8 @@ struct MatchDetailView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("←")
-                        .font(.system(size: 22))
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                 }
             }
@@ -340,8 +342,16 @@ private extension MatchDetailView {
             }
             .presentationDetents([.medium])
         }
-        .fullScreenCover(isPresented: $showSignUpSuccess) {
-            SignUpSuccessViewForDetail(match: match)
+        .fullScreenCover(isPresented: $showSignUpSuccess, onDismiss: {
+            if pendingContactOrganizer {
+                pendingContactOrganizer = false
+                navigateToChat = true
+            }
+        }) {
+            SignUpSuccessViewForDetail(match: match, onContactOrganizer: {
+                pendingContactOrganizer = true
+                showSignUpSuccess = false
+            })
         }
         .navigationDestination(isPresented: $navigateToChat) {
             ChatDetailView(
@@ -351,7 +361,8 @@ private extension MatchDetailView {
                     time: "now",
                     unreadCount: 0
                 ),
-                acceptedMatches: .constant([])
+                acceptedMatches: $acceptedMatches,
+                matchContext: "🎾 約球已確認\n📅 \(match.date) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType) · NTRP \(match.ntrpRange)\n💰 \(match.fee)"
             )
         }
     }
@@ -491,6 +502,10 @@ private let inviteContacts: [InviteContact] = [
     InviteContact(name: "張偉", genderSymbol: "♂", genderColor: Theme.genderMale, ntrp: "4.5"),
     InviteContact(name: "嘉欣", genderSymbol: "♀", genderColor: Theme.genderFemale, ntrp: "3.5"),
     InviteContact(name: "艾美", genderSymbol: "♀", genderColor: Theme.genderFemale, ntrp: "3.0"),
+    InviteContact(name: "大衛", genderSymbol: "♂", genderColor: Theme.genderMale, ntrp: "4.0"),
+    InviteContact(name: "阿豪", genderSymbol: "♂", genderColor: Theme.genderMale, ntrp: "3.5"),
+    InviteContact(name: "思慧", genderSymbol: "♀", genderColor: Theme.genderFemale, ntrp: "4.0"),
+    InviteContact(name: "俊傑", genderSymbol: "♂", genderColor: Theme.genderMale, ntrp: "4.0"),
 ]
 
 // MARK: - Sign Up from Detail
@@ -567,6 +582,7 @@ private struct SignUpConfirmSheetForDetail: View {
 
 private struct SignUpSuccessViewForDetail: View {
     let match: MatchDetailData
+    var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -602,10 +618,42 @@ private struct SignUpSuccessViewForDetail: View {
                 .foregroundColor(Theme.textHint)
                 .padding(.top, Spacing.xs)
 
+            Spacer().frame(height: Spacing.lg)
+
+            // Summary card
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                summaryRow(icon: "calendar", text: "\(match.date) \(match.timeRange)")
+                summaryRow(icon: "mappin.and.ellipse", text: match.location)
+                summaryRow(icon: "dollarsign.circle", text: match.fee)
+                summaryRow(icon: "person.2.fill", text: "\(match.players) · 水平 \(match.ntrpRange)")
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.inputBorder, lineWidth: 1)
+            )
+            .padding(.horizontal, Spacing.md)
+
+            Spacer().frame(height: Spacing.md)
+
+            // Action buttons
+            VStack(spacing: Spacing.sm) {
+                outlineButton(icon: "bubble.left.fill", label: "聯繫發起人") {
+                    onContactOrganizer?()
+                }
+                outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
+                    // TODO: add to calendar
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+
             Spacer()
 
             Button { dismiss() } label: {
-                Text("進入群聊")
+                Text("返回詳情")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -618,19 +666,51 @@ private struct SignUpSuccessViewForDetail: View {
         }
         .background(Color(hex: 0xFFF0F0).opacity(0.3))
     }
+
+    private func summaryRow(icon: String, text: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textHint)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textDark)
+        }
+    }
+
+    private func outlineButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                Text(label)
+                    .font(.system(size: 15, weight: .medium))
+            }
+            .foregroundColor(Theme.accentGreen)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.accentGreen, lineWidth: 1.5)
+            )
+        }
+    }
 }
 
 // MARK: - Preview
 
 #Preview("iPhone SE") {
     NavigationStack {
-        MatchDetailView(match: previewMatchDetail)
+        MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
     }
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
-        MatchDetailView(match: previewMatchDetail)
+        MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
     }
 }
 

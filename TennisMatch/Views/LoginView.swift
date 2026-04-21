@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Login View
 
 struct LoginView: View {
+    @AppStorage("isLoggedIn") private var isLoggedIn = true
     @State private var appeared = false
     @State private var ballFloat = false
     @State private var glowPulse = false
@@ -142,11 +143,11 @@ struct LoginView: View {
                 bg: wechat,
                 fg: .white,
                 delay: 0.60,
-                action: { showVerification = true }
+                action: { isLoggedIn = true }
             )
 
             // Apple
-            Button(action: { showVerification = true }) {
+            Button(action: { isLoggedIn = true }) {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
                         .font(.system(size: 18, weight: .semibold))

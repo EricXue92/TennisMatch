@@ -284,11 +284,17 @@ private let mockReceivedReviews: [ReceivedReview] = [
     ReceivedReview(name: "莎拉", rating: 5, comment: "很準時，球技很好，打得很開心！", date: "04/19"),
     ReceivedReview(name: "王強", rating: 4, comment: "配合默契的雙打搭檔", date: "04/15"),
     ReceivedReview(name: "小美", rating: 5, comment: "球品好，推薦！", date: "04/10"),
+    ReceivedReview(name: "大衛", rating: 5, comment: "球風穩健，接發球很到位", date: "04/06"),
+    ReceivedReview(name: "嘉欣", rating: 4, comment: "很有耐心的球友，適合練習對打", date: "03/29"),
+    ReceivedReview(name: "俊傑", rating: 3, comment: "遲到了十分鐘，但球技不錯", date: "03/22"),
+    ReceivedReview(name: "艾美", rating: 5, comment: "非常友善，下次還想約！節奏掌控很好", date: "03/15"),
 ]
 
 private let mockPendingReviews: [PendingReview] = [
     PendingReview(name: "志明", matchInfo: "04/21 單打 · 香港網球中心"),
     PendingReview(name: "嘉欣", matchInfo: "04/18 雙打 · 沙田公園"),
+    PendingReview(name: "Michael", matchInfo: "04/20 單打 · 跑馬地遊樂場"),
+    PendingReview(name: "阿豪", matchInfo: "04/17 雙打 · 歌和老街公園"),
 ]
 
 // MARK: - Preview

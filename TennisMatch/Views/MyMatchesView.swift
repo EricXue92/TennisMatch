@@ -9,6 +9,8 @@ import SwiftUI
 
 struct MyMatchesView: View {
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
+    var onMatchCancelled: ((UUID?) -> Void)? = nil
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
@@ -17,14 +19,20 @@ struct MyMatchesView: View {
     @State private var showManageSheet = false
     @State private var matchToManage: MyMatchItem?
     @State private var showRejectToast = false
+    @State private var comingSoonMessage: String?
     @State private var rejectedInvitations: Set<UUID> = []
     @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
+    @State private var acceptedInvitation: MyMatchInvitation?
+    @State private var showAcceptSuccess = false
+    @State private var pendingDMContact: MyMatchInvitation?
+    @State private var dmChat: MockChat?
+    @State private var dmMatchContext: String?
 
     private var acceptedMatchItems: [MyMatchItem] {
         acceptedMatches.map { info in
             let timeStr = info.time
             let startHour = Int(timeStr.prefix(2)) ?? 10
-            let endHour = startHour + 2
+            let endHour = startHour + info.durationHours
             let endTime = String(format: "%02d:00", endHour)
             return MyMatchItem(
                 title: "\(info.organizerName) 發起的\(info.matchType)",
@@ -36,7 +44,8 @@ struct MyMatchesView: View {
                 players: "2/2 · NTRP 3.0-4.0",
                 weather: "☀️ 24°C",
                 matchType: info.matchType,
-                acceptedMatchID: info.id
+                acceptedMatchID: info.id,
+                sourceMatchID: info.sourceMatchID
             )
         }
     }
@@ -84,6 +93,7 @@ struct MyMatchesView: View {
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
+                    onMatchCancelled?(match.sourceMatchID)
                     showCancelledToast = true
                 }
                 matchToCancel = nil
@@ -95,13 +105,13 @@ struct MyMatchesView: View {
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
             Button("編輯約球") {
-                // TODO: edit match
+                comingSoonMessage = "編輯約球功能即將推出"
             }
             Button("查看報名者") {
-                // TODO: view applicants
+                comingSoonMessage = "查看報名者功能即將推出"
             }
             Button("關閉報名") {
-                // TODO: close signups
+                comingSoonMessage = "關閉報名功能即將推出"
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
@@ -154,6 +164,50 @@ struct MyMatchesView: View {
                     }
                 }
             }
+        }
+        .overlay(alignment: .top) {
+            if let message = comingSoonMessage {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "hourglass")
+                        .foregroundColor(.white)
+                    Text(message)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .onAppear {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { comingSoonMessage = nil }
+                    }
+                }
+            }
+        }
+        .fullScreenCover(isPresented: $showAcceptSuccess, onDismiss: {
+            if let inv = pendingDMContact {
+                dmChat = MockChat(
+                    type: .personal(name: inv.inviterName, symbol: "♂", symbolColor: Theme.genderMale),
+                    lastMessage: "點擊開始聊天",
+                    time: "now",
+                    unreadCount: 0
+                )
+                dmMatchContext = "🎾 已接受約球邀請\n🏸 \(inv.matchType)\n📋 \(inv.details)"
+                pendingDMContact = nil
+            }
+        }) {
+            if let inv = acceptedInvitation {
+                InvitationAcceptSuccessView(invitation: inv, onContactOrganizer: {
+                    pendingDMContact = inv
+                    showAcceptSuccess = false
+                })
+            }
+        }
+        .navigationDestination(item: $dmChat) { chat in
+            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: dmMatchContext)
+                .onDisappear { dmMatchContext = nil }
         }
     }
 
@@ -412,16 +466,13 @@ private extension MyMatchesView {
                         organizerName: invitation.inviterName,
                         matchType: invitation.matchType,
                         dateString: invitation.details.components(separatedBy: " · ").first ?? "",
-                        time: "10:00",
-                        location: invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
+                        time: invitation.time,
+                        location: invitation.details.components(separatedBy: " · ").dropFirst().first ?? "",
+                        sourceMatchID: nil,
+                        durationHours: invitation.durationHours
                     ))
-                    let chatTitle = "\(invitation.details.components(separatedBy: " · ").dropFirst().first ?? "") \(invitation.matchType)"
-                    selectedChat = MockChat(
-                        type: .match(title: chatTitle, dateTime: invitation.details.components(separatedBy: " · ").first ?? ""),
-                        lastMessage: "已加入約球",
-                        time: "now",
-                        unreadCount: 0
-                    )
+                    acceptedInvitation = invitation
+                    showAcceptSuccess = true
                 } label: {
                     Text("接受")
                         .font(.system(size: 11, weight: .medium))
@@ -481,6 +532,7 @@ private struct MyMatchItem: Identifiable {
     let weather: String
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
+    var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
 }
 
 private struct MyMatchInvitation: Identifiable {
@@ -488,6 +540,8 @@ private struct MyMatchInvitation: Identifiable {
     let inviterName: String
     let matchType: String
     let details: String
+    let time: String            // "14:00"
+    let durationHours: Int      // e.g. 2
 }
 
 private let mockUpcomingMatchesInitial: [MyMatchItem] = [
@@ -510,6 +564,37 @@ private let mockUpcomingMatchesInitial: [MyMatchItem] = [
         timeRange: "14:00 - 16:00",
         players: "2/4 · NTRP 3.5-4.5",
         weather: "⛅ 26°C"
+    ),
+    MyMatchItem(
+        title: "嘉欣 發起的單打",
+        isOrganizer: false,
+        status: .confirmed,
+        dateLabel: "04/23（三）",
+        location: "香港公園",
+        timeRange: "09:00 - 11:00",
+        players: "2/2 · NTRP 2.5-3.5",
+        weather: "🌤 26°C"
+    ),
+    MyMatchItem(
+        title: "我發起的雙打",
+        isOrganizer: true,
+        status: .pending,
+        dateLabel: "04/25（五）",
+        location: "將軍澳運動場",
+        timeRange: "18:00 - 20:00",
+        players: "3/4 · NTRP 3.0-4.0",
+        weather: "☀️ 27°C",
+        matchType: "雙打"
+    ),
+    MyMatchItem(
+        title: "Michael 發起的單打",
+        isOrganizer: false,
+        status: .confirmed,
+        dateLabel: "04/27（日）",
+        location: "跑馬地遊樂場",
+        timeRange: "08:00 - 10:00",
+        players: "2/2 · NTRP 4.5-5.0",
+        weather: "☀️ 25°C"
     ),
 ]
 
@@ -534,15 +619,194 @@ private let mockCompletedMatches: [MyMatchItem] = [
         players: "2/2 · NTRP 3.0-4.0",
         weather: "🌤 25°C"
     ),
+    MyMatchItem(
+        title: "大衛 發起的雙打",
+        isOrganizer: false,
+        status: .completed,
+        dateLabel: "04/06（日）",
+        location: "歌和老街公園",
+        timeRange: "16:00 - 18:00",
+        players: "4/4 · NTRP 4.0-5.0",
+        weather: "☀️ 27°C",
+        matchType: "雙打"
+    ),
+    MyMatchItem(
+        title: "嘉欣 發起的雙打",
+        isOrganizer: false,
+        status: .completed,
+        dateLabel: "03/29（六）",
+        location: "沙田公園",
+        timeRange: "10:00 - 12:00",
+        players: "4/4 · NTRP 3.0-3.5",
+        weather: "⛅ 23°C",
+        matchType: "雙打"
+    ),
+    MyMatchItem(
+        title: "我發起的單打",
+        isOrganizer: true,
+        status: .completed,
+        dateLabel: "03/22（六）",
+        location: "維多利亞公園網球場",
+        timeRange: "08:00 - 10:00",
+        players: "2/2 · NTRP 3.5-4.0",
+        weather: "☀️ 22°C"
+    ),
 ]
 
 private let mockInvitations: [MyMatchInvitation] = [
     MyMatchInvitation(
         inviterName: "艾美",
         matchType: "單打",
-        details: "04/22 · 京士柏 · NTRP 3.0"
+        details: "04/22 · 京士柏 · NTRP 3.0",
+        time: "14:00",
+        durationHours: 2
+    ),
+    MyMatchInvitation(
+        inviterName: "俊傑",
+        matchType: "雙打",
+        details: "04/25 · 將軍澳 · NTRP 3.5-4.5",
+        time: "18:00",
+        durationHours: 2
+    ),
+    MyMatchInvitation(
+        inviterName: "思慧",
+        matchType: "單打",
+        details: "04/27 · 香港公園 · NTRP 3.0-3.5",
+        time: "09:00",
+        durationHours: 2
     ),
 ]
+
+// MARK: - Invitation Accept Success
+
+private struct InvitationAcceptSuccessView: View {
+    let invitation: MyMatchInvitation
+    var onContactOrganizer: (() -> Void)?
+    @Environment(\.dismiss) private var dismiss
+
+    private var detailParts: [String] {
+        invitation.details.components(separatedBy: " · ")
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Theme.textDark)
+                        .frame(width: 44, height: 44)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.xs)
+
+            Spacer().frame(height: Spacing.xxl)
+
+            ZStack {
+                Circle().fill(Theme.primary).frame(width: 80, height: 80)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            Spacer().frame(height: Spacing.md)
+
+            Text("已接受邀請！")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(Theme.textDark)
+
+            Text("你已加入\(invitation.inviterName)的\(invitation.matchType)約球")
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textHint)
+                .padding(.top, Spacing.xs)
+
+            Spacer().frame(height: Spacing.lg)
+
+            // Summary card
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                if let date = detailParts.first {
+                    summaryRow(icon: "calendar", text: date)
+                }
+                if detailParts.count > 1 {
+                    summaryRow(icon: "mappin.and.ellipse", text: detailParts[1])
+                }
+                if detailParts.count > 2 {
+                    summaryRow(icon: "figure.tennis", text: "\(invitation.matchType) · \(detailParts[2])")
+                }
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.inputBorder, lineWidth: 1)
+            )
+            .padding(.horizontal, Spacing.md)
+
+            Spacer().frame(height: Spacing.md)
+
+            // Action buttons
+            VStack(spacing: Spacing.sm) {
+                outlineButton(icon: "bubble.left.fill", label: "私信\(invitation.inviterName)") {
+                    onContactOrganizer?()
+                }
+                outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
+                    // TODO: add to calendar
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+
+            Spacer()
+
+            Button { dismiss() } label: {
+                Text("返回我的約球")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.bottom, Spacing.lg)
+        }
+        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+    }
+
+    private func summaryRow(icon: String, text: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textHint)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textDark)
+        }
+    }
+
+    private func outlineButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                Text(label)
+                    .font(.system(size: 15, weight: .medium))
+            }
+            .foregroundColor(Theme.accentGreen)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.accentGreen, lineWidth: 1.5)
+            )
+        }
+    }
+}
 
 // MARK: - Preview
 

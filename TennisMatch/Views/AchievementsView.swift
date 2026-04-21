@@ -102,6 +102,10 @@ private let mockAchievements: [Achievement] = [
     Achievement(icon: "🔥", name: "連勝王", description: "比賽連勝 5 場", unlocked: false),
     Achievement(icon: "💪", name: "鐵人", description: "一週打球 5 次", unlocked: false),
     Achievement(icon: "⭐", name: "五星好評", description: "累計獲得 10 個五星評價", unlocked: true),
+    Achievement(icon: "🎾", name: "百場老將", description: "累計完成 100 場約球", unlocked: false),
+    Achievement(icon: "📍", name: "球場探索家", description: "在 10 個不同球場打過球", unlocked: true),
+    Achievement(icon: "🌟", name: "人氣球友", description: "被 50 位球友關注", unlocked: false),
+    Achievement(icon: "🎖️", name: "雙打王", description: "累計完成 30 場雙打", unlocked: false),
 ]
 
 // MARK: - Preview

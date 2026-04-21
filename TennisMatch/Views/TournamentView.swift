@@ -307,6 +307,9 @@ struct TournamentDetailView: View {
     @State private var isFollowing = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
+    @State private var pendingContactOrganizer = false
+    @State private var dmChat: MockChat?
+    @State private var dmMatchContext: String?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -346,8 +349,26 @@ struct TournamentDetailView: View {
             }
             .presentationDetents([.medium])
         }
-        .fullScreenCover(isPresented: $showSignUpSuccess) {
-            TournamentSignUpSuccessView(tournament: tournament)
+        .fullScreenCover(isPresented: $showSignUpSuccess, onDismiss: {
+            if pendingContactOrganizer {
+                pendingContactOrganizer = false
+                dmChat = MockChat(
+                    type: .personal(name: tournament.organizer, symbol: "♂", symbolColor: Theme.genderMale),
+                    lastMessage: "點擊開始聊天",
+                    time: "now",
+                    unreadCount: 0
+                )
+                dmMatchContext = "🏆 賽事報名確認\n📅 \(tournament.dateRange)\n📍 \(tournament.location)\n🏸 \(tournament.format) · \(tournament.matchType) · NTRP \(tournament.ntrpRange)\n💰 \(tournament.fee)"
+            }
+        }) {
+            TournamentSignUpSuccessView(tournament: tournament, onContactOrganizer: {
+                pendingContactOrganizer = true
+                showSignUpSuccess = false
+            })
+        }
+        .navigationDestination(item: $dmChat) { chat in
+            ChatDetailView(chat: chat, acceptedMatches: .constant([]), matchContext: dmMatchContext)
+                .onDisappear { dmMatchContext = nil }
         }
     }
 }
@@ -643,6 +664,7 @@ private struct TournamentSignUpSheet: View {
 
 private struct TournamentSignUpSuccessView: View {
     let tournament: MockTournament
+    var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -678,10 +700,43 @@ private struct TournamentSignUpSuccessView: View {
                 .foregroundColor(Theme.textHint)
                 .padding(.top, Spacing.xs)
 
+            Spacer().frame(height: Spacing.lg)
+
+            // Summary card
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                summaryRow(icon: "calendar", text: tournament.dateRange)
+                summaryRow(icon: "mappin.and.ellipse", text: tournament.location)
+                summaryRow(icon: "dollarsign.circle", text: tournament.fee)
+                summaryRow(icon: "person.2.fill", text: "\(tournament.participants) · NTRP \(tournament.ntrpRange)")
+                summaryRow(icon: "trophy.fill", text: "\(tournament.format) · \(tournament.matchType)")
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.inputBorder, lineWidth: 1)
+            )
+            .padding(.horizontal, Spacing.md)
+
+            Spacer().frame(height: Spacing.md)
+
+            // Action buttons
+            VStack(spacing: Spacing.sm) {
+                outlineButton(icon: "bubble.left.fill", label: "聯繫發起人") {
+                    onContactOrganizer?()
+                }
+                outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
+                    // TODO: add to calendar
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+
             Spacer()
 
             Button { dismiss() } label: {
-                Text("進入賽事群聊")
+                Text("返回賽事")
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -693,6 +748,38 @@ private struct TournamentSignUpSuccessView: View {
             .padding(.bottom, Spacing.lg)
         }
         .background(Color(hex: 0xFFF0F0).opacity(0.3))
+    }
+
+    private func summaryRow(icon: String, text: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textHint)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textDark)
+        }
+    }
+
+    private func outlineButton(icon: String, label: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                Text(label)
+                    .font(.system(size: 15, weight: .medium))
+            }
+            .foregroundColor(Theme.accentGreen)
+            .frame(maxWidth: .infinity)
+            .frame(height: 48)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(Theme.accentGreen, lineWidth: 1.5)
+            )
+        }
     }
 }
 
@@ -827,6 +914,63 @@ let mockTournaments: [MockTournament] = [
             TournamentPlayer(name: "Kelly", ntrp: "4.0"),
             TournamentPlayer(name: "小美", ntrp: "4.0"),
             TournamentPlayer(name: "小玲", ntrp: "4.0"),
+        ]
+    ),
+    MockTournament(
+        name: "港島區週末快速賽",
+        format: "淘汰賽", matchType: "單打", ntrpRange: "2.5-3.5",
+        status: "報名中",
+        dateRange: "2026/05/10 - 05/10",
+        location: "香港公園",
+        participants: "7/16",
+        fee: "180 港幣",
+        organizer: "艾美",
+        gradientColors: [Color(hex: 0x34D399), Color(hex: 0x059669)],
+        rules: [
+            "單淘汰制，一盤定勝負（搶七）",
+            "每場比賽限時 45 分鐘",
+            "適合初中階球友參加",
+            "主辦方提供比賽用球"
+        ],
+        playerList: [
+            TournamentPlayer(name: "艾美", ntrp: "3.0"),
+            TournamentPlayer(name: "小美", ntrp: "3.0"),
+            TournamentPlayer(name: "曉彤", ntrp: "2.5"),
+            TournamentPlayer(name: "雅婷", ntrp: "3.0"),
+            TournamentPlayer(name: "阿杰", ntrp: "2.5"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.5"),
+            TournamentPlayer(name: "國輝", ntrp: "3.5"),
+        ]
+    ),
+    MockTournament(
+        name: "全港混雙邀請賽",
+        format: "循環賽", matchType: "雙打", ntrpRange: "3.5-5.0",
+        status: "進行中",
+        dateRange: "2026/04/15 - 05/31",
+        location: "香港網球中心",
+        participants: "12/16",
+        fee: "400 港幣",
+        organizer: "老張",
+        gradientColors: [Color(hex: 0xF472B6), Color(hex: 0xDB2777)],
+        rules: [
+            "混雙循環賽，每組需一男一女",
+            "每場比賽採用超級搶十",
+            "小組前兩名晉級淘汰賽",
+            "決賽採用三盤兩勝制"
+        ],
+        playerList: [
+            TournamentPlayer(name: "老張", ntrp: "5.0"),
+            TournamentPlayer(name: "莎拉", ntrp: "4.5"),
+            TournamentPlayer(name: "王強", ntrp: "4.5"),
+            TournamentPlayer(name: "麗莎", ntrp: "5.0"),
+            TournamentPlayer(name: "Michael", ntrp: "5.0"),
+            TournamentPlayer(name: "嘉欣", ntrp: "4.5"),
+            TournamentPlayer(name: "大衛", ntrp: "4.0"),
+            TournamentPlayer(name: "思慧", ntrp: "4.0"),
+            TournamentPlayer(name: "志明", ntrp: "4.5"),
+            TournamentPlayer(name: "Kelly", ntrp: "4.0"),
+            TournamentPlayer(name: "Peter", ntrp: "5.0"),
+            TournamentPlayer(name: "美琪", ntrp: "3.5"),
         ]
     ),
 ]

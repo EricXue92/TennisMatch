@@ -119,6 +119,7 @@ private struct BlockedUser: Identifiable {
 private let mockBlockedUsers: [BlockedUser] = [
     BlockedUser(name: "張三", blockedDate: "2026/04/10"),
     BlockedUser(name: "李四", blockedDate: "2026/03/25"),
+    BlockedUser(name: "陳大文", blockedDate: "2026/02/14"),
 ]
 
 // MARK: - Preview
