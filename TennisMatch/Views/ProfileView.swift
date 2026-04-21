@@ -8,7 +8,12 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(FollowStore.self) private var followStore
     @State private var showEditProfile = false
+    @State private var showSettings = false
+    @State private var showTournaments = false
+    @State private var showAchievements = false
+    @State private var showFollowing = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -26,6 +31,18 @@ struct ProfileView: View {
         }
         .background(Theme.background)
         .ignoresSafeArea(edges: .top)
+        .navigationDestination(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .navigationDestination(isPresented: $showAchievements) {
+            AchievementsView()
+        }
+        .navigationDestination(isPresented: $showFollowing) {
+            FollowingView()
+        }
+        .fullScreenCover(isPresented: $showTournaments) {
+            TournamentView()
+        }
     }
 
     // MARK: - Header
@@ -78,7 +95,7 @@ struct ProfileView: View {
 
                 // Settings button
                 Button {
-                    // TODO: settings
+                    showSettings = true
                 } label: {
                     Image(systemName: "gearshape")
                         .font(.system(size: 18, weight: .medium))
@@ -91,9 +108,11 @@ struct ProfileView: View {
             // Follow stats + edit button
             HStack {
                 HStack(spacing: Spacing.md) {
-                    followStat(count: "23", label: "關注")
-                    followStat(count: "18", label: "粉絲")
-                    followStat(count: "12", label: "互相關注")
+                    Button { showFollowing = true } label: {
+                        followStat(count: "\(followStore.followingCount)", label: "關注")
+                    }
+                    followStat(count: "\(followStore.followerCount)", label: "粉絲")
+                    followStat(count: "\(followStore.mutualCount)", label: "互相關注")
                 }
 
                 Spacer()
@@ -207,7 +226,7 @@ struct ProfileView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
-                    // TODO: show all tournament records
+                    showTournaments = true
                 } label: {
                     Text("全部")
                         .font(.system(size: 12))
@@ -294,7 +313,7 @@ struct ProfileView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
-                    // TODO: show all achievements
+                    showAchievements = true
                 } label: {
                     Text("全部")
                         .font(.system(size: 12))
@@ -380,14 +399,46 @@ private let mockTournamentRecords: [TournamentRecord] = [
         isWin: true,
         isChampion: false
     ),
+    TournamentRecord(
+        name: "沙田區秋季友誼賽",
+        date: "2025/10",
+        draw: "16 簽",
+        round: "冠軍",
+        scores: ["6-1", "6-4"],
+        result: "勝",
+        isWin: true,
+        isChampion: true
+    ),
+    TournamentRecord(
+        name: "香港業餘網球巡迴賽",
+        date: "2025/08",
+        draw: "32 簽",
+        round: "16 強",
+        scores: ["3-6", "6-4", "4-6"],
+        result: "負",
+        isWin: false,
+        isChampion: false
+    ),
+    TournamentRecord(
+        name: "將軍澳夏季公開賽",
+        date: "2025/06",
+        draw: "16 簽",
+        round: "亞軍",
+        scores: ["6-7", "6-3", "3-6"],
+        result: "負",
+        isWin: false,
+        isChampion: false
+    ),
 ]
 
 // MARK: - Preview
 
 #Preview("iPhone SE") {
     ProfileView()
+        .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     ProfileView()
+        .environment(FollowStore())
 }

@@ -10,10 +10,12 @@ import SwiftUI
 // MARK: - Login View
 
 struct LoginView: View {
+    @AppStorage("isLoggedIn") private var isLoggedIn = true
     @State private var appeared = false
     @State private var ballFloat = false
     @State private var glowPulse = false
     @State private var showVerification = false
+    @State private var showHelpView = false
 
     // MARK: Theme
     private let bgTop    = Color(red: 0.02, green: 0.04, blue: 0.02)
@@ -54,6 +56,9 @@ struct LoginView: View {
         .toolbarColorScheme(.dark, for: .navigationBar)
         .navigationDestination(isPresented: $showVerification) {
             PhoneVerificationView(phoneNumber: "+86 138****8888")
+        }
+        .navigationDestination(isPresented: $showHelpView) {
+            HelpView()
         }
     }
 
@@ -137,11 +142,12 @@ struct LoginView: View {
                 icon: "bubble.left.fill",
                 bg: wechat,
                 fg: .white,
-                delay: 0.60
+                delay: 0.60,
+                action: { isLoggedIn = true }
             )
 
             // Apple
-            Button(action: {}) {
+            Button(action: { isLoggedIn = true }) {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
                         .font(.system(size: 18, weight: .semibold))
@@ -199,7 +205,7 @@ struct LoginView: View {
             HStack(spacing: 3) {
                 Text("還沒有帳號？")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: {}) {
+                Button(action: { showVerification = true }) {
                     Text("立即註冊")
                         .foregroundColor(chartreuse)
                         .underline()
@@ -210,8 +216,10 @@ struct LoginView: View {
             HStack(spacing: 3) {
                 Text("需要幫助？")
                     .foregroundColor(sage.opacity(0.55))
-                Text("聯繫客服")
-                    .foregroundColor(chartreuse.opacity(0.6))
+                Button(action: { showHelpView = true }) {
+                    Text("聯繫客服")
+                        .foregroundColor(chartreuse.opacity(0.6))
+                }
             }
             .font(.system(size: 11))
         }

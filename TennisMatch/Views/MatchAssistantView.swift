@@ -1,0 +1,188 @@
+//
+//  MatchAssistantView.swift
+//  TennisMatch
+//
+//  約球助理 — 智能推薦匹配的約球
+//
+
+import SwiftUI
+
+struct MatchAssistantView: View {
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: Spacing.md) {
+                // Intro card
+                HStack(spacing: Spacing.sm) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.primaryLight)
+                            .frame(width: 44, height: 44)
+                        Text("🤖")
+                            .font(.system(size: 22))
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("約球助理")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(Theme.textPrimary)
+                        Text("根據你的 NTRP 3.5、常去球場和空閒時間為你推薦")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                }
+                .padding(Spacing.md)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(.white)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                Text("為你推薦")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(Theme.textPrimary)
+
+                ForEach(mockRecommendations) { rec in
+                    recommendedCard(rec)
+                }
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.vertical, Spacing.md)
+        }
+        .background(Theme.background)
+        .navigationBarBackButtonHidden(true)
+        .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+                Button {
+                    dismiss()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(Theme.textPrimary)
+                }
+            }
+            ToolbarItem(placement: .principal) {
+                Text("約球助理")
+                    .font(.system(size: 18, weight: .semibold))
+            }
+        }
+    }
+
+    private func recommendedCard(_ rec: RecommendedMatch) -> some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(spacing: Spacing.sm) {
+                ZStack {
+                    Circle()
+                        .fill(Color(hex: 0xE0E0E0))
+                        .frame(width: 40, height: 40)
+                    Text(String(rec.name.prefix(1)))
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 4) {
+                        Text(rec.name)
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Theme.textPrimary)
+                        Text(rec.gender == .female ? "♀" : "♂")
+                            .font(.system(size: 14))
+                            .foregroundColor(rec.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                        Text(rec.matchType)
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Theme.textBody)
+                            .padding(.horizontal, 6)
+                            .frame(height: 18)
+                            .background(Theme.chipUnselectedBg)
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    }
+                    Text("NTRP \(rec.ntrp)")
+                        .font(.system(size: 11))
+                        .foregroundColor(Theme.textCaption)
+                }
+
+                Spacer()
+
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("匹配度")
+                        .font(.system(size: 10))
+                        .foregroundColor(Theme.textSecondary)
+                    Text("\(rec.matchScore)%")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(Theme.primary)
+                }
+            }
+
+            HStack(spacing: Spacing.xs) {
+                Text("📅 \(rec.dateTime)")
+                Text("📍 \(rec.location)")
+            }
+            .font(.system(size: 12))
+            .foregroundColor(Theme.textBody)
+            .padding(.leading, 52)
+
+            HStack(spacing: Spacing.xs) {
+                Text(rec.reason)
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.primary)
+                    .padding(.horizontal, Spacing.sm)
+                    .frame(height: 22)
+                    .background(Theme.primaryLight)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+
+                Spacer()
+
+                Button {
+                    // TODO: navigate to MatchDetailView
+                } label: {
+                    Text("查看")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                        .frame(width: 52, height: 30)
+                        .background(Theme.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .frame(minWidth: 44, minHeight: 44)
+                }
+            }
+            .padding(.leading, 52)
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
+    }
+}
+
+// MARK: - Data
+
+private struct RecommendedMatch: Identifiable {
+    let id = UUID()
+    let name: String
+    let gender: Gender
+    let ntrp: String
+    let matchType: String
+    let dateTime: String
+    let location: String
+    let matchScore: Int
+    let reason: String
+}
+
+private let mockRecommendations: [RecommendedMatch] = [
+    RecommendedMatch(name: "莎拉", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/19 10:00", location: "維多利亞公園", matchScore: 95, reason: "NTRP 完全匹配"),
+    RecommendedMatch(name: "美琪", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/21 08:30", location: "九龍仔公園", matchScore: 88, reason: "常去球場"),
+    RecommendedMatch(name: "小美", gender: .female, ntrp: "3.0", matchType: "雙打", dateTime: "04/22 10:00", location: "沙田公園", matchScore: 82, reason: "時間吻合"),
+    RecommendedMatch(name: "俊傑", gender: .male, ntrp: "4.0", matchType: "雙打", dateTime: "04/23 15:00", location: "將軍澳運動場", matchScore: 75, reason: "水平接近"),
+]
+
+// MARK: - Preview
+
+#Preview("iPhone SE") {
+    NavigationStack {
+        MatchAssistantView()
+    }
+}
+
+#Preview("iPhone 15 Pro") {
+    NavigationStack {
+        MatchAssistantView()
+    }
+}

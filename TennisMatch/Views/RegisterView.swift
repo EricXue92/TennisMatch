@@ -10,6 +10,7 @@ import PhotosUI
 
 struct RegisterView: View {
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("isLoggedIn") private var isLoggedIn = true
 
     // MARK: - Required fields
     @State private var name = ""
@@ -28,9 +29,6 @@ struct RegisterView: View {
     // MARK: - Avatar
     @State private var avatarItem: PhotosPickerItem? = nil
     @State private var avatarImage: Image? = nil
-
-    // MARK: - Navigation
-    @State private var navigateToHome = false
 
     var body: some View {
         ScrollView(.vertical) {
@@ -481,7 +479,7 @@ struct RegisterView: View {
 
     private var submitButton: some View {
         Button {
-            navigateToHome = true
+            isLoggedIn = true
         } label: {
             Text("完成設定")
                 .font(Typography.button)
@@ -490,10 +488,6 @@ struct RegisterView: View {
                 .frame(height: 48)
                 .background(Theme.primary)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        }
-        .navigationDestination(isPresented: $navigateToHome) {
-            HomeView()
-                .navigationBarBackButtonHidden(true)
         }
     }
 }

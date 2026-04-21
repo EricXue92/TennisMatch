@@ -30,6 +30,20 @@ struct HomeView: View {
     @State private var successMatch: SignUpMatchInfo?
     @State private var matches: [MockMatch] = initialMockMatches
     @State private var signUpMatchId: UUID?
+    @State private var chatUnreadCount = 4
+    @State private var acceptedMatches: [AcceptedMatchInfo] = []
+    @State private var showMatchAssistant = false
+    @State private var showReviews = false
+    @State private var showNotifications = false
+    @State private var showFollowing = false
+    @State private var showBlockList = false
+    @State private var showInviteFriends = false
+    @State private var showSettings = false
+    @State private var showHelp = false
+    @State private var pendingDMOrganizer: SignUpMatchInfo?
+    @State private var dmChat: MockChat?
+    @State private var dmMatchContext: String?
+    @State private var signedUpMatchIDs: Set<UUID> = []
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,9 +51,19 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView()
-                case 2: placeholderTab("一鍵約球")
-                case 3: placeholderTab("消息")
+                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onMatchCancelled: { sourceMatchID in
+                    // Decrement player count and clear the "已報名" flag for the originating HomeView match.
+                    // sourceMatchID is nil for mock upcoming items / invitation-accept flows, which correctly no-op.
+                    guard let id = sourceMatchID,
+                          let idx = matches.firstIndex(where: { $0.id == id })
+                    else { return }
+                    if matches[idx].currentPlayers > 0 {
+                        matches[idx].currentPlayers -= 1
+                    }
+                    signedUpMatchIDs.remove(id)
+                })
+                case 2: MatchAssistantView()
+                case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches)
                 case 4: ProfileView()
                 default: homeTab
                 }
@@ -70,16 +94,61 @@ struct HomeView: View {
                 if let matchId = signUpMatchId,
                    let idx = matches.firstIndex(where: { $0.id == matchId }) {
                     matches[idx].currentPlayers += 1
+                    signedUpMatchIDs.insert(matchId)
                 }
                 successMatch = info
             }
             .presentationDetents([.medium])
         }
-        .fullScreenCover(item: $successMatch) { info in
-            SignUpSuccessView(match: info)
+        .fullScreenCover(item: $successMatch, onDismiss: {
+            if let info = pendingDMOrganizer {
+                let symbol = info.organizerGender == .female ? "♀" : "♂"
+                let color = info.organizerGender == .female ? Theme.genderFemale : Theme.genderMale
+                dmChat = MockChat(
+                    type: .personal(name: info.organizerName, symbol: symbol, symbolColor: color),
+                    lastMessage: "點擊開始聊天",
+                    time: "now",
+                    unreadCount: 0
+                )
+                dmMatchContext = "🎾 約球已確認\n📅 \(info.dateTime)\n📍 \(info.location)\n🏸 \(info.matchType) · NTRP \(info.ntrpRange)\n💰 \(info.fee)"
+                pendingDMOrganizer = nil
+            }
+        }) { info in
+            SignUpSuccessView(match: info, onContactOrganizer: {
+                pendingDMOrganizer = info
+                successMatch = nil
+            })
         }
         .navigationDestination(item: $selectedMatchDetail) { detail in
-            MatchDetailView(match: detail)
+            MatchDetailView(match: detail, acceptedMatches: $acceptedMatches)
+        }
+        .navigationDestination(isPresented: $showMatchAssistant) {
+            MatchAssistantView()
+        }
+        .navigationDestination(isPresented: $showReviews) {
+            ReviewsView()
+        }
+        .navigationDestination(isPresented: $showNotifications) {
+            NotificationsView()
+        }
+        .navigationDestination(isPresented: $showFollowing) {
+            FollowingView()
+        }
+        .navigationDestination(isPresented: $showBlockList) {
+            BlockListView()
+        }
+        .navigationDestination(isPresented: $showInviteFriends) {
+            InviteFriendsView()
+        }
+        .navigationDestination(isPresented: $showSettings) {
+            SettingsView()
+        }
+        .navigationDestination(isPresented: $showHelp) {
+            HelpView()
+        }
+        .navigationDestination(item: $dmChat) { chat in
+            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: dmMatchContext)
+                .onDisappear { dmMatchContext = nil }
         }
     }
 
@@ -102,7 +171,7 @@ struct HomeView: View {
             tabBarItem(icon: "🎯", label: "首頁", tag: 0)
             tabBarItem(icon: "🗓", label: "我的約球", tag: 1)
             centerTabButton
-            tabBarItem(icon: "💬", label: "消息", tag: 3, badgeCount: 2)
+            tabBarItem(icon: "💬", label: "聊天", tag: 3, badgeCount: chatUnreadCount)
             tabBarItem(icon: "👤", label: "我的", tag: 4)
         }
         .padding(.top, Spacing.sm)
@@ -218,12 +287,24 @@ private extension HomeView {
                     drawerMenuItem(icon: "🏆", label: "賽事") {
                         showTournaments = true
                     }
-                    drawerMenuItem(icon: "🤖", label: "約球助理")
-                    drawerMenuItem(icon: "⭐", label: "評價", badge: 2)
-                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5)
-                    drawerMenuItem(icon: "👥", label: "關注")
-                    drawerMenuItem(icon: "🚫", label: "封鎖名單")
-                    drawerMenuItem(icon: "📨", label: "邀請好友")
+                    drawerMenuItem(icon: "🤖", label: "約球助理") {
+                        showMatchAssistant = true
+                    }
+                    drawerMenuItem(icon: "⭐", label: "評價", badge: 2) {
+                        showReviews = true
+                    }
+                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5) {
+                        showNotifications = true
+                    }
+                    drawerMenuItem(icon: "👥", label: "關注") {
+                        showFollowing = true
+                    }
+                    drawerMenuItem(icon: "🚫", label: "封鎖名單") {
+                        showBlockList = true
+                    }
+                    drawerMenuItem(icon: "📨", label: "邀請好友") {
+                        showInviteFriends = true
+                    }
 
                     // Divider
                     Rectangle()
@@ -232,8 +313,12 @@ private extension HomeView {
                         .padding(.horizontal, 20)
                         .padding(.vertical, Spacing.sm)
 
-                    drawerMenuItem(icon: "⚙️", label: "設定", isSecondary: true)
-                    drawerMenuItem(icon: "❓", label: "幫助", isSecondary: true)
+                    drawerMenuItem(icon: "⚙️", label: "設定", isSecondary: true) {
+                        showSettings = true
+                    }
+                    drawerMenuItem(icon: "❓", label: "幫助", isSecondary: true) {
+                        showHelp = true
+                    }
                 }
             }
 
@@ -391,6 +476,26 @@ private extension HomeView {
                         name: "大衛",
                         gender: .male,
                         ntrp: "4.0"
+                    )
+                    recommendCard(
+                        name: "艾美",
+                        gender: .female,
+                        ntrp: "3.0"
+                    )
+                    recommendCard(
+                        name: "阿豪",
+                        gender: .male,
+                        ntrp: "3.5"
+                    )
+                    recommendCard(
+                        name: "思慧",
+                        gender: .female,
+                        ntrp: "4.0"
+                    )
+                    recommendCard(
+                        name: "Michael",
+                        gender: .male,
+                        ntrp: "5.0"
                     )
                 }
                 .padding(.horizontal, Spacing.md)
@@ -972,17 +1077,19 @@ private extension HomeView {
                 Spacer()
 
                 if !match.isOwnMatch {
+                    let alreadySignedUp = signedUpMatchIDs.contains(match.id)
                     Button {
                         showSignUp(match)
                     } label: {
-                        Text("報名")
+                        Text(alreadySignedUp ? "已報名" : "報名")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(.white)
+                            .foregroundColor(alreadySignedUp ? Theme.textSecondary : .white)
                             .frame(width: 52, height: 30)
-                            .background(Theme.primaryDark)
+                            .background(alreadySignedUp ? Theme.chipUnselectedBg : Theme.primaryDark)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .frame(minWidth: 44, minHeight: 44)
                     }
+                    .disabled(alreadySignedUp)
                 }
             }
         }
@@ -1007,6 +1114,9 @@ private extension HomeView {
     }
 
     func showSignUp(_ match: MockMatch) {
+        guard !match.isFull else { return }
+        guard !signedUpMatchIDs.contains(match.id) else { return }
+
         let parts = match.dateTime.split(separator: " ")
         let date = "2026/\(parts[0])"
         let startTime = String(parts[1])
@@ -1022,6 +1132,7 @@ private extension HomeView {
 
         signUpMatch = SignUpMatchInfo(
             organizerName: match.name,
+            organizerGender: match.gender,
             dateTime: "\(date)  \(timeRange)",
             location: match.location,
             matchType: match.matchType,
@@ -1065,7 +1176,8 @@ private extension HomeView {
             weather: MatchWeather(temp: temp, humidity: "65%", uv: "6", wind: "10"),
             participantList: [
                 MatchParticipant(name: match.name, gender: match.gender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
-            ]
+            ],
+            isOwnMatch: match.isOwnMatch
         )
     }
 
@@ -1284,6 +1396,94 @@ private let initialMockMatches: [MockMatch] = [
         genderLabel: "男", hour: 20, dayOfWeek: "一",
         currentPlayers: 1, maxPlayers: 2
     ),
+    MockMatch(
+        name: "陳教練", gender: .male, matchType: "單打",
+        weather: "🌤 23°C", dateTime: "04/29 07:30",
+        location: "香港網球中心", fee: "AA ¥300",
+        ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "36-45",
+        genderLabel: "男", hour: 7, dayOfWeek: "二",
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "雅婷", gender: .female, matchType: "雙打",
+        weather: "☀️ 26°C", dateTime: "04/29 17:00",
+        location: "九龍公園", fee: "AA ¥90",
+        ntrpLow: 2.5, ntrpHigh: 3.0, ageRange: "18-25",
+        genderLabel: "女", hour: 17, dayOfWeek: "二",
+        currentPlayers: 2, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "阿豪", gender: .male, matchType: "雙打",
+        weather: "⛅ 25°C", dateTime: "04/30 19:30",
+        location: "歌和老街公園", fee: "AA ¥150",
+        ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
+        genderLabel: "男", hour: 19, dayOfWeek: "三",
+        currentPlayers: 1, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "思慧", gender: .female, matchType: "單打",
+        weather: "☀️ 29°C", dateTime: "04/30 09:00",
+        location: "將軍澳運動場", fee: "AA ¥80",
+        ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
+        genderLabel: "女", hour: 9, dayOfWeek: "三",
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "張偉", gender: .male, matchType: "單打",
+        weather: "🌤 24°C", dateTime: "05/01 08:00",
+        location: "維多利亞公園網球場", fee: "AA ¥120",
+        ntrpLow: 4.0, ntrpHigh: 4.5, ageRange: "26-35",
+        genderLabel: "男", hour: 8, dayOfWeek: "四",
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "詠琪", gender: .female, matchType: "雙打",
+        weather: "☀️ 27°C", dateTime: "05/01 15:30",
+        location: "沙田公園", fee: "AA ¥100",
+        ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "18-25",
+        genderLabel: "女", hour: 15, dayOfWeek: "四",
+        currentPlayers: 3, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "Michael", gender: .male, matchType: "單打",
+        weather: "⛅ 22°C", dateTime: "05/02 18:00",
+        location: "跑馬地遊樂場", fee: "AA ¥200",
+        ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "36-45",
+        genderLabel: "男", hour: 18, dayOfWeek: "五",
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "艾美", gender: .female, matchType: "雙打",
+        weather: "☀️ 28°C", dateTime: "05/03 10:00",
+        location: "京士柏運動場", fee: "AA ¥130",
+        ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
+        genderLabel: "女", hour: 10, dayOfWeek: "六",
+        currentPlayers: 2, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "家明", gender: .male, matchType: "雙打",
+        weather: "🌤 25°C", dateTime: "05/03 16:00",
+        location: "九龍仔公園", fee: "AA ¥160",
+        ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
+        genderLabel: "男", hour: 16, dayOfWeek: "六",
+        currentPlayers: 2, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "曉彤", gender: .female, matchType: "單打",
+        weather: "☀️ 30°C", dateTime: "05/04 11:00",
+        location: "香港公園", fee: "AA ¥70",
+        ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "14-17",
+        genderLabel: "女", hour: 11, dayOfWeek: "日",
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "國輝", gender: .male, matchType: "單打",
+        weather: "⛅ 24°C", dateTime: "05/04 07:00",
+        location: "沙田公園", fee: "AA ¥100",
+        ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "55+",
+        genderLabel: "男", hour: 7, dayOfWeek: "日",
+        currentPlayers: 1, maxPlayers: 2
+    ),
 ]
 
 // MARK: - Sign Up Confirmation
@@ -1291,6 +1491,7 @@ private let initialMockMatches: [MockMatch] = [
 struct SignUpMatchInfo: Identifiable {
     let id = UUID()
     let organizerName: String
+    let organizerGender: Gender
     let dateTime: String
     let location: String
     let matchType: String
@@ -1378,6 +1579,7 @@ private struct SignUpConfirmSheet: View {
 
 private struct SignUpSuccessView: View {
     let match: SignUpMatchInfo
+    var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
 
     var body: some View {
@@ -1464,7 +1666,7 @@ private struct SignUpSuccessView: View {
             // Action buttons
             VStack(spacing: Spacing.sm) {
                 outlineButton(icon: "bubble.left.fill", label: "聯繫發起人") {
-                    // TODO: chat
+                    onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
                     // TODO: add to calendar
@@ -1529,8 +1731,10 @@ private struct SignUpSuccessView: View {
 
 #Preview("iPhone SE") {
     HomeView()
+        .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     HomeView()
+        .environment(FollowStore())
 }
