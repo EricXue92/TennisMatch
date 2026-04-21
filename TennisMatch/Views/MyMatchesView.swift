@@ -736,6 +736,7 @@ private struct InvitationAcceptSuccessView: View {
     let invitation: MyMatchInvitation
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     private var detailParts: [String] {
         invitation.details.components(separatedBy: " · ")
@@ -806,7 +807,7 @@ private struct InvitationAcceptSuccessView: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveInvitationToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -826,6 +827,36 @@ private struct InvitationAcceptSuccessView: View {
             .padding(.bottom, Spacing.lg)
         }
         .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveInvitationToCalendar() {
+        guard let monthDay = detailParts.first,
+              let range = CalendarService.parseShortMatch(
+                monthDay: monthDay,
+                startTime: invitation.time,
+                durationHours: invitation.durationHours
+              ) else {
+            calendarToast = "無法解析約球時間"
+            return
+        }
+        let location = detailParts.count > 1 ? detailParts[1] : ""
+        let title = "\(invitation.inviterName) 的\(invitation.matchType)"
+        let notes = "\(invitation.matchType) · \(invitation.details)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: location,
+                    notes: notes
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {

@@ -1615,6 +1615,7 @@ private struct SignUpSuccessView: View {
     let match: SignUpMatchInfo
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1703,7 +1704,7 @@ private struct SignUpSuccessView: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveMatchToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -1726,6 +1727,30 @@ private struct SignUpSuccessView: View {
             .padding(.bottom, Spacing.lg)
         }
         .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveMatchToCalendar() {
+        guard let range = CalendarService.parseCombinedDateTime(match.dateTime) else {
+            calendarToast = "無法解析約球時間"
+            return
+        }
+        let title = "\(match.organizerName) 的\(match.matchType)"
+        let notes = "\(match.matchType) · NTRP \(match.ntrpRange)\n費用：\(match.fee)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: match.location,
+                    notes: notes
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {

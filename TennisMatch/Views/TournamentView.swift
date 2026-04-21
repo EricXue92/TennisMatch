@@ -667,6 +667,7 @@ private struct TournamentSignUpSuccessView: View {
     let tournament: MockTournament
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -729,7 +730,7 @@ private struct TournamentSignUpSuccessView: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveTournamentToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -749,6 +750,31 @@ private struct TournamentSignUpSuccessView: View {
             .padding(.bottom, Spacing.lg)
         }
         .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveTournamentToCalendar() {
+        guard let range = CalendarService.parseTournamentRange(tournament.dateRange) else {
+            calendarToast = "無法解析賽事日期"
+            return
+        }
+        let title = tournament.name
+        let notes = "\(tournament.format) · \(tournament.matchType) · NTRP \(tournament.ntrpRange)\n費用：\(tournament.fee)\n發起人：\(tournament.organizer)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: tournament.location,
+                    notes: notes,
+                    isAllDay: true
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {
