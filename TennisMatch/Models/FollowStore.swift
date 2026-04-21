@@ -1,0 +1,57 @@
+//
+//  FollowStore.swift
+//  TennisMatch
+//
+//  全局 关注 / 粉丝 / 互相关注 状态
+//
+//  Mock 阶段用球员名字(String)作 key;接真实后端时换成 UUID。
+//
+
+import Foundation
+import Observation
+
+@Observable
+final class FollowStore {
+    /// 当前用户关注的球员名字集合。
+    var following: Set<String>
+
+    /// 当前用户的粉丝数(mock 阶段静态)。
+    var followerCount: Int
+
+    /// 互相关注数(mock 阶段静态)。
+    var mutualCount: Int
+
+    var followingCount: Int { following.count }
+
+    init(
+        following: Set<String> = FollowStore.seedFollowing,
+        followerCount: Int = 18,
+        mutualCount: Int = 12
+    ) {
+        self.following = following
+        self.followerCount = followerCount
+        self.mutualCount = mutualCount
+    }
+
+    func isFollowing(_ name: String) -> Bool {
+        following.contains(name)
+    }
+
+    func toggle(_ name: String) {
+        if following.contains(name) {
+            following.remove(name)
+        } else {
+            following.insert(name)
+        }
+    }
+
+    func unfollow(_ name: String) {
+        following.remove(name)
+    }
+
+    /// 种子数据与 FollowingView 的 mock 列表对齐,确保首次打开看到 12 位已关注球友。
+    private static let seedFollowing: Set<String> = [
+        "莎莎", "王強", "小美", "志明", "大衛", "嘉欣",
+        "陳教練", "艾美", "Michael", "思慧", "俊傑", "曉彤",
+    ]
+}

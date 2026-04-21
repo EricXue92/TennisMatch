@@ -1731,8 +1731,10 @@ private struct SignUpSuccessView: View {
 
 #Preview("iPhone SE") {
     HomeView()
+        .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     HomeView()
+        .environment(FollowStore())
 }

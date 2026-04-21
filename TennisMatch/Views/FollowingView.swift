@@ -9,10 +9,14 @@ import SwiftUI
 
 struct FollowingView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var followedPlayers: [FollowedPlayer] = mockFollowedPlayers
+    @Environment(FollowStore.self) private var followStore
     @State private var playerToUnfollow: FollowedPlayer?
     @State private var showUnfollowAlert = false
     @State private var selectedPlayer: PublicPlayerData?
+
+    private var followedPlayers: [FollowedPlayer] {
+        mockFollowedPlayers.filter { followStore.isFollowing($0.name) }
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -65,7 +69,7 @@ struct FollowingView: View {
             Button("確認", role: .destructive) {
                 if let p = playerToUnfollow {
                     withAnimation {
-                        followedPlayers.removeAll { $0.id == p.id }
+                        followStore.unfollow(p.name)
                     }
                 }
                 playerToUnfollow = nil
@@ -169,10 +173,12 @@ private let mockFollowedPlayers: [FollowedPlayer] = [
     NavigationStack {
         FollowingView()
     }
+    .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         FollowingView()
     }
+    .environment(FollowStore())
 }

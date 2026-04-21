@@ -10,7 +10,7 @@ import SwiftUI
 struct PublicProfileView: View {
     let player: PublicPlayerData
     @Environment(\.dismiss) private var dismiss
-    @State private var isFollowing = false
+    @Environment(FollowStore.self) private var followStore
     @State private var showBlockAlert = false
     @State private var selectedChat: MockChat?
 
@@ -95,14 +95,15 @@ struct PublicProfileView: View {
             // Follow + block row
             HStack {
                 Button {
-                    withAnimation { isFollowing.toggle() }
+                    withAnimation { followStore.toggle(player.name) }
                 } label: {
-                    Text(isFollowing ? "已關注" : "關注")
+                    let following = followStore.isFollowing(player.name)
+                    Text(following ? "已關注" : "關注")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(isFollowing ? Theme.textBody : .white)
+                        .foregroundColor(following ? Theme.textBody : .white)
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 32)
-                        .background(isFollowing ? .white : .white.opacity(0.2))
+                        .background(following ? .white : .white.opacity(0.2))
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -235,12 +236,14 @@ struct PublicPlayerData: Hashable {
     NavigationStack {
         PublicProfileView(player: previewPlayer)
     }
+    .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         PublicProfileView(player: previewPlayer)
     }
+    .environment(FollowStore())
 }
 
 private let previewPlayer = PublicPlayerData(

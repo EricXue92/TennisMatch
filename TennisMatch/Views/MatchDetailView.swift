@@ -11,8 +11,8 @@ struct MatchDetailView: View {
     let match: MatchDetailData
     @Binding var acceptedMatches: [AcceptedMatchInfo]
     @Environment(\.dismiss) private var dismiss
+    @Environment(FollowStore.self) private var followStore
     @State private var showInviteSheet = false
-    @State private var isFollowing = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
     @State private var navigateToChat = false
@@ -85,16 +85,17 @@ private extension MatchDetailView {
                 Spacer()
 
                 Button {
-                    withAnimation { isFollowing.toggle() }
+                    withAnimation { followStore.toggle(match.name) }
                 } label: {
-                    Text(isFollowing ? "已關注" : "關注")
+                    let following = followStore.isFollowing(match.name)
+                    Text(following ? "已關注" : "關注")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(isFollowing ? .white : Color(hex: 0x333333))
+                        .foregroundColor(following ? .white : Color(hex: 0x333333))
                         .frame(width: 60, height: 44)
-                        .background(isFollowing ? Theme.primary : .clear)
+                        .background(following ? Theme.primary : .clear)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
-                            if !isFollowing {
+                            if !following {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
                                     .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
                             }
@@ -706,12 +707,14 @@ private struct SignUpSuccessViewForDetail: View {
     NavigationStack {
         MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
     }
+    .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
     }
+    .environment(FollowStore())
 }
 
 private let previewMatchDetail = MatchDetailData(

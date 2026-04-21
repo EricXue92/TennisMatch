@@ -8,10 +8,12 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(FollowStore.self) private var followStore
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var showTournaments = false
     @State private var showAchievements = false
+    @State private var showFollowing = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -34,6 +36,9 @@ struct ProfileView: View {
         }
         .navigationDestination(isPresented: $showAchievements) {
             AchievementsView()
+        }
+        .navigationDestination(isPresented: $showFollowing) {
+            FollowingView()
         }
         .fullScreenCover(isPresented: $showTournaments) {
             TournamentView()
@@ -103,9 +108,11 @@ struct ProfileView: View {
             // Follow stats + edit button
             HStack {
                 HStack(spacing: Spacing.md) {
-                    followStat(count: "23", label: "關注")
-                    followStat(count: "18", label: "粉絲")
-                    followStat(count: "12", label: "互相關注")
+                    Button { showFollowing = true } label: {
+                        followStat(count: "\(followStore.followingCount)", label: "關注")
+                    }
+                    followStat(count: "\(followStore.followerCount)", label: "粉絲")
+                    followStat(count: "\(followStore.mutualCount)", label: "互相關注")
                 }
 
                 Spacer()
@@ -428,8 +435,10 @@ private let mockTournamentRecords: [TournamentRecord] = [
 
 #Preview("iPhone SE") {
     ProfileView()
+        .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     ProfileView()
+        .environment(FollowStore())
 }
