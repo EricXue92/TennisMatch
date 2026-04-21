@@ -106,17 +106,12 @@ struct NotificationsView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: Spacing.sm) {
-            Spacer()
-            Image(systemName: "bell.slash")
-                .font(.system(size: 40))
-                .foregroundColor(Theme.textSecondary)
-            Text("暫無通知")
-                .font(.system(size: 15))
-                .foregroundColor(Theme.textSecondary)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity)
+        ContentUnavailableView(
+            "暫無通知",
+            systemImage: "bell.slash",
+            description: Text("報名、確認、改期等通知會顯示在這裡")
+        )
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 

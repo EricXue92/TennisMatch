@@ -11,6 +11,7 @@ import SwiftUI
 
 struct TournamentView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UserStore.self) private var userStore
     @State private var selectedFilter = "全部"
     @State private var selectedTournament: MockTournament?
     @State private var showCreateTournament = false
@@ -68,7 +69,7 @@ struct TournamentView: View {
             location: info.courtName.isEmpty ? "待定" : info.courtName,
             participants: "0/\(info.participantCount.isEmpty ? "16" : info.participantCount)",
             fee: info.fee.isEmpty ? "免費" : "\(info.fee) 港幣",
-            organizer: "小李",
+            organizer: userStore.displayName,
             gradientColors: [Color(hex: 0x34D399), Color(hex: 0x16A34A)],
             rules: info.rules.isEmpty ? [] : [info.rules],
             playerList: [],
@@ -979,8 +980,10 @@ let mockTournaments: [MockTournament] = [
 
 #Preview("iPhone SE") {
     TournamentView()
+        .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     TournamentView()
+        .environment(UserStore())
 }

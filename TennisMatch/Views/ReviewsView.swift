@@ -21,21 +21,37 @@ struct ReviewsView: View {
         VStack(spacing: 0) {
             filterTabs
 
-            ScrollView {
-                VStack(spacing: Spacing.sm) {
-                    if selectedTab == "收到的評價" {
-                        ForEach(mockReceivedReviews) { review in
-                            receivedReviewCard(review)
-                        }
-                    } else {
-                        ForEach(pendingReviews) { review in
-                            pendingReviewCard(review)
+            if selectedTab == "收到的評價" && mockReceivedReviews.isEmpty {
+                ContentUnavailableView(
+                    "暫無評價",
+                    systemImage: "star.bubble",
+                    description: Text("完成約球後收到的評價會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedTab == "待評價" && pendingReviews.isEmpty {
+                ContentUnavailableView(
+                    "沒有待評價的約球",
+                    systemImage: "checkmark.seal",
+                    description: Text("完成約球後，可在這裡給對手留下評價")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: Spacing.sm) {
+                        if selectedTab == "收到的評價" {
+                            ForEach(mockReceivedReviews) { review in
+                                receivedReviewCard(review)
+                            }
+                        } else {
+                            ForEach(pendingReviews) { review in
+                                pendingReviewCard(review)
+                            }
                         }
                     }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, Spacing.xl)
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, Spacing.xl)
             }
         }
         .background(Theme.background)

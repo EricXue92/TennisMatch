@@ -11,6 +11,7 @@ import SwiftUI
 struct TennisMatchApp: App {
     @AppStorage("isLoggedIn") private var isLoggedIn = true
     @State private var followStore = FollowStore()
+    @State private var userStore = UserStore()
 
     var body: some Scene {
         WindowGroup {
@@ -22,6 +23,7 @@ struct TennisMatchApp: App {
                 }
             }
             .environment(followStore)
+            .environment(userStore)
         }
     }
 }

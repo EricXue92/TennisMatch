@@ -54,27 +54,48 @@ struct MyMatchesView: View {
         VStack(spacing: 0) {
             headerBar
             filterTabs
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    if selectedFilter == "即將到來" {
-                        ForEach(acceptedMatchItems) { match in
-                            myMatchCard(match)
-                        }
-                        ForEach(upcomingMatches) { match in
-                            myMatchCard(match)
-                        }
-                        ForEach(mockInvitations.filter { !rejectedInvitations.contains($0.id) }) { invitation in
-                            invitationCard(invitation)
-                        }
-                    } else {
-                        ForEach(mockCompletedMatches) { match in
-                            myMatchCard(match)
+            let upcomingEmpty = acceptedMatchItems.isEmpty
+                && upcomingMatches.isEmpty
+                && mockInvitations.allSatisfy { rejectedInvitations.contains($0.id) }
+            let completedEmpty = mockCompletedMatches.isEmpty
+
+            if selectedFilter == "即將到來" && upcomingEmpty {
+                ContentUnavailableView(
+                    "還沒有即將到來的約球",
+                    systemImage: "figure.tennis",
+                    description: Text("去首頁找一場約球，或發起新的約球")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedFilter == "已完成" && completedEmpty {
+                ContentUnavailableView(
+                    "暫無已完成的約球",
+                    systemImage: "checkmark.circle",
+                    description: Text("完成的約球會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: Spacing.md) {
+                        if selectedFilter == "即將到來" {
+                            ForEach(acceptedMatchItems) { match in
+                                myMatchCard(match)
+                            }
+                            ForEach(upcomingMatches) { match in
+                                myMatchCard(match)
+                            }
+                            ForEach(mockInvitations.filter { !rejectedInvitations.contains($0.id) }) { invitation in
+                                invitationCard(invitation)
+                            }
+                        } else {
+                            ForEach(mockCompletedMatches) { match in
+                                myMatchCard(match)
+                            }
                         }
                     }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, 100)
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, 100)
             }
         }
         .background(Theme.inputBg)

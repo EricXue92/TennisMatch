@@ -24,6 +24,14 @@ struct MessagesView: View {
                 .fill(Theme.inputBorder)
                 .frame(height: 1)
 
+            if chats.isEmpty {
+                ContentUnavailableView(
+                    "暫無聊天",
+                    systemImage: "bubble.left.and.bubble.right",
+                    description: Text("開始約球後，與對手的對話會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
             List {
                 // First item as highlighted card
                 if let first = chats.first {
@@ -59,6 +67,7 @@ struct MessagesView: View {
             }
             .listStyle(.plain)
             .padding(.bottom, 100)
+            }
         }
         .background(.white)
         .navigationDestination(item: $selectedChat) { chat in

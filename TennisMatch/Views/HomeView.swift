@@ -10,6 +10,7 @@ import SwiftUI
 // MARK: - Main Tab Container
 
 struct HomeView: View {
+    @Environment(UserStore.self) private var userStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -43,7 +44,11 @@ struct HomeView: View {
     @State private var pendingDMOrganizer: SignUpMatchInfo?
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
+    @State private var dmInitialMessage: String?
     @State private var signedUpMatchIDs: Set<UUID> = []
+    /// Sign-up留言 captured on confirm — carried to dmChat when user
+    /// chooses "聯繫發起人" from the success screen.
+    @State private var pendingSignUpMessage: String = ""
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -89,13 +94,14 @@ struct HomeView: View {
             }
         }
         .sheet(item: $signUpMatch) { info in
-            SignUpConfirmSheet(match: info) {
+            SignUpConfirmSheet(match: info) { message in
                 // Increment player count in the match
                 if let matchId = signUpMatchId,
                    let idx = matches.firstIndex(where: { $0.id == matchId }) {
                     matches[idx].currentPlayers += 1
                     signedUpMatchIDs.insert(matchId)
                 }
+                pendingSignUpMessage = message
                 successMatch = info
             }
             .presentationDetents([.medium])
@@ -111,7 +117,10 @@ struct HomeView: View {
                     unreadCount: 0
                 )
                 dmMatchContext = "🎾 約球已確認\n📅 \(info.dateTime)\n📍 \(info.location)\n🏸 \(info.matchType) · NTRP \(info.ntrpRange)\n💰 \(info.fee)"
+                let trimmed = pendingSignUpMessage.trimmingCharacters(in: .whitespacesAndNewlines)
+                dmInitialMessage = trimmed.isEmpty ? nil : trimmed
                 pendingDMOrganizer = nil
+                pendingSignUpMessage = ""
             }
         }) { info in
             SignUpSuccessView(match: info, onContactOrganizer: {
@@ -120,7 +129,16 @@ struct HomeView: View {
             })
         }
         .navigationDestination(item: $selectedMatchDetail) { detail in
-            MatchDetailView(match: detail, acceptedMatches: $acceptedMatches)
+            MatchDetailView(
+                match: detail,
+                acceptedMatches: $acceptedMatches,
+                signedUpMatchIDs: $signedUpMatchIDs,
+                onSignUp: { matchId in
+                    if let idx = matches.firstIndex(where: { $0.id == matchId }) {
+                        matches[idx].currentPlayers += 1
+                    }
+                }
+            )
         }
         .navigationDestination(isPresented: $showMatchAssistant) {
             MatchAssistantView()
@@ -147,8 +165,16 @@ struct HomeView: View {
             HelpView()
         }
         .navigationDestination(item: $dmChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: dmMatchContext)
-                .onDisappear { dmMatchContext = nil }
+            ChatDetailView(
+                chat: chat,
+                acceptedMatches: $acceptedMatches,
+                matchContext: dmMatchContext,
+                initialMessage: dmInitialMessage
+            )
+            .onDisappear {
+                dmMatchContext = nil
+                dmInitialMessage = nil
+            }
         }
     }
 
@@ -1078,18 +1104,25 @@ private extension HomeView {
 
                 if !match.isOwnMatch {
                     let alreadySignedUp = signedUpMatchIDs.contains(match.id)
+                    // Precedence: already-signed-up > full > open for sign-up.
+                    // Full-state only shows when the user hasn't already booked a slot,
+                    // otherwise the "已報名" affirmation is more relevant.
+                    let isFullForOthers = !alreadySignedUp && match.isFull
+                    let disabled = alreadySignedUp || isFullForOthers
+                    let label = alreadySignedUp ? "已報名" : (isFullForOthers ? "已額滿" : "報名")
+
                     Button {
                         showSignUp(match)
                     } label: {
-                        Text(alreadySignedUp ? "已報名" : "報名")
+                        Text(label)
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(alreadySignedUp ? Theme.textSecondary : .white)
+                            .foregroundColor(disabled ? Theme.textSecondary : .white)
                             .frame(width: 52, height: 30)
-                            .background(alreadySignedUp ? Theme.chipUnselectedBg : Theme.primaryDark)
+                            .background(disabled ? Theme.chipUnselectedBg : Theme.primaryDark)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .frame(minWidth: 44, minHeight: 44)
                     }
-                    .disabled(alreadySignedUp)
+                    .disabled(disabled)
                 }
             }
         }
@@ -1160,6 +1193,7 @@ private extension HomeView {
             .replacingOccurrences(of: "🌤 ", with: "")
 
         return MatchDetailData(
+            matchId: match.id,
             name: match.name,
             gender: match.gender,
             ntrp: String(format: "%.1f", (match.ntrpLow + match.ntrpHigh) / 2),
@@ -1204,8 +1238,8 @@ private extension HomeView {
         }
 
         let newMatch = MockMatch(
-            name: "小李",
-            gender: .male,
+            name: userStore.displayName,
+            gender: userStore.gender,
             matchType: info.matchType,
             weather: "☀️ --°C",
             dateTime: dateTime,
@@ -1504,7 +1538,7 @@ struct SignUpMatchInfo: Identifiable {
 
 private struct SignUpConfirmSheet: View {
     let match: SignUpMatchInfo
-    var onConfirm: () -> Void
+    var onConfirm: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var message = ""
 
@@ -1546,7 +1580,7 @@ private struct SignUpConfirmSheet: View {
 
             Button {
                 dismiss()
-                onConfirm()
+                onConfirm(message)
             } label: {
                 Text("確認報名")
                     .font(.system(size: 16, weight: .semibold))
@@ -1732,9 +1766,11 @@ private struct SignUpSuccessView: View {
 #Preview("iPhone SE") {
     HomeView()
         .environment(FollowStore())
+        .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     HomeView()
         .environment(FollowStore())
+        .environment(UserStore())
 }
