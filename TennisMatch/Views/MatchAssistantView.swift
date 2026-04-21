@@ -72,7 +72,7 @@ struct MatchAssistantView: View {
             HStack(spacing: Spacing.sm) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 40, height: 40)
                     Text(String(rec.name.prefix(1)))
                         .font(.system(size: 16, weight: .bold))

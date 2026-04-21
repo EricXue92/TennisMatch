@@ -33,7 +33,7 @@ struct BlockListView: View {
                         HStack(spacing: Spacing.sm) {
                             ZStack {
                                 Circle()
-                                    .fill(Color(hex: 0xE0E0E0))
+                                    .fill(Theme.avatarPlaceholder)
                                     .frame(width: 44, height: 44)
                                 Text(String(user.name.prefix(1)))
                                     .font(.system(size: 16, weight: .bold))

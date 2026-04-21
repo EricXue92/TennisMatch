@@ -81,10 +81,10 @@ struct ProfileView: View {
                         headerPill(userStore.region)
                         Text("理想球友")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: 0xCA8A04))
+                            .foregroundColor(Theme.goldText)
                             .padding(.horizontal, Spacing.xs)
                             .frame(height: 20)
-                            .background(Color(hex: 0xFEF9C3))
+                            .background(Theme.goldBg)
                             .clipShape(Capsule())
                     }
 
@@ -265,10 +265,10 @@ struct ProfileView: View {
                 Spacer()
                 Text(record.round)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(record.isChampion ? Color(hex: 0xCA8A04) : Theme.primary)
+                    .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
                     .padding(.horizontal, Spacing.xs)
                     .frame(height: 22)
-                    .background(record.isChampion ? Color(hex: 0xFEF9C3) : Theme.primaryLight)
+                    .background(record.isChampion ? Theme.goldBg : Theme.primaryLight)
                     .clipShape(Capsule())
             }
 
@@ -347,7 +347,7 @@ struct ProfileView: View {
         VStack(spacing: 6) {
             ZStack {
                 Circle()
-                    .fill(unlocked ? Theme.primaryLight : Color(hex: 0xF3F4F6))
+                    .fill(unlocked ? Theme.primaryLight : Theme.surfaceMuted)
                     .frame(width: 44, height: 44)
                 Text(icon)
                     .font(.system(size: 20))

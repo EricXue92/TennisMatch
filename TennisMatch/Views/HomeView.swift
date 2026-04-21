@@ -334,7 +334,7 @@ private extension HomeView {
 
                     // Divider
                     Rectangle()
-                        .fill(Color(hex: 0xE5E7EB))
+                        .fill(Theme.inputBorder)
                         .frame(height: 1)
                         .padding(.horizontal, 20)
                         .padding(.vertical, Spacing.sm)
@@ -353,7 +353,7 @@ private extension HomeView {
             // Version
             Text("v0.1.0")
                 .font(.system(size: 11))
-                .foregroundColor(Color(hex: 0x9CA3AF))
+                .foregroundColor(Theme.textSecondary)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
         }
@@ -374,7 +374,7 @@ private extension HomeView {
                     .frame(width: 28)
                 Text(label)
                     .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(isSecondary ? Color(hex: 0x6B7280) : Color(hex: 0x1F2937))
+                    .foregroundColor(isSecondary ? Theme.textCaption : Theme.textPrimary)
                 Spacer()
                 if badge > 0 {
                     Text("\(badge)")
@@ -534,7 +534,7 @@ private extension HomeView {
     func recommendCard(name: String, gender: Gender, ntrp: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Circle()
-                .fill(Color(hex: 0xE0E0E0))
+                .fill(Theme.avatarPlaceholder)
                 .frame(width: 36, height: 36)
 
             VStack(alignment: .leading, spacing: 4) {
@@ -1048,7 +1048,7 @@ private extension HomeView {
             // Row 1: avatar + name + gender + type + weather
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 0) {
@@ -1725,7 +1725,7 @@ private struct SignUpSuccessView: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
     }
 
     private func summaryRow(icon: String, text: String) -> some View {

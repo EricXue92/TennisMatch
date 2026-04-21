@@ -28,6 +28,18 @@ struct MyMatchesView: View {
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
 
+    private var sortedUpcoming: [MyMatchItem] {
+        (acceptedMatchItems + upcomingMatches).sorted { $0.sortDate < $1.sortDate }
+    }
+
+    private var sortedCompleted: [MyMatchItem] {
+        mockCompletedMatches.sorted { $0.sortDate > $1.sortDate }
+    }
+
+    private var visibleInvitations: [MyMatchInvitation] {
+        mockInvitations.filter { !rejectedInvitations.contains($0.id) }
+    }
+
     private var acceptedMatchItems: [MyMatchItem] {
         acceptedMatches.map { info in
             let timeStr = info.time
@@ -77,17 +89,14 @@ struct MyMatchesView: View {
                 ScrollView {
                     VStack(spacing: Spacing.md) {
                         if selectedFilter == "即將到來" {
-                            ForEach(acceptedMatchItems) { match in
+                            ForEach(sortedUpcoming) { match in
                                 myMatchCard(match)
                             }
-                            ForEach(upcomingMatches) { match in
-                                myMatchCard(match)
-                            }
-                            ForEach(mockInvitations.filter { !rejectedInvitations.contains($0.id) }) { invitation in
+                            ForEach(visibleInvitations) { invitation in
                                 invitationCard(invitation)
                             }
                         } else {
-                            ForEach(mockCompletedMatches) { match in
+                            ForEach(sortedCompleted) { match in
                                 myMatchCard(match)
                             }
                         }
@@ -317,7 +326,7 @@ private extension MyMatchesView {
                 // Avatar + title + weather
                 HStack(spacing: Spacing.sm) {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 36, height: 36)
 
                     HStack(spacing: 4) {
@@ -451,7 +460,7 @@ private extension MyMatchesView {
             // Content
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -554,6 +563,29 @@ private struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+
+    /// Parsed date used for chronological sorting. Pulls MM/dd from `dateLabel`
+    /// and combines it with the start hour of `timeRange` so same-day items
+    /// order by time. Items without a parseable date sort to the end.
+    var sortDate: Date {
+        let cal = Calendar.current
+        let year = cal.component(.year, from: Date())
+        var month = 0
+        var day = 0
+        if let match = dateLabel.range(of: #"(\d{1,2})/(\d{1,2})"#, options: .regularExpression) {
+            let parts = dateLabel[match].split(separator: "/")
+            month = Int(parts[0]) ?? 0
+            day = Int(parts.count > 1 ? parts[1] : "0") ?? 0
+        }
+        guard month > 0, day > 0 else { return .distantFuture }
+        let hour = Int(timeRange.prefix(2)) ?? 0
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        return cal.date(from: components) ?? .distantFuture
+    }
 }
 
 private struct MyMatchInvitation: Identifiable {
@@ -793,7 +825,7 @@ private struct InvitationAcceptSuccessView: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
     }
 
     private func summaryRow(icon: String, text: String) -> some View {

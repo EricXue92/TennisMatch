@@ -146,7 +146,7 @@ struct ReviewsView: View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
                     .font(.system(size: 16, weight: .bold))
@@ -168,7 +168,7 @@ struct ReviewsView: View {
                     ForEach(0..<5, id: \.self) { i in
                         Image(systemName: i < review.rating ? "star.fill" : "star")
                             .font(.system(size: 12))
-                            .foregroundColor(i < review.rating ? Color(hex: 0xFACC15) : Theme.textSecondary)
+                            .foregroundColor(i < review.rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
 
@@ -186,7 +186,7 @@ struct ReviewsView: View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
                     .font(.system(size: 16, weight: .bold))
@@ -245,7 +245,7 @@ private struct ReviewFormSheet: View {
                     } label: {
                         Image(systemName: i <= rating ? "star.fill" : "star")
                             .font(.system(size: 28))
-                            .foregroundColor(i <= rating ? Color(hex: 0xFACC15) : Theme.textSecondary)
+                            .foregroundColor(i <= rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
             }

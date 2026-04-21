@@ -55,7 +55,7 @@ struct AchievementsView: View {
         VStack(spacing: Spacing.xs) {
             ZStack {
                 Circle()
-                    .fill(badge.unlocked ? Theme.primaryLight : Color(hex: 0xF3F4F6))
+                    .fill(badge.unlocked ? Theme.primaryLight : Theme.surfaceMuted)
                     .frame(width: 56, height: 56)
                 Text(badge.icon)
                     .font(.system(size: 26))

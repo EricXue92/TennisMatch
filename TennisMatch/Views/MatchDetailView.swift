@@ -101,7 +101,7 @@ private extension MatchDetailView {
             HStack(spacing: Spacing.sm) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 56, height: 56)
                     Text(String(match.name.prefix(1)))
                         .font(.system(size: 22, weight: .bold))
@@ -119,7 +119,7 @@ private extension MatchDetailView {
                     }
                     Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: 0x666666))
+                        .foregroundColor(Theme.textMuted)
                 }
 
                 Spacer()
@@ -130,14 +130,14 @@ private extension MatchDetailView {
                     let following = followStore.isFollowing(match.name)
                     Text(following ? "已關注" : "關注")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(following ? .white : Color(hex: 0x333333))
+                        .foregroundColor(following ? .white : Theme.textDark)
                         .frame(width: 60, height: 44)
                         .background(following ? Theme.primary : .clear)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
                             if !following {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                    .stroke(Theme.borderMuted, lineWidth: 1)
                             }
                         }
                 }
@@ -146,7 +146,7 @@ private extension MatchDetailView {
 
             // Divider
             Rectangle()
-                .fill(Color(hex: 0xEBEBEB))
+                .fill(Theme.pillBg)
                 .frame(height: 1)
                 .padding(.horizontal, Spacing.md)
 
@@ -157,12 +157,12 @@ private extension MatchDetailView {
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
-                    .background(Color(hex: 0x218C21))
+                    .background(Theme.primaryDark)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Text(match.isOwnMatch ? "我發起的" : "招募中")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(match.isOwnMatch ? .white : Color(hex: 0x4D4D4D))
+                    .foregroundColor(match.isOwnMatch ? .white : Theme.textDeep)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
                     .background(match.isOwnMatch ? Theme.accentGreen : .clear)
@@ -170,7 +170,7 @@ private extension MatchDetailView {
                     .overlay {
                         if !match.isOwnMatch {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                .stroke(Theme.borderMuted, lineWidth: 1)
                         }
                     }
             }
@@ -188,7 +188,7 @@ private extension MatchDetailView {
 
             // Divider
             Rectangle()
-                .fill(Color(hex: 0xEBEBEB))
+                .fill(Theme.pillBg)
                 .frame(height: 1)
                 .padding(.horizontal, Spacing.md)
 
@@ -199,7 +199,7 @@ private extension MatchDetailView {
                     .foregroundColor(Theme.textPrimary)
                 Text(match.notes)
                     .font(.system(size: 13))
-                    .foregroundColor(Color(hex: 0x666666))
+                    .foregroundColor(Theme.textMuted)
             }
             .padding(Spacing.md)
         }
@@ -220,7 +220,7 @@ private extension MatchDetailView {
                 if let subtitle {
                     Text(subtitle)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: 0x666666))
+                        .foregroundColor(Theme.textMuted)
                 }
             }
         }
@@ -256,7 +256,7 @@ private extension MatchDetailView {
             if let label {
                 Text(label)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x808080))
+                    .foregroundColor(Theme.textFaint)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -276,7 +276,7 @@ private extension MatchDetailView {
                 HStack(spacing: Spacing.sm) {
                     ZStack {
                         Circle()
-                            .fill(Color(hex: 0xE0E0E0))
+                            .fill(Theme.avatarPlaceholder)
                             .frame(width: 36, height: 36)
                         Text(String(p.name.prefix(1)))
                             .font(.system(size: 14, weight: .bold))
@@ -294,7 +294,7 @@ private extension MatchDetailView {
                         }
                         Text("NTRP \(p.ntrp)")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: 0x808080))
+                            .foregroundColor(Theme.textFaint)
                     }
 
                     Spacer()
@@ -302,12 +302,12 @@ private extension MatchDetailView {
                     if p.isOrganizer {
                         Text("發起人")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: 0x666666))
+                            .foregroundColor(Theme.textMuted)
                             .padding(.horizontal, Spacing.sm)
                             .frame(height: 22)
                             .overlay {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                    .stroke(Theme.borderMuted, lineWidth: 1)
                             }
                     }
                 }
@@ -333,7 +333,7 @@ private extension MatchDetailView {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(Color(hex: 0x218C21))
+                        .background(Theme.primaryDark)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             } else {
@@ -342,12 +342,12 @@ private extension MatchDetailView {
                 } label: {
                     Text("💬 私信")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(hex: 0x218C21))
+                        .foregroundColor(Theme.primaryDark)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .overlay {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color(hex: 0x218C21), lineWidth: 1.5)
+                                .stroke(Theme.primaryDark, lineWidth: 1.5)
                         }
                 }
 
@@ -366,7 +366,7 @@ private extension MatchDetailView {
                         .foregroundColor(disabled ? Theme.textSecondary : .white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(disabled ? Theme.chipUnselectedBg : Color(hex: 0x218C21))
+                        .background(disabled ? Theme.chipUnselectedBg : Theme.primaryDark)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
                 .disabled(disabled)
@@ -514,7 +514,7 @@ private struct InviteContactsSheet: View {
                             HStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: 0xE0E0E0))
+                                        .fill(Theme.avatarPlaceholder)
                                         .frame(width: 40, height: 40)
                                     Text(String(contact.name.prefix(1)))
                                         .font(.system(size: 16, weight: .bold))
@@ -751,7 +751,7 @@ private struct SignUpSuccessViewForDetail: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
     }
 
     private func summaryRow(icon: String, text: String) -> some View {
