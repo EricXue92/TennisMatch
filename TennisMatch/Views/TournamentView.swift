@@ -304,6 +304,9 @@ private enum TagStyle { case gray, colored }
 struct TournamentDetailView: View {
     let tournament: MockTournament
     @Environment(\.dismiss) private var dismiss
+    @State private var isFollowing = false
+    @State private var showSignUpConfirm = false
+    @State private var showSignUpSuccess = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -336,6 +339,15 @@ struct TournamentDetailView: View {
                 Text("賽事詳情")
                     .font(.system(size: 18, weight: .semibold))
             }
+        }
+        .sheet(isPresented: $showSignUpConfirm) {
+            TournamentSignUpSheet(tournament: tournament) {
+                showSignUpSuccess = true
+            }
+            .presentationDetents([.medium])
+        }
+        .fullScreenCover(isPresented: $showSignUpSuccess) {
+            TournamentSignUpSuccessView(tournament: tournament)
         }
     }
 }
@@ -474,14 +486,14 @@ private extension TournamentDetailView {
                 Spacer()
 
                 Button {
-                    // TODO: follow
+                    withAnimation { isFollowing.toggle() }
                 } label: {
-                    Text("關注")
+                    Text(isFollowing ? "已關注" : "關注")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color(hex: 0x333333))
+                        .foregroundColor(isFollowing ? .white : Color(hex: 0x333333))
                         .padding(.horizontal, 14)
                         .frame(height: 44)
-                        .background(Color(hex: 0xF2F2F2))
+                        .background(isFollowing ? Theme.primary : Color(hex: 0xF2F2F2))
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
@@ -552,7 +564,7 @@ private extension TournamentDetailView {
         if !isCompleted {
             VStack {
                 Button {
-                    // TODO: sign up
+                    showSignUpConfirm = true
                 } label: {
                     Text("立即報名 · \(tournament.fee)")
                         .font(.system(size: 16, weight: .bold))
@@ -573,6 +585,114 @@ private extension TournamentDetailView {
                     .ignoresSafeArea(edges: .bottom)
             )
         }
+    }
+}
+
+// MARK: - Tournament Sign Up
+
+private struct TournamentSignUpSheet: View {
+    let tournament: MockTournament
+    var onConfirm: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("確認報名")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(Theme.textPrimary)
+
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                infoRow(icon: "trophy.fill", text: tournament.name)
+                infoRow(icon: "calendar", text: tournament.dateRange)
+                infoRow(icon: "mappin.circle.fill", text: tournament.location)
+                infoRow(icon: "dollarsign.circle.fill", text: tournament.fee)
+            }
+
+            Spacer()
+
+            Button {
+                dismiss()
+                onConfirm()
+            } label: {
+                Text("確認報名")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.top, Spacing.lg)
+        .padding(.bottom, Spacing.md)
+    }
+
+    private func infoRow(icon: String, text: String) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(Theme.textSecondary)
+                .frame(width: 20)
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textPrimary)
+        }
+    }
+}
+
+private struct TournamentSignUpSuccessView: View {
+    let tournament: MockTournament
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(spacing: 0) {
+            HStack {
+                Button { dismiss() } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundColor(Theme.textDark)
+                        .frame(width: 44, height: 44)
+                }
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.xs)
+
+            Spacer().frame(height: Spacing.xxl)
+
+            ZStack {
+                Circle().fill(Theme.primary).frame(width: 80, height: 80)
+                Image(systemName: "checkmark")
+                    .font(.system(size: 36, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            Spacer().frame(height: Spacing.md)
+
+            Text("報名成功！")
+                .font(.system(size: 22, weight: .bold))
+                .foregroundColor(Theme.textDark)
+
+            Text("你已成功報名「\(tournament.name)」")
+                .font(.system(size: 15))
+                .foregroundColor(Theme.textHint)
+                .padding(.top, Spacing.xs)
+
+            Spacer()
+
+            Button { dismiss() } label: {
+                Text("進入賽事群聊")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .padding(.horizontal, Spacing.md)
+            .padding(.bottom, Spacing.lg)
+        }
+        .background(Color(hex: 0xFFF0F0).opacity(0.3))
     }
 }
 
