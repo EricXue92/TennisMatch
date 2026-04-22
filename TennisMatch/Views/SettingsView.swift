@@ -10,6 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
+    @AppStorage("maskedPhone") private var maskedPhone = ""
     @AppStorage("matchReminders") private var matchReminders = true
     @AppStorage("chatNotifications") private var chatNotifications = true
     @AppStorage("tournamentUpdates") private var tournamentUpdates = true
@@ -92,7 +93,7 @@ struct SettingsView: View {
 
     private var accountSection: some View {
         Section {
-            settingsRow(icon: "phone.fill", title: "手機號碼", value: "+86 138****8888")
+            settingsRow(icon: "phone.fill", title: "手機號碼", value: maskedPhone.isEmpty ? "未綁定" : maskedPhone)
             tappableRow(icon: "lock.fill", title: "修改密碼") {
                 showChangePassword = true
             }

@@ -13,6 +13,8 @@ struct PhoneVerificationView: View {
     @Environment(\.dismiss) private var dismiss
     @FocusState private var isFieldFocused: Bool
 
+    @AppStorage("maskedPhone") private var maskedPhone = ""
+
     @State private var code = ""
     @State private var countdown = 60
     @State private var canResend = false
@@ -190,6 +192,7 @@ struct PhoneVerificationView: View {
         VStack(spacing: Spacing.md) {
             Button {
                 guard code.count == codeLength else { return }
+                maskedPhone = phoneNumber
                 showRegister = true
             } label: {
                 Text("驗證並登入")
