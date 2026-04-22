@@ -14,15 +14,29 @@ struct PhoneInputView: View {
     @State private var phoneNumber = ""
     @State private var countryCode = "+852"
     @State private var showVerification = false
+    @State private var errorMessage = ""
+    @State private var showError = false
 
-    private let countryCodes: [(code: String, label: String)] = [
-        ("+852", "🇭🇰 +852"),
-        ("+86",  "🇨🇳 +86"),
-        ("+886", "🇹🇼 +886"),
-        ("+1",   "🇺🇸 +1"),
-        ("+44",  "🇬🇧 +44"),
-        ("+81",  "🇯🇵 +81"),
+    private let countryCodes: [(code: String, label: String, lengths: [Int])] = [
+        ("+852", "🇭🇰 +852", [8]),
+        ("+86",  "🇨🇳 +86",  [11]),
+        ("+886", "🇹🇼 +886", [9, 10]),
+        ("+1",   "🇺🇸 +1",   [10]),
+        ("+44",  "🇬🇧 +44",  [10, 11]),
+        ("+81",  "🇯🇵 +81",  [10, 11]),
     ]
+
+    private var expectedLengths: [Int] {
+        countryCodes.first { $0.code == countryCode }?.lengths ?? [8, 11]
+    }
+
+    private var lengthHint: String {
+        let lengths = expectedLengths
+        if lengths.count == 1 {
+            return "\(lengths[0]) 位"
+        }
+        return "\(lengths.min()!)-\(lengths.max()!) 位"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -54,7 +68,10 @@ struct PhoneInputView: View {
                     // Country code picker
                     Menu {
                         ForEach(countryCodes, id: \.code) { item in
-                            Button(item.label) { countryCode = item.code }
+                            Button(item.label) {
+                                countryCode = item.code
+                                withAnimation { showError = false }
+                            }
                         }
                     } label: {
                         HStack(spacing: 4) {
@@ -80,16 +97,33 @@ struct PhoneInputView: View {
                         .font(.system(size: 16, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                         .focused($isPhoneFocused)
+                        .onChange(of: phoneNumber) { _, newValue in
+                            phoneNumber = String(newValue.filter(\.isNumber).prefix(11))
+                            if showError { withAnimation { showError = false } }
+                        }
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 48)
                         .background(.white)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                                .strokeBorder(Theme.inputBorder, lineWidth: 1)
+                                .strokeBorder(showError ? Theme.requiredText : Theme.inputBorder, lineWidth: showError ? 1.5 : 1)
                         )
                 }
                 .padding(.horizontal, Spacing.md)
+
+                // 號碼長度提示
+                Text("請輸入 \(lengthHint) 數字的手機號碼")
+                    .font(Typography.fieldLabel)
+                    .foregroundColor(Theme.textHint)
+
+                // 錯誤提示
+                if showError {
+                    Text(errorMessage)
+                        .font(Typography.small)
+                        .foregroundColor(Theme.requiredText)
+                        .transition(.opacity)
+                }
 
                 Spacer(minLength: 0)
             }
@@ -97,7 +131,16 @@ struct PhoneInputView: View {
 
             // Button
             Button {
-                showVerification = true
+                let digits = phoneNumber.filter(\.isNumber)
+                if digits.isEmpty {
+                    errorMessage = "請輸入手機號碼"
+                    withAnimation { showError = true }
+                } else if !expectedLengths.contains(digits.count) {
+                    errorMessage = "手機號碼長度不正確，\(countryCode) 號碼應為 \(lengthHint) 數字"
+                    withAnimation { showError = true }
+                } else {
+                    showVerification = true
+                }
             } label: {
                 Text("獲取驗證碼")
                     .font(Typography.button)

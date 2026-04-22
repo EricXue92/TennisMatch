@@ -658,16 +658,18 @@ private struct WeeklySlotPickerView: View {
                         Text("開始時間")
                             .font(.system(size: 15, weight: .bold))
                             .foregroundColor(Theme.textPrimary)
-                        halfHourPicker(hour: $startHour, minute: $startMinute)
+                        halfHourPicker(hour: $startHour, minute: $startMinute, minHour: 6, minMinute: 0)
                     }
 
                     VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("結束時間")
                             .font(.system(size: 15, weight: .bold))
                             .foregroundColor(Theme.textPrimary)
-                        halfHourPicker(hour: $endHour, minute: $endMinute)
+                        halfHourPicker(hour: $endHour, minute: $endMinute, minHour: endMinHour, minMinute: endMinMinute)
                     }
                 }
+                .onChange(of: startHour) { _, _ in clampEndTime() }
+                .onChange(of: startMinute) { _, _ in clampEndTime() }
 
                 // 預覽
                 let preview = buildSlot()
@@ -702,10 +704,33 @@ private struct WeeklySlotPickerView: View {
         .presentationDetents([.medium, .large])
     }
 
-    private func halfHourPicker(hour: Binding<Int>, minute: Binding<Int>) -> some View {
-        HStack(spacing: 0) {
+    /// 結束時間最早的小時
+    private var endMinHour: Int {
+        startMinute == 30 ? startHour + 1 : startHour
+    }
+
+    /// 結束時間最早的分鐘（僅在 endMinHour 等於結束小時時生效）
+    private var endMinMinute: Int {
+        startMinute == 30 ? 0 : 30
+    }
+
+    /// 開始時間變更後，自動把結束時間推到合法範圍
+    private func clampEndTime() {
+        let startTotal = startHour * 60 + startMinute
+        let endTotal = endHour * 60 + endMinute
+        if endTotal <= startTotal {
+            // 往後推 30 分鐘
+            let newEnd = startTotal + 30
+            endHour = min(newEnd / 60, 22)
+            endMinute = newEnd % 60
+        }
+    }
+
+    private func halfHourPicker(hour: Binding<Int>, minute: Binding<Int>, minHour: Int, minMinute: Int) -> some View {
+        let validHours = Array(minHour..<23)
+        return HStack(spacing: 0) {
             Picker("", selection: hour) {
-                ForEach(6..<23, id: \.self) { h in
+                ForEach(validHours, id: \.self) { h in
                     Text("\(h)").tag(h)
                 }
             }
@@ -718,8 +743,13 @@ private struct WeeklySlotPickerView: View {
                 .foregroundColor(Theme.textPrimary)
 
             Picker("", selection: minute) {
-                Text("00").tag(0)
-                Text("30").tag(30)
+                // 當選中的小時等於最小小時時，過濾掉早於最小分鐘的選項
+                if hour.wrappedValue > minHour || minMinute == 0 {
+                    Text("00").tag(0)
+                }
+                if hour.wrappedValue > minHour || minMinute <= 30 {
+                    Text("30").tag(30)
+                }
             }
             .pickerStyle(.wheel)
             .frame(width: 50, height: 100)
