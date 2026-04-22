@@ -9,6 +9,8 @@ import SwiftUI
 
 struct MyMatchesView: View {
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
+    var onGoHome: (() -> Void)? = nil
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
     var onMatchCancelled: ((UUID?) -> Void)? = nil
     @Environment(BookedSlotStore.self) private var bookedSlotStore
@@ -101,11 +103,26 @@ struct MyMatchesView: View {
             let completedEmpty = mockCompletedMatches.isEmpty
 
             if selectedFilter == "即將到來" && upcomingEmpty {
-                ContentUnavailableView(
-                    "還沒有即將到來的約球",
-                    systemImage: "figure.tennis",
-                    description: Text("去首頁找一場約球，或發起新的約球")
-                )
+                VStack(spacing: Spacing.md) {
+                    ContentUnavailableView(
+                        "還沒有即將到來的約球",
+                        systemImage: "figure.tennis",
+                        description: Text("去首頁找一場約球，或發起新的約球")
+                    )
+                    if let onGoHome {
+                        Button {
+                            onGoHome()
+                        } label: {
+                            Text("去首頁看看")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, Spacing.lg)
+                                .frame(height: 36)
+                                .background(Theme.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+                }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else if selectedFilter == "已完成" && completedEmpty {
                 ContentUnavailableView(

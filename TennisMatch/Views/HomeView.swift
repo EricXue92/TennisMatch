@@ -62,7 +62,7 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onMatchCancelled: { sourceMatchID in
+                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onGoHome: { selectedTab = 0 }, onMatchCancelled: { sourceMatchID in
                     // Decrement player count and clear the "已報名" flag for the originating HomeView match.
                     // sourceMatchID is nil for mock upcoming items / invitation-accept flows, which correctly no-op.
                     guard let id = sourceMatchID,
