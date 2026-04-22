@@ -9,21 +9,19 @@ import SwiftUI
 
 struct NotificationsView: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var notifications: [MatchNotification] = mockNotifications
+    @Environment(NotificationStore.self) private var notificationStore
     @State private var selectedMatchDetail: MatchDetailData?
 
     var body: some View {
         VStack(spacing: 0) {
-            if notifications.isEmpty {
+            if notificationStore.notifications.isEmpty {
                 emptyState
             } else {
                 HStack {
                     Spacer()
                     Button {
                         withAnimation {
-                            for i in notifications.indices {
-                                notifications[i].isRead = true
-                            }
+                            notificationStore.markAllRead()
                         }
                     } label: {
                         Text("全部已讀")
@@ -36,7 +34,7 @@ struct NotificationsView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        ForEach(notifications) { notification in
+                        ForEach(notificationStore.notifications) { notification in
                             notificationRow(notification)
                         }
                     }
@@ -98,9 +96,7 @@ struct NotificationsView: View {
         .padding(.vertical, Spacing.sm)
         .background(notification.isRead ? .white : Theme.primaryLight.opacity(0.3))
         .onTapGesture {
-            if let idx = notifications.firstIndex(where: { $0.id == notification.id }) {
-                notifications[idx].isRead = true
-            }
+            notificationStore.markRead(id: notification.id)
             // TODO: navigate to MatchDetailView via selectedMatchDetail
         }
     }
@@ -115,71 +111,18 @@ struct NotificationsView: View {
     }
 }
 
-// MARK: - Data
-
-private struct MatchNotification: Identifiable {
-    let id = UUID()
-    let type: NotificationType
-    let title: String
-    let body: String
-    let time: String
-    var isRead: Bool
-
-    var icon: String {
-        switch type {
-        case .signUp: return "person.badge.plus"
-        case .accepted: return "checkmark.circle.fill"
-        case .cancelled: return "xmark.circle.fill"
-        case .updated: return "arrow.triangle.2.circlepath"
-        }
-    }
-
-    var iconBg: Color {
-        switch type {
-        case .signUp: return Theme.primaryLight
-        case .accepted: return Theme.confirmedBg
-        case .cancelled: return Theme.requiredBg
-        case .updated: return Theme.pendingBg
-        }
-    }
-
-    var iconColor: Color {
-        switch type {
-        case .signUp: return Theme.primary
-        case .accepted: return Theme.primary
-        case .cancelled: return Theme.requiredText
-        case .updated: return Theme.pendingBadge
-        }
-    }
-}
-
-private enum NotificationType {
-    case signUp, accepted, cancelled, updated
-}
-
-private let mockNotifications: [MatchNotification] = [
-    MatchNotification(type: .signUp, title: "新的報名", body: "王強 報名了你發起的雙打約球（04/20 跑馬地）", time: "10 分鐘前", isRead: false),
-    MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的莎拉單打約球（04/19 維多利亞公園）已確認", time: "2 小時前", isRead: false),
-    MatchNotification(type: .updated, title: "約球更新", body: "志明 的單打約球時間更改為 16:30", time: "3 小時前", isRead: true),
-    MatchNotification(type: .cancelled, title: "約球取消", body: "小美 取消了雙打約球（04/22 沙田公園）", time: "昨天", isRead: true),
-    MatchNotification(type: .signUp, title: "新的報名", body: "嘉欣 報名了你發起的雙打約球（04/20 跑馬地）", time: "昨天", isRead: true),
-    MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的 Michael 單打約球（04/28 跑馬地）已確認", time: "2 天前", isRead: true),
-    MatchNotification(type: .signUp, title: "新的報名", body: "阿豪 報名了你發起的雙打約球（04/25 將軍澳）", time: "2 天前", isRead: true),
-    MatchNotification(type: .updated, title: "約球更新", body: "大衛 的雙打約球地點更改為歌和老街公園", time: "3 天前", isRead: true),
-    MatchNotification(type: .cancelled, title: "約球取消", body: "麗莎 取消了雙打約球（04/20 香港網球中心）", time: "3 天前", isRead: true),
-    MatchNotification(type: .signUp, title: "新的報名", body: "思慧 報名了你發起的單打約球（04/30 將軍澳）", time: "4 天前", isRead: true),
-]
-
 // MARK: - Preview
 
 #Preview("iPhone SE") {
     NavigationStack {
         NotificationsView()
+            .environment(NotificationStore())
     }
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         NotificationsView()
+            .environment(NotificationStore())
     }
 }

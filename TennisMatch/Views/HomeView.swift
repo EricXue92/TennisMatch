@@ -13,6 +13,7 @@ struct HomeView: View {
     @Environment(UserStore.self) private var userStore
     @Environment(FollowStore.self) private var followStore
     @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(NotificationStore.self) private var notificationStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -330,7 +331,11 @@ private extension HomeView {
                     drawerMenuItem(icon: "⭐", label: "評價", badge: 2) {
                         showReviews = true
                     }
-                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5) {
+                    drawerMenuItem(
+                        icon: "🔔",
+                        label: "通知",
+                        badge: notificationStore.unreadCount
+                    ) {
                         showNotifications = true
                     }
                     drawerMenuItem(icon: "👥", label: "關注") {

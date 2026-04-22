@@ -12,6 +12,7 @@ struct MyMatchesView: View {
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
     var onMatchCancelled: ((UUID?) -> Void)? = nil
     @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(NotificationStore.self) private var notificationStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
@@ -154,6 +155,26 @@ struct MyMatchesView: View {
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
+                    // 发起者临时取消 → 推一条通知给"所有报名者"(CLAUDE.md 边界 case #1)。
+                    // Mock 阶段:用户兼任发起者/参与者,这里把取消事件加入 NotificationStore,
+                    // NotificationsView 与抽屉通知红点会立即反映。接后端时改为给参与者列表推送。
+                    if match.isOrganizer {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "你的約球已取消",
+                            body: "已通知所有報名者：「\(match.title)」（\(match.dateLabel) \(match.timeRange) · \(match.location)）",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    } else {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "約球取消",
+                            body: "「\(match.title)」（\(match.dateLabel) \(match.timeRange) · \(match.location)）已取消",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    }
                     toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
                 }
                 matchToCancel = nil
