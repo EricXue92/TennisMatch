@@ -64,7 +64,7 @@ struct PhoneVerificationView: View {
                     .foregroundColor(.white)
                     .padding(.horizontal, 20)
                     .padding(.vertical, 12)
-                    .background(Theme.primary.opacity(0.92))
+                    .background(Theme.textDeep.opacity(0.92))
                     .clipShape(Capsule())
                     .padding(.top, 60)
                     .transition(.move(edge: .top).combined(with: .opacity))
