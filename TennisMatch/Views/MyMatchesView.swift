@@ -250,29 +250,26 @@ struct MyMatchesView: View {
         .sheet(item: $registrantMatch) { match in
             NavigationStack {
                 List {
-                    let count = match.playerCounts.current
-                    ForEach(0..<max(count, 1), id: \.self) { i in
-                        let names = ["小王", "艾美", "大衛", "莎拉", "小張"]
-                        let name = names[i % names.count]
+                    ForEach(Array(match.registrants.enumerated()), id: \.offset) { i, registrant in
                         HStack(spacing: Spacing.sm) {
                             ZStack {
                                 Circle()
                                     .fill(Theme.avatarPlaceholder)
                                     .frame(width: 36, height: 36)
-                                Text(String(name.suffix(1)))
+                                Text(String(registrant.name.suffix(1)))
                                     .font(.system(size: 14, weight: .bold))
                                     .foregroundColor(.white)
                             }
                             VStack(alignment: .leading, spacing: 2) {
-                                Text(name)
+                                Text(registrant.name)
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(Theme.textPrimary)
-                                Text("NTRP 3.5")
+                                Text("NTRP \(registrant.ntrp)")
                                     .font(Typography.small)
                                     .foregroundColor(Theme.textSecondary)
                             }
                             Spacer()
-                            if i == 0 {
+                            if registrant.isOrganizer {
                                 Text("發起人")
                                     .font(.system(size: 11, weight: .medium))
                                     .foregroundColor(Theme.primary)
@@ -772,6 +769,12 @@ private enum MatchActionStyle {
     case filled, outlined
 }
 
+private struct MatchRegistrant {
+    let name: String
+    let ntrp: String
+    let isOrganizer: Bool
+}
+
 private struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
@@ -785,6 +788,7 @@ private struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+    var registrants: [MatchRegistrant] = []
 
     /// Parses `"2/4 · NTRP 3.0-4.0"` → (current: 2, max: 4). Falls back to (0, 0)
     /// when the players string lacks two leading numeric tokens.
@@ -902,7 +906,11 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             location: "維多利亞公園網球場",
             timeRange: "10:00 - 12:00",
             players: "2/2 · NTRP 3.0-4.0",
-            weather: "☀️ 24°C"
+            weather: "☀️ 24°C",
+            registrants: [
+                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "我發起的雙打",
@@ -912,7 +920,11 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             location: "跑馬地遊樂場",
             timeRange: "14:00 - 16:00",
             players: "2/4 · NTRP 3.5-4.5",
-            weather: "⛅ 26°C"
+            weather: "⛅ 26°C",
+            registrants: [
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "大衛 發起的雙打",
@@ -923,7 +935,12 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "18:30 - 20:00",
             players: "3/4 · NTRP 4.0-5.0",
             weather: "☀️ 24°C",
-            matchType: "雙打"
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "我發起的雙打",
@@ -934,7 +951,11 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "18:00 - 20:00",
             players: "2/2 · NTRP 3.0-4.0",
             weather: "☀️ 24°C",
-            matchType: "雙打"
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "艾美", ntrp: "3.0", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "Michael 發起的單打",
@@ -944,7 +965,11 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             location: "跑馬地遊樂場",
             timeRange: "08:00 - 10:00",
             players: "2/2 · NTRP 4.5-5.0",
-            weather: "☀️ 25°C"
+            weather: "☀️ 25°C",
+            registrants: [
+                MatchRegistrant(name: "Michael", ntrp: "5.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: "4.5", isOrganizer: false),
+            ]
         ),
     ]
 }
@@ -959,7 +984,13 @@ private var mockCompletedMatches: [MyMatchItem] {
             location: "九龍仔公園",
             timeRange: "14:00 - 16:00",
             players: "4/4 · NTRP 3.5-4.5",
-            weather: "☀️ 28°C"
+            weather: "☀️ 28°C",
+            registrants: [
+                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "我發起的單打",
@@ -969,7 +1000,11 @@ private var mockCompletedMatches: [MyMatchItem] {
             location: "香港網球中心",
             timeRange: "09:00 - 11:00",
             players: "2/2 · NTRP 3.0-4.0",
-            weather: "🌤 25°C"
+            weather: "🌤 25°C",
+            registrants: [
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "志明", ntrp: "3.0", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "大衛 發起的雙打",
@@ -980,7 +1015,13 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "16:00 - 18:00",
             players: "4/4 · NTRP 4.0-5.0",
             weather: "☀️ 27°C",
-            matchType: "雙打"
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "美琪", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "俊傑", ntrp: "4.5", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "嘉欣 發起的雙打",
@@ -991,7 +1032,13 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "10:00 - 12:00",
             players: "4/4 · NTRP 3.0-3.5",
             weather: "⛅ 23°C",
-            matchType: "雙打"
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小美", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "雅婷", ntrp: "3.5", isOrganizer: false),
+            ]
         ),
         MyMatchItem(
             title: "我發起的單打",
@@ -1001,7 +1048,11 @@ private var mockCompletedMatches: [MyMatchItem] {
             location: "維多利亞公園網球場",
             timeRange: "08:00 - 10:00",
             players: "2/2 · NTRP 3.5-4.0",
-            weather: "☀️ 22°C"
+            weather: "☀️ 22°C",
+            registrants: [
+                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "阿豪", ntrp: "4.0", isOrganizer: false),
+            ]
         ),
     ]
 }
