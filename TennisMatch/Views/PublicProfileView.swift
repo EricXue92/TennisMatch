@@ -52,6 +52,10 @@ struct PublicProfileView: View {
         } message: {
             Text("封鎖「\(player.name)」後，對方將無法查看你的資料和約球，也無法向你發送私信。")
         }
+        // 點擊「私信」按鈕後，導航到私信聊天頁面
+        .navigationDestination(item: $selectedChat) { chat in
+            ChatDetailView(chat: chat, acceptedMatches: .constant([]))
+        }
     }
 
     // MARK: - Header
