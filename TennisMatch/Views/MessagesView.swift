@@ -15,6 +15,7 @@ struct MessagesView: View {
     @State private var readChatIDs: Set<UUID> = []
     @State private var chatToDelete: MockChat?
     @State private var showDeleteAlert = false
+    @State private var blockToast: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -77,12 +78,33 @@ struct MessagesView: View {
                     chats.removeAll { $0.id == chat.id }
                 }
                 recalculateUnread()
+            }, onBlockUser: { name in
+                blockToast = "已封鎖「\(name)」"
             })
         }
         .onChange(of: selectedChat) { _, newChat in
             guard let chat = newChat, !readChatIDs.contains(chat.id) else { return }
             readChatIDs.insert(chat.id)
             recalculateUnread()
+        }
+        .overlay(alignment: .top) {
+            if let text = blockToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "nosign").foregroundColor(.white)
+                    Text(text)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .task(id: text) {
+                    try? await Task.sleep(for: .seconds(2))
+                    withAnimation { blockToast = nil }
+                }
+            }
         }
         .alert("刪除聊天", isPresented: $showDeleteAlert) {
             Button("取消", role: .cancel) {

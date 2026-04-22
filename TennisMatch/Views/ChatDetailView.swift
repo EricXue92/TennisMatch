@@ -16,6 +16,8 @@ struct ChatDetailView: View {
     /// outgoing bubble on first appear so the organizer sees it at the top.
     var initialMessage: String? = nil
     var onRemoveChat: (() -> Void)? = nil
+    /// 封鎖用戶時回調，參數為被封鎖者名稱
+    var onBlockUser: ((String) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(BookedSlotStore.self) private var bookedSlotStore
     @State private var messageText = ""
@@ -210,6 +212,9 @@ struct ChatDetailView: View {
         .alert("封鎖用戶", isPresented: $showBlockAlert) {
             Button("取消", role: .cancel) {}
             Button("確認封鎖", role: .destructive) {
+                if case .personal(let name, _, _) = chat.type {
+                    onBlockUser?(name)
+                }
                 onRemoveChat?()
                 dismiss()
             }
