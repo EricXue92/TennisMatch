@@ -802,6 +802,7 @@ private extension HomeView {
                 .pickerStyle(.menu)
                 .tint(Theme.primary)
                 .fixedSize()
+                .accessibilityLabel("開始時間")
 
                 Text("到")
                     .font(.system(size: 12))
@@ -814,6 +815,7 @@ private extension HomeView {
                 .pickerStyle(.menu)
                 .tint(Theme.primary)
                 .fixedSize()
+                .accessibilityLabel("結束時間")
 
                 Spacer()
             }
