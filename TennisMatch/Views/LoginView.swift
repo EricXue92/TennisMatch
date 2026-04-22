@@ -10,14 +10,16 @@ import SwiftUI
 // MARK: - Login View
 
 struct LoginView: View {
-    @AppStorage("isLoggedIn") private var isLoggedIn = true
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
     @State private var appeared = false
     @State private var ballFloat = false
     @State private var glowPulse = false
-    @State private var showVerification = false
+    @State private var showPhoneInput = false
     @State private var showHelpView = false
     @State private var toastMessage: String?
     @State private var showRegister = false
+    @State private var showTerms = false
+    @State private var showPrivacy = false
 
     // MARK: Theme
     private let bgTop      = Theme.loginBgTop
@@ -56,14 +58,20 @@ struct LoginView: View {
         .onAppear(perform: startAnimations)
         .toolbar(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .navigationDestination(isPresented: $showVerification) {
-            PhoneVerificationView(phoneNumber: "+86 138****8888")
+        .navigationDestination(isPresented: $showPhoneInput) {
+            PhoneInputView()
         }
         .navigationDestination(isPresented: $showHelpView) {
             HelpView()
         }
         .navigationDestination(isPresented: $showRegister) {
-            RegisterView()
+            EmailRegisterView()
+        }
+        .navigationDestination(isPresented: $showTerms) {
+            TermsView()
+        }
+        .navigationDestination(isPresented: $showPrivacy) {
+            PrivacyPolicyView()
         }
         .overlay(alignment: .top) {
             if let msg = toastMessage {
@@ -157,7 +165,7 @@ struct LoginView: View {
                 bg: chartreuse,
                 fg: bgTop,
                 delay: 0.50,
-                action: { showVerification = true }
+                action: { showPhoneInput = true }
             )
 
             // WeChat
@@ -222,9 +230,23 @@ struct LoginView: View {
 
     private var footer: some View {
         VStack(spacing: 5) {
-            Text("登入即表示您同意 \(Text("服務條款").foregroundColor(sage).underline()) 和 \(Text("隱私政策").foregroundColor(sage).underline())")
-                .foregroundColor(sage.opacity(0.55))
-                .font(Typography.fieldLabel)
+            HStack(spacing: 0) {
+                Text("登入即表示您同意 ")
+                    .foregroundColor(sage.opacity(0.55))
+                Button(action: { showTerms = true }) {
+                    Text("服務條款")
+                        .foregroundColor(sage)
+                        .underline()
+                }
+                Text(" 和 ")
+                    .foregroundColor(sage.opacity(0.55))
+                Button(action: { showPrivacy = true }) {
+                    Text("隱私政策")
+                        .foregroundColor(sage)
+                        .underline()
+                }
+            }
+            .font(Typography.fieldLabel)
 
             HStack(spacing: 3) {
                 Text("還沒有帳號？")

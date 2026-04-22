@@ -10,7 +10,8 @@ import PhotosUI
 
 struct RegisterView: View {
     @Environment(\.dismiss) private var dismiss
-    @AppStorage("isLoggedIn") private var isLoggedIn = true
+    @Environment(UserStore.self) private var userStore
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
 
     // MARK: - Required fields
     @State private var name = ""
@@ -55,7 +56,7 @@ struct RegisterView: View {
                 }
             }
             ToolbarItem(placement: .principal) {
-                Text("建立帳號")
+                Text("設定個人資料")
                     .font(Typography.navTitle)
                     .foregroundColor(.white)
             }
@@ -517,6 +518,10 @@ struct RegisterView: View {
                 } else if ntrpValue == nil {
                     validationMessage = "NTRP 需在 1.0 – 7.0 之間"
                 } else {
+                    // 保存到 UserStore
+                    userStore.displayName = name.trimmingCharacters(in: .whitespaces)
+                    userStore.gender = selectedGender!
+                    userStore.ntrpLevel = ntrpValue!
                     isLoggedIn = true
                     return
                 }
@@ -1279,10 +1284,12 @@ struct CourtPickerView: View {
     NavigationStack {
         RegisterView()
     }
+    .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         RegisterView()
     }
+    .environment(UserStore())
 }

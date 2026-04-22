@@ -9,7 +9,7 @@ import SwiftUI
 
 @main
 struct TennisMatchApp: App {
-    @AppStorage("isLoggedIn") private var isLoggedIn = true
+    @AppStorage("isLoggedIn") private var isLoggedIn = false
     @State private var followStore = FollowStore()
     @State private var userStore = UserStore()
     @State private var bookedSlotStore = BookedSlotStore()
