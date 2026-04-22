@@ -474,8 +474,8 @@ private extension HomeView {
                 // Stats cards
                 HStack(spacing: Spacing.xs) {
                     statCard(label: "信譽積分", value: "\(creditScoreStore.score)")
-                    statCard(label: "場次", value: "28")
-                    statCard(label: "NTRP", value: "3.5")
+                    statCard(label: "場次", value: "\(signedUpMatchIDs.count)")
+                    statCard(label: "NTRP", value: userStore.ntrpText)
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.top, Spacing.sm)
