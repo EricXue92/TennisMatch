@@ -55,6 +55,8 @@ struct HomeView: View {
     /// Top toast for booking-conflict warnings shown when the user taps 報名
     /// on a match whose start window overlaps an existing booking.
     @State private var conflictToast: String?
+    /// Selected player for navigating to PublicProfileView
+    @State private var selectedPlayer: PublicPlayerData?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -174,6 +176,9 @@ struct HomeView: View {
         }
         .navigationDestination(isPresented: $showHelp) {
             HelpView()
+        }
+        .navigationDestination(item: $selectedPlayer) { player in
+            PublicProfileView(player: player)
         }
         .navigationDestination(item: $dmChat) { chat in
             ChatDetailView(
@@ -571,6 +576,7 @@ private extension HomeView {
                     Text(name)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
+                        .lineLimit(1)
                     Text(gender.symbol)
                         .font(Typography.caption)
                         .foregroundColor(gender == .female ? Theme.genderFemale : Theme.genderMale)
@@ -605,6 +611,18 @@ private extension HomeView {
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
                 .stroke(Theme.inputBorder, lineWidth: 1)
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            selectedPlayer = PublicPlayerData(
+                name: name,
+                gender: gender,
+                ntrp: ntrp,
+                reputation: 85,
+                matchCount: 15,
+                bio: "熱愛網球",
+                recentMatches: []
+            )
         }
     }
 }
@@ -1096,6 +1114,7 @@ private extension HomeView {
                         Text(match.name)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(Theme.textPrimary)
+                            .lineLimit(1)
                         Text(match.gender.symbol)
                             .font(.system(size: 14))
                             .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
@@ -1362,6 +1381,7 @@ private extension HomeView {
             Text(text)
                 .font(Typography.small)
                 .foregroundColor(Theme.textBody)
+                .lineLimit(1)
         }
         .padding(.leading, 52)
     }

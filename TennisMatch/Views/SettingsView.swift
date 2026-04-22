@@ -16,6 +16,7 @@ struct SettingsView: View {
     @State private var profileVisibility = "所有人"
     @State private var dmPermission = "所有人"
     @State private var showLogoutAlert = false
+    @State private var toastMessage: String?
 
     var body: some View {
         List {
@@ -28,6 +29,23 @@ struct SettingsView: View {
         .listStyle(.insetGrouped)
         .background(Theme.background)
         .scrollContentBackground(.hidden)
+        .overlay(alignment: .top) {
+            if let msg = toastMessage {
+                Text(msg)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.xs)
+                    .background(Capsule().fill(Color.black.opacity(0.8)))
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .padding(.top, Spacing.xs)
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                            withAnimation { toastMessage = nil }
+                        }
+                    }
+            }
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -59,8 +77,12 @@ struct SettingsView: View {
     private var accountSection: some View {
         Section {
             settingsRow(icon: "phone.fill", title: "手機號碼", value: "+86 138****8888")
-            settingsRow(icon: "lock.fill", title: "修改密碼", showChevron: true)
-            settingsRow(icon: "link", title: "關聯帳號", value: "微信、Apple")
+            tappableRow(icon: "lock.fill", title: "修改密碼") {
+                withAnimation { toastMessage = "修改密碼功能即將推出" }
+            }
+            tappableRow(icon: "link", title: "關聯帳號", value: "微信、Apple") {
+                withAnimation { toastMessage = "關聯帳號功能即將推出" }
+            }
         } header: {
             Text("帳號與安全")
         }
@@ -122,8 +144,12 @@ struct SettingsView: View {
     private var aboutSection: some View {
         Section {
             settingsRow(icon: "info.circle.fill", title: "版本", value: "v0.1.0")
-            settingsRow(icon: "doc.text.fill", title: "用戶協議", showChevron: true)
-            settingsRow(icon: "hand.raised.fill", title: "隱私政策", showChevron: true)
+            tappableRow(icon: "doc.text.fill", title: "用戶協議") {
+                withAnimation { toastMessage = "用戶協議頁面即將推出" }
+            }
+            tappableRow(icon: "hand.raised.fill", title: "隱私政策") {
+                withAnimation { toastMessage = "隱私政策頁面即將推出" }
+            }
         } header: {
             Text("關於我們")
         }
@@ -147,7 +173,7 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    private func settingsRow(icon: String, title: String, value: String? = nil, showChevron: Bool = false) -> some View {
+    private func settingsRow(icon: String, title: String, value: String? = nil) -> some View {
         HStack {
             Label(title, systemImage: icon)
                 .font(Typography.fieldValue)
@@ -158,7 +184,21 @@ struct SettingsView: View {
                     .font(.system(size: 14))
                     .foregroundColor(Theme.textSecondary)
             }
-            if showChevron {
+        }
+    }
+
+    private func tappableRow(icon: String, title: String, value: String? = nil, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack {
+                Label(title, systemImage: icon)
+                    .font(Typography.fieldValue)
+                    .foregroundColor(Theme.textPrimary)
+                Spacer()
+                if let value {
+                    Text(value)
+                        .font(.system(size: 14))
+                        .foregroundColor(Theme.textSecondary)
+                }
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(Theme.textSecondary)

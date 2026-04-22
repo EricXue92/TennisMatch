@@ -291,6 +291,20 @@ struct ChatDetailView: View {
                     Text("🎾")
                         .font(.system(size: 14))
                 )
+                .onTapGesture {
+                    // 點擊頭像查看對方資料
+                    if case .personal(let name, _, _) = chat.type {
+                        selectedPlayer = PublicPlayerData(
+                            name: name,
+                            gender: .male,
+                            ntrp: "3.5",
+                            reputation: 88,
+                            matchCount: 20,
+                            bio: "熱愛網球",
+                            recentMatches: []
+                        )
+                    }
+                }
 
             Text(text)
                 .font(Typography.caption)

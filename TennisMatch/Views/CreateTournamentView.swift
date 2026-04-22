@@ -43,6 +43,14 @@ struct CreateTournamentView: View {
     @State private var selectedLevel = "3.0 - 4.5"
     @State private var fee = ""
     @State private var rules = ""
+    @State private var showValidationError = false
+    @State private var validationMessage = ""
+
+    private var isFormValid: Bool {
+        !tournamentName.trimmingCharacters(in: .whitespaces).isEmpty
+            && !participantCount.isEmpty
+            && (Int(participantCount) ?? 0) > 0
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -495,16 +503,36 @@ private extension CreateTournamentView {
     }
 
     var submitButton: some View {
-        Button {
-            showConfirmation = true
-        } label: {
-            Text("發布賽事")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 44)
-                .background(Theme.accentGreen)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        VStack(spacing: Spacing.xs) {
+            if showValidationError {
+                Text(validationMessage)
+                    .font(Typography.small)
+                    .foregroundColor(Theme.requiredText)
+                    .transition(.opacity)
+            }
+
+            Button {
+                if tournamentName.trimmingCharacters(in: .whitespaces).isEmpty {
+                    validationMessage = "請輸入賽事名稱"
+                    withAnimation { showValidationError = true }
+                    return
+                }
+                if participantCount.isEmpty || (Int(participantCount) ?? 0) <= 0 {
+                    validationMessage = "請輸入有效的參賽人數"
+                    withAnimation { showValidationError = true }
+                    return
+                }
+                showValidationError = false
+                showConfirmation = true
+            } label: {
+                Text("發布賽事")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 44)
+                    .background(isFormValid ? Theme.accentGreen : Theme.chipUnselectedBg)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 

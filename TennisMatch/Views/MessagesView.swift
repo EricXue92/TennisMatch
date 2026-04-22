@@ -188,14 +188,17 @@ struct MessagesView: View {
                 Text(title)
                     .font(.system(size: 15, weight: unread > 0 ? .semibold : .medium))
                     .foregroundColor(Theme.textPrimary)
+                    .lineLimit(1)
                 Text("📍 \(dateTime)")
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(Theme.primary)
+                    .lineLimit(1)
             case .personal(let name, let symbol, let symbolColor):
                 HStack(spacing: 4) {
                     Text(name)
                         .font(.system(size: 15, weight: unread > 0 ? .semibold : .medium))
                         .foregroundColor(Theme.textPrimary)
+                        .lineLimit(1)
                     Text(symbol)
                         .font(Typography.fieldValue)
                         .foregroundColor(symbolColor)

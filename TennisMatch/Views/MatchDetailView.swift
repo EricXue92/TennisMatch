@@ -37,6 +37,8 @@ struct MatchDetailView: View {
     @State private var localPlayerCurrent: Int? = nil
     /// Sign-up留言 — carried into the organizer chat as the first outgoing bubble.
     @State private var signUpMessage: String = ""
+    /// Selected player for navigating to PublicProfileView
+    @State private var selectedPlayer: PublicPlayerData?
 
     private var hasSignedUp: Bool {
         guard let mid = match.matchId else { return false }
@@ -80,6 +82,9 @@ struct MatchDetailView: View {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
         }
         .navigationBarBackButtonHidden(true)
+        .navigationDestination(item: $selectedPlayer) { player in
+            PublicProfileView(player: player)
+        }
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button {
@@ -105,27 +110,43 @@ private extension MatchDetailView {
         VStack(alignment: .leading, spacing: 0) {
             // Creator info
             HStack(spacing: Spacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(Theme.avatarPlaceholder)
-                        .frame(width: 56, height: 56)
-                    Text(String(match.name.prefix(1)))
-                        .font(Typography.title)
-                        .foregroundColor(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 4) {
-                        Text(match.name)
-                            .font(.system(size: 17, weight: .semibold))
-                            .foregroundColor(Theme.textPrimary)
-                        Text(match.gender.symbol)
-                            .font(.system(size: 17))
-                            .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                // 頭像+名字可點擊查看資料
+                HStack(spacing: Spacing.sm) {
+                    ZStack {
+                        Circle()
+                            .fill(Theme.avatarPlaceholder)
+                            .frame(width: 56, height: 56)
+                        Text(String(match.name.prefix(1)))
+                            .font(Typography.title)
+                            .foregroundColor(.white)
                     }
-                    Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
-                        .font(Typography.caption)
-                        .foregroundColor(Theme.textMuted)
+
+                    VStack(alignment: .leading, spacing: 4) {
+                        HStack(spacing: 4) {
+                            Text(match.name)
+                                .font(.system(size: 17, weight: .semibold))
+                                .foregroundColor(Theme.textPrimary)
+                                .lineLimit(1)
+                            Text(match.gender.symbol)
+                                .font(.system(size: 17))
+                                .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                        }
+                        Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
+                            .font(Typography.caption)
+                            .foregroundColor(Theme.textMuted)
+                    }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedPlayer = PublicPlayerData(
+                        name: match.name,
+                        gender: match.gender,
+                        ntrp: match.ntrp,
+                        reputation: match.reputation,
+                        matchCount: 20,
+                        bio: "熱愛網球",
+                        recentMatches: []
+                    )
                 }
 
                 Spacer()
@@ -294,6 +315,7 @@ private extension MatchDetailView {
                             Text(p.name)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Theme.textPrimary)
+                                .lineLimit(1)
                             Text(p.gender.symbol)
                                 .font(.system(size: 14))
                                 .foregroundColor(p.gender == .female ? Theme.genderFemale : Theme.genderMale)
@@ -316,6 +338,18 @@ private extension MatchDetailView {
                                     .stroke(Theme.borderMuted, lineWidth: 1)
                             }
                     }
+                }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    selectedPlayer = PublicPlayerData(
+                        name: p.name,
+                        gender: p.gender,
+                        ntrp: p.ntrp,
+                        reputation: 80,
+                        matchCount: 10,
+                        bio: "熱愛網球",
+                        recentMatches: []
+                    )
                 }
             }
         }

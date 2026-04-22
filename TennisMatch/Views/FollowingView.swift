@@ -92,6 +92,7 @@ struct FollowingView: View {
                     Text(player.name)
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
+                        .lineLimit(1)
                     Text(player.gender.symbol)
                         .font(Typography.fieldValue)
                         .foregroundColor(player.gender == .female ? Theme.genderFemale : Theme.genderMale)

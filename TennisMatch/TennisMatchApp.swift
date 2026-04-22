@@ -30,6 +30,7 @@ struct TennisMatchApp: App {
                     }
                 }
             }
+            .preferredColorScheme(.light)
             .environment(followStore)
             .environment(userStore)
             .environment(bookedSlotStore)
