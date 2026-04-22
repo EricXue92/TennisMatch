@@ -240,7 +240,7 @@ struct EmailRegisterView: View {
     // MARK: - Helpers
 
     private var sendButtonEnabled: Bool {
-        !email.isEmpty && (!codeSent || canResend)
+        isValidEmail(email) && (!codeSent || canResend)
     }
 
     private var isFormValid: Bool {
@@ -250,7 +250,17 @@ struct EmailRegisterView: View {
             && password == confirmPassword
     }
 
+    private func isValidEmail(_ email: String) -> Bool {
+        let pattern = #"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$"#
+        return email.range(of: pattern, options: .regularExpression) != nil
+    }
+
     private func sendCode() {
+        guard isValidEmail(email) else {
+            validationMessage = "請輸入有效的郵箱地址"
+            withAnimation { showValidationError = true }
+            return
+        }
         codeSent = true
         countdown = 60
         canResend = false
@@ -269,7 +279,7 @@ struct EmailRegisterView: View {
     private func validate() {
         if email.isEmpty {
             validationMessage = "請輸入郵箱地址"
-        } else if !email.contains("@") || !email.contains(".") {
+        } else if !isValidEmail(email) {
             validationMessage = "請輸入有效的郵箱地址"
         } else if verificationCode.count != 6 {
             validationMessage = "請輸入 6 位驗證碼"
