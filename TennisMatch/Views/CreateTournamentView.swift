@@ -147,7 +147,7 @@ private extension CreateTournamentView {
             sectionTitle("賽事名稱")
 
             TextField("例如：香港春季網球公開賽", text: $tournamentName)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textDark)
                 .frame(height: 34)
                 .padding(.horizontal, Spacing.sm)
@@ -212,7 +212,7 @@ private extension CreateTournamentView {
 
             if !participantCount.isEmpty && !recommendedFormats.isEmpty {
                 Text("💡 根據人數，推薦「\(recommendedFormatText)」")
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.accentGreen)
             }
         }
@@ -246,9 +246,9 @@ private extension CreateTournamentView {
                 } label: {
                     HStack(spacing: 6) {
                         Text("📅")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                         Text(startDateEdited ? formattedDate(startDate) : "開始日期")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(startDateEdited ? Theme.textDark : Theme.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -268,9 +268,9 @@ private extension CreateTournamentView {
                 } label: {
                     HStack(spacing: 6) {
                         Text("📅")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                         Text(endDateEdited ? formattedDate(endDate) : "結束日期")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(endDateEdited ? Theme.textDark : Theme.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -322,9 +322,9 @@ private extension CreateTournamentView {
             } label: {
                 HStack(spacing: 6) {
                     Text("📍")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                     Text(selectedCourt?.name ?? "選擇場地...")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(selectedCourt != nil ? Theme.textDark : Theme.textSecondary)
                     Spacer()
                 }
@@ -353,11 +353,11 @@ private extension CreateTournamentView {
                 } label: {
                     HStack {
                         Text(selectedLevel)
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(Theme.textDark)
                         Spacer()
                         Text("▾")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.textHint)
                     }
                     .frame(height: 34)
@@ -376,7 +376,7 @@ private extension CreateTournamentView {
 
                 ZStack(alignment: .trailing) {
                     TextField("", text: $fee)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(Theme.textDark)
                         .keyboardType(.numberPad)
                         .frame(height: 34)
@@ -389,7 +389,7 @@ private extension CreateTournamentView {
                         )
 
                     Text("港幣")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(Theme.textHint)
                         .padding(.trailing, Spacing.sm)
                 }
@@ -403,7 +403,7 @@ private extension CreateTournamentView {
             sectionTitle("賽事規則")
 
             TextField("例如：單淘汰制，三盤兩勝", text: $rules)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textDark)
                 .frame(height: 36)
                 .padding(.horizontal, Spacing.sm)
@@ -442,7 +442,7 @@ private extension CreateTournamentView {
                 }
 
                 Text(label)
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textDark)
             }
             .frame(minHeight: 44)
@@ -475,7 +475,7 @@ private extension CreateTournamentView {
                 }
 
                 Text(format.range)
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.textHint)
 
                 Text(format.description)

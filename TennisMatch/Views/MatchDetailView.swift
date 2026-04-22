@@ -110,7 +110,7 @@ private extension MatchDetailView {
                         .fill(Theme.avatarPlaceholder)
                         .frame(width: 56, height: 56)
                     Text(String(match.name.prefix(1)))
-                        .font(.system(size: 22, weight: .bold))
+                        .font(Typography.title)
                         .foregroundColor(.white)
                 }
 
@@ -124,7 +124,7 @@ private extension MatchDetailView {
                             .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
                     }
                     Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(Theme.textMuted)
                 }
 
@@ -204,7 +204,7 @@ private extension MatchDetailView {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Theme.textPrimary)
                 Text(match.notes)
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textMuted)
             }
             .padding(Spacing.md)
@@ -225,7 +225,7 @@ private extension MatchDetailView {
                     .foregroundColor(Theme.textPrimary)
                 if let subtitle {
                     Text(subtitle)
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.textMuted)
                 }
             }
@@ -261,7 +261,7 @@ private extension MatchDetailView {
                 .foregroundColor(Theme.textPrimary)
             if let label {
                 Text(label)
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.textFaint)
             }
         }
@@ -299,7 +299,7 @@ private extension MatchDetailView {
                                 .foregroundColor(p.gender == .female ? Theme.genderFemale : Theme.genderMale)
                         }
                         Text("NTRP \(p.ntrp)")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.textFaint)
                     }
 
@@ -307,7 +307,7 @@ private extension MatchDetailView {
 
                     if p.isOrganizer {
                         Text("發起人")
-                            .font(.system(size: 11))
+                            .font(Typography.fieldLabel)
                             .foregroundColor(Theme.textMuted)
                             .padding(.horizontal, Spacing.sm)
                             .frame(height: 22)
@@ -540,7 +540,7 @@ private struct InviteContactsSheet: View {
         NavigationStack {
             VStack(spacing: 0) {
                 Text("選擇要邀請的朋友加入\(matchType)")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textCaption)
                     .padding(.top, Spacing.sm)
 
@@ -554,7 +554,7 @@ private struct InviteContactsSheet: View {
                                         .fill(Theme.avatarPlaceholder)
                                         .frame(width: 40, height: 40)
                                     Text(String(contact.name.prefix(1)))
-                                        .font(.system(size: 16, weight: .bold))
+                                        .font(Typography.button)
                                         .foregroundColor(.white)
                                 }
 
@@ -568,7 +568,7 @@ private struct InviteContactsSheet: View {
                                             .foregroundColor(contact.genderColor)
                                     }
                                     Text("NTRP \(contact.ntrp)")
-                                        .font(.system(size: 12))
+                                        .font(Typography.small)
                                         .foregroundColor(Theme.textCaption)
                                 }
 
@@ -698,7 +698,7 @@ private struct SignUpConfirmSheetForDetail: View {
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
         }
     }
@@ -735,11 +735,11 @@ private struct SignUpSuccessViewForDetail: View {
             Spacer().frame(height: Spacing.md)
 
             Text("報名成功！")
-                .font(.system(size: 22, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(Theme.textDark)
 
             Text("你已成功加入\(match.name)的約球")
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textHint)
                 .padding(.top, Spacing.xs)
 
@@ -823,7 +823,7 @@ private struct SignUpSuccessViewForDetail: View {
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textDark)
         }
     }

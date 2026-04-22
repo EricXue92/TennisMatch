@@ -30,7 +30,7 @@ struct MatchAssistantView: View {
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
                         Text("根據你的 NTRP \(userStore.ntrpText)、常去球場和空閒時間為你推薦")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.textSecondary)
                     }
                 }
@@ -84,7 +84,7 @@ struct MatchAssistantView: View {
                         .fill(Theme.avatarPlaceholder)
                         .frame(width: 40, height: 40)
                     Text(String(rec.name.prefix(1)))
-                        .font(.system(size: 16, weight: .bold))
+                        .font(Typography.button)
                         .foregroundColor(.white)
                 }
 
@@ -105,7 +105,7 @@ struct MatchAssistantView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                     }
                     Text("NTRP \(rec.ntrp)")
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textCaption)
                 }
 
@@ -116,7 +116,7 @@ struct MatchAssistantView: View {
                         .font(.system(size: 10))
                         .foregroundColor(Theme.textSecondary)
                     Text("\(rec.matchScore)%")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(Typography.button)
                         .foregroundColor(Theme.primary)
                 }
             }
@@ -125,13 +125,13 @@ struct MatchAssistantView: View {
                 Text("📅 \(rec.dateTime)")
                 Text("📍 \(rec.location)")
             }
-            .font(.system(size: 12))
+            .font(Typography.small)
             .foregroundColor(Theme.textBody)
             .padding(.leading, 52)
 
             HStack(spacing: Spacing.xs) {
                 Text(rec.reason)
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.primary)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 22)

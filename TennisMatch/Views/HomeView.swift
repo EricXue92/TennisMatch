@@ -379,7 +379,7 @@ private extension HomeView {
 
             // Version
             Text("v0.1.0")
-                .font(.system(size: 11))
+                .font(Typography.fieldLabel)
                 .foregroundColor(Theme.textSecondary)
                 .padding(.horizontal, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
@@ -475,7 +475,7 @@ private extension HomeView {
     func statCard(label: String, value: String) -> some View {
         VStack(spacing: 4) {
             Text(label)
-                .font(.system(size: 11))
+                .font(Typography.fieldLabel)
                 .foregroundColor(.white.opacity(0.9))
             Text(value)
                 .font(.system(size: 24, weight: .bold))
@@ -570,12 +570,12 @@ private extension HomeView {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                     Text(gender.symbol)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(gender == .female ? Theme.genderFemale : Theme.genderMale)
                 }
 
                 Text("NTRP \(ntrp)")
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.textCaption)
 
                 let isFollowing = followStore.isFollowing(name)
@@ -792,7 +792,7 @@ private extension HomeView {
             // Time range pickers
             HStack(spacing: Spacing.sm) {
                 Text("從")
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.textCaption)
                 Picker("", selection: $timeFrom) {
                     ForEach(timeSlots, id: \.self) { slot in
@@ -805,7 +805,7 @@ private extension HomeView {
                 .accessibilityLabel("開始時間")
 
                 Text("到")
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.textCaption)
                 Picker("", selection: $timeTo) {
                     ForEach(timeSlots.filter { $0 >= timeFrom }, id: \.self) { slot in
@@ -1107,7 +1107,7 @@ private extension HomeView {
                 Spacer()
 
                 Text(match.weather)
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.textCaption)
             }
 
@@ -1329,10 +1329,10 @@ private extension HomeView {
     func detailRow(icon: String, text: String) -> some View {
         HStack(spacing: 4) {
             Text(icon)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textSecondary)
             Text(text)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textBody)
         }
         .padding(.leading, 52)
@@ -1679,7 +1679,7 @@ private struct SignUpConfirmSheet: View {
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
         }
     }
@@ -1725,14 +1725,14 @@ private struct SignUpSuccessView: View {
 
             // Title
             Text("報名成功！")
-                .font(.system(size: 22, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(Theme.textDark)
 
             Spacer().frame(height: Spacing.xs)
 
             // Subtitle
             Text("你已成功加入\(match.organizerName)的約球")
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textHint)
 
             Spacer().frame(height: Spacing.lg)
@@ -1836,7 +1836,7 @@ private struct SignUpSuccessView: View {
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textDark)
         }
     }

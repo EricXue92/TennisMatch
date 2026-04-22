@@ -126,7 +126,7 @@ struct ProfileView: View {
                         .foregroundColor(Theme.textPrimary)
 
                     Text(suggestion.bannerSubtitle(selfNTRP: userStore.ntrpLevel))
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.textBody)
                         .multilineTextAlignment(.leading)
                         .fixedSize(horizontal: false, vertical: true)
@@ -195,7 +195,7 @@ struct ProfileView: View {
                     }
 
                     Text(userStore.bio)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(.white.opacity(0.9))
                 }
 
@@ -289,7 +289,7 @@ struct ProfileView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
             Text(label)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(.white.opacity(0.8))
         }
     }
@@ -332,7 +332,7 @@ struct ProfileView: View {
     private func recordRow(label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textCaption)
             Spacer()
             Text(value)
@@ -354,7 +354,7 @@ struct ProfileView: View {
                     showTournaments = true
                 } label: {
                     Text("全部")
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.primary)
                 }
             }
@@ -395,7 +395,7 @@ struct ProfileView: View {
                         .font(.system(size: 10))
                         .foregroundColor(Theme.textSecondary)
                     Text(record.date)
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textCaption)
                 }
                 HStack(spacing: 4) {
@@ -403,7 +403,7 @@ struct ProfileView: View {
                         .font(.system(size: 10))
                         .foregroundColor(Theme.textSecondary)
                     Text(record.draw)
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textCaption)
                 }
             }
@@ -441,7 +441,7 @@ struct ProfileView: View {
                     showAchievements = true
                 } label: {
                     Text("全部")
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.primary)
                 }
             }
@@ -593,7 +593,7 @@ private struct CalibrationSheet: View {
                     .font(.system(size: 20, weight: .bold))
                     .foregroundColor(Theme.textPrimary)
                 Text(suggestion.directionHeadline)
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }
 
@@ -616,7 +616,7 @@ private struct CalibrationSheet: View {
             .frame(maxWidth: .infinity)
 
             Text("基於 \(suggestion.sampleSize) 位球友賽後評估,差距已超過 \(String(format: "%.1f", RatingFeedbackStore.deviationThreshold)) 級。建議將 NTRP 調整至 \(String(format: "%.1f", suggestion.suggested)),匹配更精準。")
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textCaption)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -669,7 +669,7 @@ private struct CalibrationSheet: View {
     private func comparisonCard(title: String, value: String, accent: Color) -> some View {
         VStack(spacing: 4) {
             Text(title)
-                .font(.system(size: 11))
+                .font(Typography.fieldLabel)
                 .foregroundColor(Theme.textCaption)
             Text(value)
                 .font(.system(size: 28, weight: .bold))

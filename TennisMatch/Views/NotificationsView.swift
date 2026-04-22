@@ -77,10 +77,10 @@ struct NotificationsView: View {
                     .font(.system(size: 14, weight: notification.isRead ? .regular : .semibold))
                     .foregroundColor(Theme.textPrimary)
                 Text(notification.body)
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
                 Text(notification.time)
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.textSecondary)
             }
 

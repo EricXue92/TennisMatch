@@ -207,7 +207,7 @@ private extension TournamentView {
                         .fill(Theme.avatarPlaceholder)
                         .frame(width: 20, height: 20)
                     Text("發起人: \(t.organizer)")
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textSecondary)
                 }
                 .padding(.leading, 60)
@@ -281,9 +281,9 @@ private extension TournamentView {
     func infoRow(icon: String, text: String) -> some View {
         HStack(spacing: 6) {
             Text(icon)
-                .font(.system(size: 12))
+                .font(Typography.small)
             Text(text)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textSecondary)
         }
     }
@@ -396,7 +396,7 @@ private extension TournamentDetailView {
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 Text(tournament.name)
-                    .font(.system(size: 17, weight: .bold))
+                    .font(Typography.navTitle)
                     .foregroundColor(.white)
 
                 HStack(spacing: 6) {
@@ -439,7 +439,7 @@ private extension TournamentDetailView {
     var infoCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("賽事資訊")
-                .font(.system(size: 16, weight: .bold))
+                .font(Typography.button)
                 .foregroundColor(Theme.textInk)
 
             detailInfoRow(icon: "📅", label: "比賽日期", value: tournament.dateRange)
@@ -458,7 +458,7 @@ private extension TournamentDetailView {
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(tournament.rules, id: \.self) { rule in
                     Text("• \(rule)")
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.textMuted)
                         .lineSpacing(4)
                 }
@@ -475,7 +475,7 @@ private extension TournamentDetailView {
             Text(icon)
                 .font(.system(size: 16))
             Text(label)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textMid)
                 .frame(width: 70, alignment: .leading)
             Text(value)
@@ -488,7 +488,7 @@ private extension TournamentDetailView {
     var organizerCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("主辦方")
-                .font(.system(size: 16, weight: .bold))
+                .font(Typography.button)
                 .foregroundColor(Theme.textInk)
 
             HStack(spacing: Spacing.sm) {
@@ -501,7 +501,7 @@ private extension TournamentDetailView {
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundColor(Theme.textInk)
                     Text("NTRP 4.0 · 賽事組織者")
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textSubtle)
                 }
 
@@ -533,7 +533,7 @@ private extension TournamentDetailView {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text(isCompleted ? "比賽成績" : "已報名選手")
-                    .font(.system(size: 16, weight: .bold))
+                    .font(Typography.button)
                     .foregroundColor(Theme.textInk)
                 Spacer()
                 Text(tournament.participants)
@@ -565,7 +565,7 @@ private extension TournamentDetailView {
                             .font(.system(size: 13, weight: .semibold))
                             .foregroundColor(Theme.textDeeper)
                         Text("NTRP \(player.ntrp)")
-                            .font(.system(size: 11))
+                            .font(Typography.fieldLabel)
                             .foregroundColor(Theme.textSubtle)
                     }
 
@@ -589,7 +589,7 @@ private extension TournamentDetailView {
                     showSignUpConfirm = true
                 } label: {
                     Text("立即報名 · \(tournament.fee)")
-                        .font(.system(size: 16, weight: .bold))
+                        .font(Typography.button)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
@@ -657,7 +657,7 @@ private struct TournamentSignUpSheet: View {
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
         }
     }
@@ -694,11 +694,11 @@ private struct TournamentSignUpSuccessView: View {
             Spacer().frame(height: Spacing.md)
 
             Text("報名成功！")
-                .font(.system(size: 22, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(Theme.textDark)
 
             Text("你已成功報名「\(tournament.name)」")
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textHint)
                 .padding(.top, Spacing.xs)
 
@@ -784,7 +784,7 @@ private struct TournamentSignUpSuccessView: View {
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textDark)
         }
     }

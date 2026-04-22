@@ -70,21 +70,21 @@ struct SettingsView: View {
         Section {
             Toggle(isOn: $matchReminders) {
                 Label("約球提醒", systemImage: "bell.fill")
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
             .tint(Theme.primary)
 
             Toggle(isOn: $chatNotifications) {
                 Label("聊天消息", systemImage: "bubble.left.fill")
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
             .tint(Theme.primary)
 
             Toggle(isOn: $tournamentUpdates) {
                 Label("賽事更新", systemImage: "trophy.fill")
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
             .tint(Theme.primary)
@@ -101,7 +101,7 @@ struct SettingsView: View {
                 Text("僅自己").tag("僅自己")
             } label: {
                 Label("誰能看到我的資料", systemImage: "eye.fill")
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
 
@@ -111,7 +111,7 @@ struct SettingsView: View {
                 Text("關閉").tag("關閉")
             } label: {
                 Label("誰能私信我", systemImage: "envelope.fill")
-                    .font(.system(size: 15))
+                    .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
         } header: {
@@ -150,7 +150,7 @@ struct SettingsView: View {
     private func settingsRow(icon: String, title: String, value: String? = nil, showChevron: Bool = false) -> some View {
         HStack {
             Label(title, systemImage: icon)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
             Spacer()
             if let value {

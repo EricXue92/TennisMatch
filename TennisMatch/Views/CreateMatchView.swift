@@ -183,7 +183,7 @@ struct CreateMatchView: View {
                         .font(.system(size: 14))
                         .foregroundColor(Theme.textPrimary)
                     Text(dateFormatted)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(dateWasEdited ? Theme.textPrimary : Theme.textSecondary)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -219,7 +219,7 @@ struct CreateMatchView: View {
                             .font(.system(size: 14))
                             .foregroundColor(Theme.textPrimary)
                         Text(startTimeEdited ? selectedStartTime : "開始時間")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(startTimeEdited ? Theme.textPrimary : Theme.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -247,7 +247,7 @@ struct CreateMatchView: View {
                             .font(.system(size: 14))
                             .foregroundColor(Theme.textPrimary)
                         Text(endTimeEdited ? selectedEndTime : "結束時間")
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(endTimeEdited ? Theme.textPrimary : Theme.textSecondary)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -353,7 +353,7 @@ struct CreateMatchView: View {
                     Text("📍")
                         .font(.system(size: 14))
                     Text(selectedCourt?.name ?? "選擇球場...")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(selectedCourt != nil ? Theme.textPrimary : Theme.textSecondary)
                     Spacer()
                 }
@@ -500,7 +500,7 @@ struct CreateMatchView: View {
 
             if costType == "AA制" {
                 TextField("費用金額 (港幣)", text: $costAmount)
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textPrimary)
                     .keyboardType(.numberPad)
                     .frame(height: 44)
@@ -514,7 +514,7 @@ struct CreateMatchView: View {
             }
             if showCostError && costType == "AA制" {
                 Text("請填寫費用金額")
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.requiredText)
             }
         }
@@ -529,7 +529,7 @@ struct CreateMatchView: View {
                 .foregroundColor(Theme.textPrimary)
 
             TextField("例如：自帶球、需要教練等", text: $notes)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textPrimary)
                 .frame(height: 44)
                 .padding(.horizontal, Spacing.sm)
@@ -651,7 +651,7 @@ struct CreateMatchView: View {
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
         }
     }

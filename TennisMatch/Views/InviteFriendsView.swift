@@ -40,7 +40,7 @@ struct InviteFriendsView: View {
             // Invite code card
             VStack(spacing: Spacing.sm) {
                 Text("你的邀請碼")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textSecondary)
 
                 Text(inviteCode)
@@ -53,7 +53,7 @@ struct InviteFriendsView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "doc.on.doc")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                         Text("複製邀請碼")
                             .font(.system(size: 13, weight: .medium))
                     }

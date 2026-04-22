@@ -80,11 +80,11 @@ struct PublicProfileView: View {
                     }
 
                     Text("NTRP \(player.ntrp) · 信譽分 \(player.reputation)")
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(.white.opacity(0.85))
 
                     Text(player.bio)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(.white.opacity(0.9))
                 }
 
@@ -169,9 +169,9 @@ struct PublicProfileView: View {
             ForEach(player.recentMatches, id: \.self) { match in
                 HStack(spacing: Spacing.sm) {
                     Text("📅")
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                     Text(match)
-                        .font(.system(size: 13))
+                        .font(Typography.caption)
                         .foregroundColor(Theme.textBody)
                 }
             }

@@ -93,11 +93,11 @@ struct FollowingView: View {
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                     Text(player.gender.symbol)
-                        .font(.system(size: 15))
+                        .font(Typography.fieldValue)
                         .foregroundColor(player.gender == .female ? Theme.genderFemale : Theme.genderMale)
                 }
                 Text("NTRP \(player.ntrp) · \(player.latestActivity)")
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.textSecondary)
             }
 

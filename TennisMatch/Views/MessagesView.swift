@@ -197,7 +197,7 @@ struct MessagesView: View {
                         .font(.system(size: 15, weight: unread > 0 ? .semibold : .medium))
                         .foregroundColor(Theme.textPrimary)
                     Text(symbol)
-                        .font(.system(size: 15))
+                        .font(Typography.fieldValue)
                         .foregroundColor(symbolColor)
                 }
             }

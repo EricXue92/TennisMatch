@@ -149,7 +149,7 @@ struct ReviewsView: View {
                     .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
-                    .font(.system(size: 16, weight: .bold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
             }
 
@@ -160,20 +160,20 @@ struct ReviewsView: View {
                         .foregroundColor(Theme.textPrimary)
                     Spacer()
                     Text(review.date)
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textSecondary)
                 }
 
                 HStack(spacing: 2) {
                     ForEach(0..<5, id: \.self) { i in
                         Image(systemName: i < review.rating ? "star.fill" : "star")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(i < review.rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
 
                 Text(review.comment)
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }
         }
@@ -189,7 +189,7 @@ struct ReviewsView: View {
                     .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
-                    .font(.system(size: 16, weight: .bold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
             }
 
@@ -198,7 +198,7 @@ struct ReviewsView: View {
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(Theme.textPrimary)
                 Text(review.matchInfo)
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.textSecondary)
             }
 

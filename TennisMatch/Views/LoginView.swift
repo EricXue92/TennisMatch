@@ -224,7 +224,7 @@ struct LoginView: View {
         VStack(spacing: 5) {
             Text("登入即表示您同意 \(Text("服務條款").foregroundColor(sage).underline()) 和 \(Text("隱私政策").foregroundColor(sage).underline())")
                 .foregroundColor(sage.opacity(0.55))
-                .font(.system(size: 11))
+                .font(Typography.fieldLabel)
 
             HStack(spacing: 3) {
                 Text("還沒有帳號？")
@@ -235,7 +235,7 @@ struct LoginView: View {
                         .underline()
                 }
             }
-            .font(.system(size: 12))
+            .font(Typography.small)
 
             HStack(spacing: 3) {
                 Text("需要幫助？")
@@ -245,7 +245,7 @@ struct LoginView: View {
                         .foregroundColor(chartreuse.opacity(0.6))
                 }
             }
-            .font(.system(size: 11))
+            .font(Typography.fieldLabel)
         }
         .padding(.top, 22)
         .opacity(appeared ? 1 : 0)

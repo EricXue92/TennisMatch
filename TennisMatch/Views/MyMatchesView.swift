@@ -270,7 +270,7 @@ struct MyMatchesView: View {
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(Theme.textPrimary)
                                 Text("NTRP 3.5")
-                                    .font(.system(size: 12))
+                                    .font(Typography.small)
                                     .foregroundColor(Theme.textSecondary)
                             }
                             Spacer()
@@ -472,7 +472,7 @@ private extension MyMatchesView {
                     Spacer()
 
                     Text(match.weather)
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textBody)
                 }
 
@@ -542,9 +542,9 @@ private extension MyMatchesView {
     func matchDetailRow(icon: String, text: String) -> some View {
         HStack(spacing: 4) {
             Text(icon)
-                .font(.system(size: 12))
+                .font(Typography.small)
             Text(text)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textBody)
         }
         .padding(.leading, 48)
@@ -597,7 +597,7 @@ private extension MyMatchesView {
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                     Text(invitation.details)
-                        .font(.system(size: 11))
+                        .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textBody)
                 }
 
@@ -943,11 +943,11 @@ private struct InvitationAcceptSuccessView: View {
             Spacer().frame(height: Spacing.md)
 
             Text("已接受邀請！")
-                .font(.system(size: 22, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(Theme.textDark)
 
             Text("你已加入\(invitation.inviterName)的\(invitation.matchType)約球")
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textHint)
                 .padding(.top, Spacing.xs)
 
@@ -1042,7 +1042,7 @@ private struct InvitationAcceptSuccessView: View {
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
-                .font(.system(size: 15))
+                .font(Typography.fieldValue)
                 .foregroundColor(Theme.textDark)
         }
     }

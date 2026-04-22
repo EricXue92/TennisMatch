@@ -93,7 +93,7 @@ struct RegisterView: View {
                         .frame(width: 28, height: 28)
                         .overlay(
                             Image(systemName: "camera.fill")
-                                .font(.system(size: 13))
+                                .font(Typography.caption)
                                 .foregroundColor(.white)
                         )
                         .offset(x: 2, y: 2)
@@ -306,7 +306,7 @@ struct RegisterView: View {
     private func sectionHeader(title: String, badge: String, badgeBg: Color, badgeFg: Color) -> some View {
         HStack(spacing: Spacing.xs) {
             Text(title)
-                .font(.system(size: 16, weight: .bold))
+                .font(Typography.button)
                 .foregroundColor(Theme.textPrimary)
             Text(badge)
                 .font(.system(size: 11, weight: .medium))
@@ -413,7 +413,7 @@ struct RegisterView: View {
     private func tagView(text: String, onRemove: @escaping () -> Void) -> some View {
         HStack(spacing: 4) {
             Text(text)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textPrimary)
             Button(action: onRemove) {
                 Text("×")
@@ -434,7 +434,7 @@ struct RegisterView: View {
     private func slotTagView(text: String, onRemove: @escaping () -> Void) -> some View {
         HStack(spacing: 6) {
             Text(text)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.textPrimary)
             Button(action: onRemove) {
                 Text("×")

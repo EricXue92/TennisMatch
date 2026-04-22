@@ -124,14 +124,14 @@ struct EditProfileView: View {
                     .frame(width: 24, height: 24)
                     .overlay(
                         Image(systemName: "camera.fill")
-                            .font(.system(size: 11))
+                            .font(Typography.fieldLabel)
                             .foregroundColor(.white)
                     )
                     .offset(x: 2, y: 2)
             }
 
             Text("更換照片")
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.primary)
         }
         .frame(maxWidth: .infinity)
@@ -247,18 +247,18 @@ struct EditProfileView: View {
 
             if preferredSlots.isEmpty {
                 Text("尚未設定偏好時間")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textSecondary)
                     .padding(.bottom, Spacing.xs)
             } else {
                 ForEach(preferredSlots) { slot in
                     HStack(spacing: Spacing.sm) {
                         Image(systemName: "clock")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.primary)
 
                         Text(slot.displayText)
-                            .font(.system(size: 13))
+                            .font(Typography.caption)
                             .foregroundColor(Theme.textBody)
 
                         Spacer()
@@ -614,7 +614,7 @@ private struct AddPreferredSlotSheet: View {
             let preview = buildSlot()
             HStack(spacing: Spacing.xs) {
                 Image(systemName: "clock")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.primary)
                 Text(preview.displayText)
                     .font(.system(size: 14, weight: .medium))

@@ -31,7 +31,7 @@ struct BlockListView: View {
                                     .fill(Theme.avatarPlaceholder)
                                     .frame(width: 44, height: 44)
                                 Text(String(user.name.prefix(1)))
-                                    .font(.system(size: 16, weight: .bold))
+                                    .font(Typography.button)
                                     .foregroundColor(.white)
                             }
 
@@ -40,7 +40,7 @@ struct BlockListView: View {
                                     .font(.system(size: 15, weight: .medium))
                                     .foregroundColor(Theme.textPrimary)
                                 Text("封鎖於 \(user.blockedDate)")
-                                    .font(.system(size: 12))
+                                    .font(Typography.small)
                                     .foregroundColor(Theme.textSecondary)
                             }
 
