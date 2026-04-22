@@ -79,6 +79,13 @@ struct ChatDetailView: View {
         }
     }
 
+    /// 日期分隔標籤:顯示「今天 — yyyy/MM/dd」，避免 hardcode 字串
+    private func dateSeparatorLabel() -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        return "今天 — \(formatter.string(from: Date()))"
+    }
+
     private var allMessages: [ChatBubble] {
         var messages: [ChatBubble] = []
         if let context = matchContext {
@@ -110,7 +117,7 @@ struct ChatDetailView: View {
             ScrollViewReader { proxy in
                 ScrollView {
                     VStack(spacing: 14) {
-                        Text("今天")
+                        Text(dateSeparatorLabel())
                             .font(Typography.small)
                             .foregroundColor(Theme.textHint)
                             .frame(maxWidth: .infinity)
@@ -470,11 +477,13 @@ struct ChatDetailView: View {
                             Text("接受")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(.white)
+                                // 視覺保持小尺寸,但觸控區域至少 44pt(HIG 標準)
                                 .frame(width: 60, height: 26)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .fill(Theme.accentGreen)
                                 )
+                                .frame(minHeight: 44)
                         }
 
                         Button {
@@ -493,11 +502,13 @@ struct ChatDetailView: View {
                             Text("拒絕")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(Theme.accentGreen)
+                                // 視覺保持小尺寸,但觸控區域至少 44pt(HIG 標準)
                                 .frame(width: 60, height: 26)
                                 .background(
                                     RoundedRectangle(cornerRadius: 6)
                                         .stroke(Theme.accentGreen, lineWidth: 1)
                                 )
+                                .frame(minHeight: 44)
                         }
                     }
                 }
