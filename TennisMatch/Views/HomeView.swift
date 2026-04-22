@@ -324,6 +324,10 @@ struct HomeView: View {
                 }
                 .padding(.bottom, 80)
             }
+            .refreshable {
+                // Mock 階段模擬刷新
+                try? await Task.sleep(for: .seconds(0.8))
+            }
         }
         .background(Theme.inputBg)
     }
