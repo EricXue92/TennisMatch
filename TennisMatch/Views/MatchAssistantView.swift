@@ -122,7 +122,7 @@ struct MatchAssistantView: View {
             }
 
             HStack(spacing: Spacing.xs) {
-                Text("📅 \(rec.dateTime)")
+                Text("📅 \(rec.dateTimeDisplay)")
                 Text("📍 \(rec.location)")
             }
             .font(Typography.small)
@@ -173,6 +173,18 @@ private struct RecommendedMatch: Identifiable {
     let location: String
     let matchScore: Int
     let reason: String
+
+    /// 显示用的完整时段字符串,如 "04/19 10:00 - 12:00"。
+    var dateTimeDisplay: String {
+        let parts = dateTime.components(separatedBy: " ")
+        guard parts.count >= 2 else { return dateTime }
+        let dateStr = parts[0]
+        let startTime = parts[1]
+        let startHour = Int(startTime.prefix(2)) ?? 10
+        let endHour = startHour + 2
+        let endTime = String(format: "%02d:00", endHour)
+        return "\(dateStr) \(startTime) - \(endTime)"
+    }
 
     /// 转换为 MatchDetailData 以导航到详情页
     func toMatchDetailData() -> MatchDetailData {

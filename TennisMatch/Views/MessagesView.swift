@@ -10,9 +10,9 @@ import SwiftUI
 struct MessagesView: View {
     @Binding var totalUnread: Int
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    @Binding var chats: [MockChat]
     @State private var selectedChat: MockChat?
     @State private var readChatIDs: Set<UUID> = []
-    @State private var chats: [MockChat] = mockChatsInitial
     @State private var chatToDelete: MockChat?
     @State private var showDeleteAlert = false
 
@@ -273,12 +273,12 @@ let mockChatsInitial: [MockChat] = []
 
 #Preview("iPhone SE") {
     NavigationStack {
-        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]))
+        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]), chats: .constant([]))
     }
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
-        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]))
+        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]), chats: .constant([]))
     }
 }

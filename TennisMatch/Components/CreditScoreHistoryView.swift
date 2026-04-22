@@ -70,10 +70,34 @@ struct CreditScoreHistoryView: View {
             Text("積分規則")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(Theme.textPrimary)
-            ruleRow(sign: "+", amount: "3", text: "完成一場約球")
+            ruleRow(sign: "+", amount: "1", text: "完成一場約球")
             ruleRow(sign: "+", amount: "1", text: "獲得球友好評")
-            ruleRow(sign: "-", amount: "5", text: "臨時取消(6 小時內)")
+            ruleRow(sign: "-", amount: "1", text: "24 小時內取消")
+            ruleRow(sign: "-", amount: "2", text: "2 小時內取消")
             ruleRow(sign: "-", amount: "10", text: "爽約未到場")
+
+            Divider().padding(.vertical, 4)
+            Text("帳號處罰")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Theme.textPrimary)
+            HStack(spacing: Spacing.xs) {
+                Text("< 70")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.requiredText)
+                    .frame(width: 40, alignment: .leading)
+                Text("凍結帳號 1 個月")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textBody)
+            }
+            HStack(spacing: Spacing.xs) {
+                Text("< 60")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(Theme.requiredText)
+                    .frame(width: 40, alignment: .leading)
+                Text("永久封號")
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textBody)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
@@ -147,11 +171,11 @@ struct CreditScoreHistoryView: View {
 extension CreditScoreHistoryView {
     /// 示例數據 — demo 階段使用。
     static let mockEntries: [CreditScoreEntry] = [
-        CreditScoreEntry(date: "04/18", delta: 3, reason: "完成約球", detail: "維多利亞公園 · 單打"),
+        CreditScoreEntry(date: "04/18", delta: 1, reason: "完成約球", detail: "維多利亞公園 · 單打"),
         CreditScoreEntry(date: "04/15", delta: 1, reason: "獲得好評", detail: "來自莎拉"),
-        CreditScoreEntry(date: "04/12", delta: 3, reason: "完成約球", detail: "九龍公園 · 雙打"),
-        CreditScoreEntry(date: "04/05", delta: -5, reason: "臨時取消", detail: "距開場不足 6 小時"),
-        CreditScoreEntry(date: "03/28", delta: 3, reason: "完成約球", detail: "維多利亞公園 · 單打"),
+        CreditScoreEntry(date: "04/12", delta: 1, reason: "完成約球", detail: "九龍公園 · 雙打"),
+        CreditScoreEntry(date: "04/05", delta: -1, reason: "臨時取消", detail: "距開場 8 小時"),
+        CreditScoreEntry(date: "03/28", delta: 1, reason: "完成約球", detail: "維多利亞公園 · 單打"),
         CreditScoreEntry(date: "03/20", delta: 1, reason: "獲得好評", detail: "來自 Tommy"),
     ]
 }
@@ -159,9 +183,9 @@ extension CreditScoreHistoryView {
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    CreditScoreHistoryView(currentScore: 85, entries: CreditScoreHistoryView.mockEntries)
+    CreditScoreHistoryView(currentScore: 80, entries: CreditScoreHistoryView.mockEntries)
 }
 
 #Preview("iPhone 15 Pro") {
-    CreditScoreHistoryView(currentScore: 85, entries: CreditScoreHistoryView.mockEntries)
+    CreditScoreHistoryView(currentScore: 80, entries: CreditScoreHistoryView.mockEntries)
 }

@@ -283,23 +283,47 @@ struct EditProfileView: View {
 
     // MARK: - Save Button
 
+    @State private var showNameError = false
+    @State private var nameErrorMessage = ""
+
     private var saveButton: some View {
-        Button {
-            userStore.displayName = name
-            userStore.gender = selectedGender
-            userStore.bio = bio
-            userStore.ntrpLevel = ntrpLevel
-            userStore.region = region
-            userStore.selectedCourt = selectedCourt
-            dismiss()
-        } label: {
-            Text("儲存修改")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Theme.primary)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        VStack(spacing: Spacing.xs) {
+            if showNameError {
+                Text(nameErrorMessage)
+                    .font(.system(size: 12))
+                    .foregroundColor(Theme.requiredText)
+                    .transition(.opacity)
+            }
+
+            Button {
+                let trimmed = name.trimmingCharacters(in: .whitespaces)
+                if trimmed.isEmpty {
+                    nameErrorMessage = "請輸入姓名"
+                    withAnimation { showNameError = true }
+                    return
+                }
+                if userStore.isNameTaken(trimmed, excludingCurrent: true) {
+                    nameErrorMessage = "該名稱已被使用，請換一個"
+                    withAnimation { showNameError = true }
+                    return
+                }
+                showNameError = false
+                userStore.displayName = trimmed
+                userStore.gender = selectedGender
+                userStore.bio = bio
+                userStore.ntrpLevel = ntrpLevel
+                userStore.region = region
+                userStore.selectedCourt = selectedCourt
+                dismiss()
+            } label: {
+                Text("儲存修改")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 

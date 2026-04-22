@@ -5,10 +5,15 @@
 //  用户信誉积分(0-100)及变动历史。
 //
 //  规则(与 CreditScoreHistoryView 内的 rulesCard 对齐):
-//    +3  完成一场约球
+//    +1  完成一场约球
 //    +1  获得球友好评
-//    -5  临时取消(距开场不足 6 小时)
+//    -1  临时取消(距开场 2-24 小时)
+//    -2  临时取消(距开场不足 2 小时)
 //    -10 爽约未到场
+//
+//  账号处罚:
+//    信誉分低于 70 → 冻结账号 1 个月
+//    信誉分低于 60 → 永久封号
 //
 //  Mock 阶段不持久化:重启 app 即恢复初始 score / entries。
 //  接后端时:每次启动从 /credit-score 接口拉取,本地变动通过 mutation 回写。
@@ -31,9 +36,13 @@ final class CreditScoreStore {
 
     /// `score < lowScoreThreshold` 时,UI 应展示提醒条幅。
     static let lowScoreThreshold = 60
+    /// 信誉分低于此值 → 冻结账号 1 个月。
+    static let freezeThreshold = 70
+    /// 信誉分低于此值 → 永久封号。
+    static let banThreshold = 60
 
     init(
-        score: Int = 95,
+        score: Int = 80,
         entries: [CreditScoreEntry] = CreditScoreHistoryView.mockEntries
     ) {
         self.score = max(0, min(100, score))
@@ -50,18 +59,28 @@ final class CreditScoreStore {
         score = max(0, min(100, score + delta))
     }
 
-    /// 临时取消 — 距开场不足 6 小时算违约,扣 5 分。`hoursBeforeStart`
-    /// 取自 `MatchSchedule.startDate` 与 `Date.now` 的差。返回是否实际扣分。
+    /// 临时取消 — 根据距开场时间阶梯扣分:
+    ///   ≥24h: 0分(不扣)
+    ///   2-24h: -1分
+    ///   <2h: -2分
+    /// 返回实际扣除的分数(绝对值),0 表示不扣分。
     @discardableResult
-    func recordCancellation(hoursBeforeStart: Double, detail: String) -> Bool {
-        guard hoursBeforeStart < 6 else { return false }
+    func recordCancellation(hoursBeforeStart: Double, detail: String) -> Int {
+        let deduction: Int
+        if hoursBeforeStart >= 24 {
+            return 0
+        } else if hoursBeforeStart >= 2 {
+            deduction = 1
+        } else {
+            deduction = 2
+        }
         let hours = max(0, Int(hoursBeforeStart.rounded(.down)))
         apply(
-            delta: -5,
+            delta: -deduction,
             reason: "臨時取消",
             detail: "\(detail) · 距開場 \(hours) 小時"
         )
-        return true
+        return deduction
     }
 
     /// 爽约未到场 — 扣 10 分。目前仅供后续 "举报未到场 / 对账" 流程接入。
@@ -69,9 +88,9 @@ final class CreditScoreStore {
         apply(delta: -10, reason: "爽約未到場", detail: detail)
     }
 
-    /// 完成一场约球 — 加 3 分。当后端的赛后考勤上报回来时调用。
+    /// 完成一场约球 — 加 1 分。当后端的赛后考勤上报回来时调用。
     func recordCompletion(detail: String) {
-        apply(delta: 3, reason: "完成約球", detail: detail)
+        apply(delta: 1, reason: "完成約球", detail: detail)
     }
 
     private static var todayLabel: String {

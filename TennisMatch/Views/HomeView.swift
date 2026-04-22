@@ -14,6 +14,7 @@ struct HomeView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(BookedSlotStore.self) private var bookedSlotStore
     @Environment(NotificationStore.self) private var notificationStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -34,7 +35,8 @@ struct HomeView: View {
     @State private var successMatch: SignUpMatchInfo?
     @State private var matches: [MockMatch] = initialMockMatches
     @State private var signUpMatchId: UUID?
-    @State private var chatUnreadCount = mockChatsInitial.reduce(0) { $0 + $1.unreadCount }
+    @State private var chatUnreadCount = 0
+    @State private var sharedChats: [MockChat] = []
     @State private var acceptedMatches: [AcceptedMatchInfo] = []
     @State private var showMatchAssistant = false
     @State private var showReviews = false
@@ -64,7 +66,7 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, onGoHome: { selectedTab = 0 }, onMatchCancelled: { sourceMatchID in
+                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, sharedChats: $sharedChats, onGoHome: { selectedTab = 0 }, onMatchCancelled: { sourceMatchID in
                     // Decrement player count and clear the "已報名" flag for the originating HomeView match.
                     // sourceMatchID is nil for mock upcoming items / invitation-accept flows, which correctly no-op.
                     guard let id = sourceMatchID,
@@ -77,7 +79,7 @@ struct HomeView: View {
                     bookedSlotStore.remove(id: id)
                 })
                 case 2: MatchAssistantView()
-                case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches)
+                case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches, chats: $sharedChats)
                 case 4: ProfileView()
                 default: homeTab
                 }
@@ -122,15 +124,20 @@ struct HomeView: View {
             if let info = pendingDMOrganizer {
                 let symbol = info.organizerGender.symbol
                 let color = info.organizerGender == .female ? Theme.genderFemale : Theme.genderMale
-                dmChat = MockChat(
+                let chat = MockChat(
                     type: .personal(name: info.organizerName, symbol: symbol, symbolColor: color),
                     lastMessage: "點擊開始聊天",
-                    time: "now",
+                    time: "剛剛",
                     unreadCount: 0
                 )
+                dmChat = chat
                 dmMatchContext = "🎾 約球已確認\n📅 \(info.dateTime)\n📍 \(info.location)\n🏸 \(info.matchType) · NTRP \(info.ntrpRange)\n💰 \(info.fee)"
                 let trimmed = pendingSignUpMessage.trimmingCharacters(in: .whitespacesAndNewlines)
                 dmInitialMessage = trimmed.isEmpty ? nil : trimmed
+                // 同步到共享聊天列表
+                if !sharedChats.contains(where: { $0.id == chat.id }) {
+                    sharedChats.insert(chat, at: 0)
+                }
                 pendingDMOrganizer = nil
                 pendingSignUpMessage = ""
             }
@@ -466,7 +473,7 @@ private extension HomeView {
 
                 // Stats cards
                 HStack(spacing: Spacing.xs) {
-                    statCard(label: "信譽積分", value: "85")
+                    statCard(label: "信譽積分", value: "\(creditScoreStore.score)")
                     statCard(label: "場次", value: "28")
                     statCard(label: "NTRP", value: "3.5")
                 }
@@ -1075,8 +1082,8 @@ private extension HomeView {
             }
             return true
         }
-        // Own matches always first
-        return filtered.sorted { $0.isOwnMatch && !$1.isOwnMatch }
+        // 按时间排列,最近的时间在最上面
+        return filtered.sorted { $0.sortDate < $1.sortDate }
     }
 
     var matchCardList: some View {
@@ -1137,7 +1144,7 @@ private extension HomeView {
             }
 
             // Detail rows
-            detailRow(icon: "📅", text: match.dateTime)
+            detailRow(icon: "📅", text: match.dateTimeDisplay)
             detailRow(icon: "📍", text: match.location)
             detailRow(icon: "👥", text: match.players)
 
@@ -1431,6 +1438,23 @@ private struct MockMatch: Identifiable {
     /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
     /// 即使用户已报名,该约球实际未进行,UI 应优先展示"已自動取消"覆盖"已報名"。
     var isAutoCancelled: Bool { isExpired && !isFull }
+
+    /// 用于首页按时间排序 — 最近的时间在最上面。
+    var sortDate: Date {
+        MatchSchedule.startDate(text: dateTime, hourFallback: hour) ?? .distantFuture
+    }
+
+    /// 显示用的完整时段字符串,如 "04/23 09:00 - 11:00"。
+    var dateTimeDisplay: String {
+        let parts = dateTime.split(separator: " ")
+        guard parts.count >= 2 else { return dateTime }
+        let dateStr = String(parts[0])
+        let startTime = String(parts[1])
+        let startHour = Int(startTime.prefix(2)) ?? hour
+        let endHour = startHour + 2
+        let endTime = String(format: "%02d:00", endHour)
+        return "\(dateStr) \(startTime) - \(endTime)"
+    }
 }
 
 private let initialMockMatches: [MockMatch] = [
@@ -1916,10 +1940,12 @@ private struct SignUpSuccessView: View {
     HomeView()
         .environment(FollowStore())
         .environment(UserStore())
+        .environment(CreditScoreStore())
 }
 
 #Preview("iPhone 15 Pro") {
     HomeView()
         .environment(FollowStore())
         .environment(UserStore())
+        .environment(CreditScoreStore())
 }

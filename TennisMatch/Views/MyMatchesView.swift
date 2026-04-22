@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MyMatchesView: View {
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    @Binding var sharedChats: [MockChat]
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
@@ -37,6 +38,7 @@ struct MyMatchesView: View {
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
     @State private var registrantMatch: MyMatchItem?
+    @State private var selectedCompletedMatch: MyMatchItem?
 
     private var sortedUpcoming: [MyMatchItem] {
         (acceptedMatchItems + upcomingMatches).sorted { $0.sortDate < $1.sortDate }
@@ -168,8 +170,6 @@ struct MyMatchesView: View {
             }
             Button("確認取消", role: .destructive) {
                 if let match = matchToCancel {
-                    // 距开场剩余小时数 — 用于"临时取消"信用扣分判定(CLAUDE.md 边界 case #3)。
-                    // 解析失败时,保守地视为"距离很远",不扣分。
                     let scheduleText = "\(match.dateLabel) \(match.timeRange)"
                     let hoursToStart: Double = {
                         guard let start = MatchSchedule.startDate(text: scheduleText) else {
@@ -180,30 +180,26 @@ struct MyMatchesView: View {
                     withAnimation {
                         if let aid = match.acceptedMatchID {
                             acceptedMatches.removeAll { $0.id == aid }
-                            // 邀请接受类型的预订:slot 是用 aid 登记的,从 store 中移除。
-                            // sourceMatchID 不为 nil 的情形由 onMatchCancelled 在 HomeView 内处理。
                             bookedSlotStore.remove(id: aid)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
-                    // 临时取消(<6h)扣 5 分,并推一条解释性通知。≥6h 不扣分。
-                    let creditDeducted = creditScoreStore.recordCancellation(
+                    // 阶梯扣分: ≥24h → 0, 2-24h → -1, <2h → -2
+                    let deduction = creditScoreStore.recordCancellation(
                         hoursBeforeStart: hoursToStart,
                         detail: "\(match.title) · \(match.location)"
                     )
+                    let creditDeducted = deduction > 0
                     if creditDeducted {
                         notificationStore.push(MatchNotification(
                             type: .cancelled,
-                            title: "信譽積分 -5",
-                            body: "距開場不足 6 小時取消,已扣除 5 分信譽積分（當前 \(creditScoreStore.score) 分）",
+                            title: "信譽積分 -\(deduction)",
+                            body: "距開場不足 \(hoursToStart < 2 ? "2" : "24") 小時取消，已扣除 \(deduction) 分信譽積分（當前 \(creditScoreStore.score) 分）",
                             time: "剛剛",
                             isRead: false
                         ))
                     }
-                    // 发起者临时取消 → 推一条通知给"所有报名者"(CLAUDE.md 边界 case #1)。
-                    // Mock 阶段:用户兼任发起者/参与者,这里把取消事件加入 NotificationStore,
-                    // NotificationsView 与抽屉通知红点会立即反映。接后端时改为给参与者列表推送。
                     if match.isOrganizer {
                         notificationStore.push(MatchNotification(
                             type: .cancelled,
@@ -221,16 +217,22 @@ struct MyMatchesView: View {
                             isRead: false
                         ))
                     }
-                    let toastText = creditDeducted
-                        ? "已取消約球，距開場 < 6 小時，扣 5 分信譽"
-                        : "已取消約球，已通知所有參與者"
-                    toast = .init(kind: creditDeducted ? .warning : .success, text: toastText)
+                    // 检查账号冻结/封禁
+                    if creditScoreStore.score < CreditScoreStore.banThreshold {
+                        toast = .init(kind: .warning, text: "信譽分低於 60，帳號已被永久封禁")
+                    } else if creditScoreStore.score < CreditScoreStore.freezeThreshold {
+                        toast = .init(kind: .warning, text: "信譽分低於 70，帳號將凍結 1 個月")
+                    } else if creditDeducted {
+                        toast = .init(kind: .warning, text: "已取消約球，扣 \(deduction) 分信譽")
+                    } else {
+                        toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
+                    }
                 }
                 matchToCancel = nil
             }
         } message: {
             if let match = matchToCancel {
-                Text("確定要取消「\(match.title)」嗎？取消後將通知所有參與者。")
+                Text(cancelAlertMessage(for: match))
             }
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
@@ -342,15 +344,23 @@ struct MyMatchesView: View {
             }
         }
         .animation(.easeInOut(duration: 0.2), value: toast?.id)
+        .sheet(item: $selectedCompletedMatch) { match in
+            CompletedMatchReviewSheet(match: match)
+        }
         .fullScreenCover(isPresented: $showAcceptSuccess, onDismiss: {
             if let inv = pendingDMContact {
-                dmChat = MockChat(
+                let chat = MockChat(
                     type: .personal(name: inv.inviterName, symbol: "♂", symbolColor: Theme.genderMale),
                     lastMessage: "點擊開始聊天",
-                    time: "now",
+                    time: "剛剛",
                     unreadCount: 0
                 )
-                dmMatchContext = "🎾 已接受約球邀請\n🏸 \(inv.matchType)\n📋 \(inv.details)"
+                dmChat = chat
+                dmMatchContext = "🎾 已接受約球邀請\n🏸 \(inv.matchType)\n📋 \(inv.displayDetails)"
+                // 同步到共享聊天列表
+                if !sharedChats.contains(where: { $0.id == chat.id }) {
+                    sharedChats.insert(chat, at: 0)
+                }
                 pendingDMContact = nil
             }
         }) {
@@ -367,26 +377,63 @@ struct MyMatchesView: View {
         }
     }
 
+    private func cancelAlertMessage(for match: MyMatchItem) -> String {
+        let scheduleText = "\(match.dateLabel) \(match.timeRange)"
+        let hoursToStart = MatchSchedule.startDate(text: scheduleText)
+            .map { $0.timeIntervalSince(.now) / 3600 } ?? Double.infinity
+
+        let penaltyLine: String
+        if hoursToStart >= 24 {
+            penaltyLine = "距開場超過 24 小時，不扣信譽分"
+        } else if hoursToStart >= 2 {
+            penaltyLine = "距開場不足 24 小時，將扣除 1 分信譽分"
+        } else {
+            penaltyLine = "距開場不足 2 小時，將扣除 2 分信譽分"
+        }
+
+        return """
+        確定要取消「\(match.title)」嗎？取消後將通知所有參與者。
+
+        \(penaltyLine)
+
+        取消規則：
+        · 24 小時前取消：不扣分
+        · 24 小時內取消：扣 1 分
+        · 2 小時內取消：扣 2 分
+        · 信譽分低於 70：凍結帳號 1 個月
+        · 信譽分低於 60：永久封號
+
+        當前信譽分：\(creditScoreStore.score) 分
+        """
+    }
+
     private func openChat(for match: MyMatchItem) {
         // Extract location name from "XXX網球場" → "XXX"
         let locationBase = match.location
             .replacingOccurrences(of: "網球場", with: "")
             .replacingOccurrences(of: "遊樂場", with: "")
         let chatTitle = "\(locationBase) \(match.matchType)"
-        // Extract date/time from timeRange "10:00 - 12:00" → "10:00"
-        let startTime = match.timeRange.components(separatedBy: " - ").first ?? ""
         let dateStr = match.dateLabel.replacingOccurrences(of: "明天 · ", with: "")
-        let dateTime = "\(dateStr) \(startTime)"
+        let dateTime = "\(dateStr) \(match.timeRange)"
 
         // 构建约球信息摘要,进入聊天时作为置顶卡片显示
         selectedChatMatchContext = "🎾 約球已確認\n📅 \(dateStr) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType)\n👥 \(match.players)"
 
-        selectedChat = MockChat(
+        let chat = MockChat(
             type: .match(title: chatTitle, dateTime: dateTime),
             lastMessage: "點擊開始聊天",
-            time: "now",
+            time: "剛剛",
             unreadCount: 0
         )
+        selectedChat = chat
+
+        // 同步到共享聊天列表,使其在「聊天」Tab 可见
+        if !sharedChats.contains(where: {
+            if case .match(let t, _) = $0.type { return t == chatTitle }
+            return false
+        }) {
+            sharedChats.insert(chat, at: 0)
+        }
     }
 }
 
@@ -487,8 +534,26 @@ private extension MyMatchesView {
                 matchDetailRow(icon: "🕐", text: match.timeRange)
                 matchDetailRow(icon: "👥", text: match.players)
 
-                // Action buttons — 自动取消的约球不再展示操作按钮(已无可继续/聊天/管理的语义)。
-                if match.status != .completed && !match.isAutoCancelled {
+                // Action buttons — 自动取消的约球不再展示操作按钮
+                if match.status == .completed {
+                    // 已完成的约球 — 点击查看评论
+                    HStack {
+                        Spacer()
+                        HStack(spacing: 4) {
+                            Text("查看評論")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Theme.primary)
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 10, weight: .medium))
+                                .foregroundColor(Theme.primary)
+                        }
+                        .frame(minHeight: 44)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        selectedCompletedMatch = match
+                    }
+                } else if !match.isAutoCancelled {
                     HStack {
                         Spacer()
                         if match.isOrganizer {
@@ -602,7 +667,7 @@ private extension MyMatchesView {
                     Text("\(invitation.inviterName) 邀請你打\(invitation.matchType)")
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
-                    Text(invitation.details)
+                    Text(invitation.displayDetails)
                         .font(Typography.fieldLabel)
                         .foregroundColor(Theme.textBody)
                 }
@@ -777,6 +842,19 @@ private struct MyMatchInvitation: Identifiable {
     let details: String
     let time: String            // "14:00"
     let durationHours: Int      // e.g. 2
+
+    /// 显示用文本,在日期后插入时段。
+    /// "04/25 · 將軍澳 · NTRP 3.5" → "04/25 18:00 - 20:00 · 將軍澳 · NTRP 3.5"
+    var displayDetails: String {
+        let startHour = Int(time.prefix(2)) ?? 0
+        let startMin = time.count >= 5 ? String(time.suffix(2)) : "00"
+        let endHour = startHour + durationHours
+        let endTime = String(format: "%02d:%@", endHour, startMin)
+        let parts = details.components(separatedBy: " · ")
+        guard let datePart = parts.first else { return details }
+        let rest = parts.dropFirst().joined(separator: " · ")
+        return "\(datePart) \(time) - \(endTime) · \(rest)"
+    }
 }
 
 private let mockUpcomingMatchesInitial: [MyMatchItem] = [
@@ -801,14 +879,15 @@ private let mockUpcomingMatchesInitial: [MyMatchItem] = [
         weather: "⛅ 26°C"
     ),
     MyMatchItem(
-        title: "嘉欣 發起的單打",
+        title: "大衛 發起的雙打",
         isOrganizer: false,
         status: .confirmed,
-        dateLabel: "04/23（三）",
-        location: "香港公園",
-        timeRange: "09:00 - 11:00",
-        players: "2/2 · NTRP 2.5-3.5",
-        weather: "🌤 26°C"
+        dateLabel: "04/22（二）",
+        location: "歌和老街公園網球場",
+        timeRange: "18:30 - 20:00",
+        players: "3/4 · NTRP 4.0-5.0",
+        weather: "☀️ 24°C",
+        matchType: "雙打"
     ),
     MyMatchItem(
         title: "我發起的雙打",
@@ -817,8 +896,8 @@ private let mockUpcomingMatchesInitial: [MyMatchItem] = [
         dateLabel: "04/25（五）",
         location: "將軍澳運動場",
         timeRange: "18:00 - 20:00",
-        players: "3/4 · NTRP 3.0-4.0",
-        weather: "☀️ 27°C",
+        players: "2/2 · NTRP 3.0-4.0",
+        weather: "☀️ 24°C",
         matchType: "雙打"
     ),
     MyMatchItem(
@@ -1094,12 +1173,181 @@ private struct ToastMessage: Equatable, Identifiable {
     let text: String
 }
 
+// MARK: - Completed Match Review
+
+private struct MatchReviewItem: Identifiable {
+    let id = UUID()
+    let reviewerName: String
+    let isMyReview: Bool
+    let rating: Int
+    let comment: String
+    let date: String
+}
+
+private struct CompletedMatchReviewSheet: View {
+    let match: MyMatchItem
+    @Environment(\.dismiss) private var dismiss
+
+    private var reviews: [MatchReviewItem] {
+        reviewsForMatch(match)
+    }
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(alignment: .leading, spacing: Spacing.md) {
+                    // 约球摘要
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        Text(match.title)
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(Theme.textPrimary)
+                        HStack(spacing: Spacing.sm) {
+                            Label(match.dateLabel, systemImage: "calendar")
+                            Label(match.timeRange, systemImage: "clock")
+                        }
+                        .font(Typography.small)
+                        .foregroundColor(Theme.textSecondary)
+                        Label(match.location, systemImage: "mappin.circle")
+                            .font(Typography.small)
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                    .padding(Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(.white)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+
+                    // 评论区
+                    Text("互相評論")
+                        .font(.system(size: 15, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+
+                    if reviews.isEmpty {
+                        VStack(spacing: Spacing.sm) {
+                            Image(systemName: "text.bubble")
+                                .font(.system(size: 36))
+                                .foregroundColor(Theme.textSecondary)
+                            Text("暫無評論")
+                                .font(.system(size: 14))
+                                .foregroundColor(Theme.textSecondary)
+                            Text("雙方尚未留下評論")
+                                .font(Typography.small)
+                                .foregroundColor(Theme.textCaption)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.xl)
+                    } else {
+                        ForEach(reviews) { review in
+                            reviewCard(review)
+                        }
+                    }
+                }
+                .padding(Spacing.md)
+            }
+            .background(Theme.background)
+            .navigationTitle("約球評論")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("完成") { dismiss() }
+                        .foregroundColor(Theme.primary)
+                }
+            }
+        }
+    }
+
+    private func reviewCard(_ review: MatchReviewItem) -> some View {
+        HStack(alignment: .top, spacing: Spacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(review.isMyReview ? Theme.primary : Theme.avatarPlaceholder)
+                    .frame(width: 36, height: 36)
+                Text(String(review.reviewerName.prefix(1)))
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                HStack {
+                    Text(review.reviewerName)
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(Theme.textPrimary)
+                    if review.isMyReview {
+                        Text("我的評論")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(Theme.primary)
+                            .padding(.horizontal, 6)
+                            .frame(height: 16)
+                            .background(Theme.confirmedBg)
+                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                    }
+                    Spacer()
+                    Text(review.date)
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textSecondary)
+                }
+
+                HStack(spacing: 2) {
+                    ForEach(0..<5, id: \.self) { i in
+                        Image(systemName: i < review.rating ? "star.fill" : "star")
+                            .font(.system(size: 11))
+                            .foregroundColor(i < review.rating ? Theme.starYellow : Theme.textSecondary)
+                    }
+                }
+
+                Text(review.comment)
+                    .font(Typography.caption)
+                    .foregroundColor(Theme.textBody)
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
+/// 根据已完成约球生成 mock 评论数据。评论是自愿的,部分约球可能没有评论。
+private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
+    let dateStr = match.dateLabel.replacingOccurrences(of: "（.*?）", with: "", options: .regularExpression)
+        .trimmingCharacters(in: .whitespaces)
+    if dateStr.contains("04/12") {
+        return [
+            MatchReviewItem(reviewerName: "王強", isMyReview: false, rating: 5,
+                            comment: "配合默契，球技穩健，歡迎下次再來！", date: "04/12"),
+            MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 4,
+                            comment: "打得很開心，場地不錯", date: "04/12"),
+        ]
+    } else if dateStr.contains("04/10") {
+        return [
+            MatchReviewItem(reviewerName: "莎拉", isMyReview: false, rating: 5,
+                            comment: "很準時到達，球技好，節奏掌控佳", date: "04/10"),
+        ]
+    } else if dateStr.contains("04/06") {
+        return [
+            MatchReviewItem(reviewerName: "大衛", isMyReview: false, rating: 4,
+                            comment: "接發球很到位，下次再約！", date: "04/06"),
+            MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 5,
+                            comment: "球風穩健，值得推薦的球友", date: "04/06"),
+        ]
+    } else if dateStr.contains("03/29") {
+        // 暂无评论 — 双方都没有留下评论(自愿)
+        return []
+    } else if dateStr.contains("03/22") {
+        return [
+            MatchReviewItem(reviewerName: "對手", isMyReview: false, rating: 4,
+                            comment: "準時開場，球場狀況好", date: "03/22"),
+            MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 4,
+                            comment: "對手水平匹配，打得盡興", date: "03/22"),
+        ]
+    }
+    return []
+}
+
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    MyMatchesView(acceptedMatches: .constant([]))
+    MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
 }
 
 #Preview("iPhone 15 Pro") {
-    MyMatchesView(acceptedMatches: .constant([]))
+    MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
 }

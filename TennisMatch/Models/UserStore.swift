@@ -48,6 +48,26 @@ final class UserStore {
         self.selectedCourt = selectedCourt
     }
 
+    // MARK: - 名称唯一性检查
+
+    /// Mock 阶段已被其他用户占用的名称。接后端时改为查询 API。
+    static let reservedNames: Set<String> = [
+        "莎拉", "王強", "美琪", "志明", "小美", "大衛", "嘉欣", "俊傑",
+        "阿杰", "麗莎", "老張", "小玲", "林叔", "Kelly", "Peter",
+        "陳教練", "雅婷", "阿豪", "思慧", "張偉", "詠琪", "Michael",
+        "艾美", "家明", "曉彤", "國輝", "Tommy",
+    ]
+
+    /// 检查名称是否已被其他用户占用。
+    /// `excludingCurrent` 为 true 时排除当前用户自己的名称(编辑场景)。
+    func isNameTaken(_ name: String, excludingCurrent: Bool = false) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespaces)
+        if excludingCurrent && trimmed == displayName { return false }
+        return UserStore.reservedNames.contains(trimmed)
+    }
+
+    // MARK: - 显示用属性
+
     /// 头像显示用的单字缩写,取 displayName 末位字符。
     /// 对 "小李" → "李";"Michael" → "l"(英文用户可进一步定制)。
     var avatarInitial: String {

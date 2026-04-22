@@ -508,6 +508,8 @@ struct RegisterView: View {
             Button {
                 if name.trimmingCharacters(in: .whitespaces).isEmpty {
                     validationMessage = "請輸入姓名"
+                } else if UserStore.reservedNames.contains(name.trimmingCharacters(in: .whitespaces)) {
+                    validationMessage = "該名稱已被使用，請換一個"
                 } else if selectedGender == nil {
                     validationMessage = "請選擇性別"
                 } else if selectedAgeRange == nil {
