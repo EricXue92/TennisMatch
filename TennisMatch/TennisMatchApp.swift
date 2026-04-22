@@ -19,11 +19,15 @@ struct TennisMatchApp: App {
 
     var body: some Scene {
         WindowGroup {
-            NavigationStack {
+            Group {
                 if isLoggedIn {
-                    HomeView()
+                    NavigationStack {
+                        HomeView()
+                    }
                 } else {
-                    LoginView()
+                    NavigationStack {
+                        LoginView()
+                    }
                 }
             }
             .environment(followStore)
