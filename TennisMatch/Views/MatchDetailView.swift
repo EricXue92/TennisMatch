@@ -860,6 +860,7 @@ private struct SignUpSuccessViewForDetail: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
+    .environment(BookedSlotStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -872,6 +873,7 @@ private struct SignUpSuccessViewForDetail: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
+    .environment(BookedSlotStore())
 }
 
 private let previewMatchDetail = MatchDetailData(

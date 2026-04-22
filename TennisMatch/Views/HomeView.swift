@@ -34,7 +34,7 @@ struct HomeView: View {
     @State private var successMatch: SignUpMatchInfo?
     @State private var matches: [MockMatch] = initialMockMatches
     @State private var signUpMatchId: UUID?
-    @State private var chatUnreadCount = 4
+    @State private var chatUnreadCount = mockChatsInitial.reduce(0) { $0 + $1.unreadCount }
     @State private var acceptedMatches: [AcceptedMatchInfo] = []
     @State private var showMatchAssistant = false
     @State private var showReviews = false

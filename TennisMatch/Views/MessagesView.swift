@@ -70,6 +70,7 @@ struct MessagesView: View {
             }
         }
         .background(.white)
+        .onAppear { recalculateUnread() }
         .navigationDestination(item: $selectedChat) { chat in
             ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches)
         }
@@ -261,7 +262,7 @@ struct AcceptedMatchInfo: Identifiable {
     var durationHours: Int = 2
 }
 
-private let mockChatsInitial: [MockChat] = [
+let mockChatsInitial: [MockChat] = [
     MockChat(
         type: .match(title: "維多利亞公園 單打", dateTime: "04/19 10:00"),
         lastMessage: "艾美: 明天見！記得帶球",

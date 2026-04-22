@@ -30,6 +30,7 @@ struct ChatDetailView: View {
     @State private var chatMenuToast: String?
     @State private var showBlockAlert = false
     @State private var selectedPlayer: PublicPlayerData?
+    @State private var declinedInvitationIDs: Set<UUID> = []
 
     private var chatTitle: String {
         switch chat.type {
@@ -404,6 +405,7 @@ struct ChatDetailView: View {
 
     private func invitationCard(messageID: UUID, date: String, location: String) -> some View {
         let isAccepted = isInvitationAccepted(date: date, location: location)
+        let isDeclined = declinedInvitationIDs.contains(messageID)
 
         return HStack(alignment: .top, spacing: Spacing.xs) {
             Color.clear.frame(width: 32, height: 1)
@@ -421,6 +423,10 @@ struct ChatDetailView: View {
                     Text("✅ 已接受")
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(Theme.primary)
+                } else if isDeclined {
+                    Text("已婉拒")
+                        .font(.system(size: 12, weight: .bold))
+                        .foregroundColor(Theme.textSecondary)
                 } else {
                     HStack(spacing: Spacing.xs) {
                         Button {
@@ -462,7 +468,19 @@ struct ChatDetailView: View {
                                 )
                         }
 
-                        Button {} label: {
+                        Button {
+                            withAnimation {
+                                declinedInvitationIDs.insert(messageID)
+                            }
+                            // 发送系统消息告知已拒绝
+                            let formatter = DateFormatter()
+                            formatter.dateFormat = "HH:mm"
+                            let ts = formatter.string(from: Date())
+                            sentMessages.append(ChatBubble(
+                                .systemMessage("已婉拒 \(date) 在 \(location) 的約球邀請"),
+                                timestamp: ts
+                            ))
+                        } label: {
                             Text("拒絕")
                                 .font(.system(size: 12, weight: .bold))
                                 .foregroundColor(Theme.accentGreen)

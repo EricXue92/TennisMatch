@@ -477,17 +477,57 @@ struct RegisterView: View {
             .padding(.top, Spacing.xs)
     }
 
+    // MARK: - Validation
+
+    @State private var showValidationError = false
+    @State private var validationMessage = ""
+
+    /// 必填字段是否全部有效
+    private var isFormValid: Bool {
+        !name.trimmingCharacters(in: .whitespaces).isEmpty
+            && selectedGender != nil
+            && selectedAgeRange != nil
+            && ntrpValue != nil
+    }
+
+    /// 将 ntrpScore 解析为合法 NTRP 值(1.0–7.0)
+    private var ntrpValue: Double? {
+        guard let v = Double(ntrpScore), (1.0...7.0).contains(v) else { return nil }
+        return v
+    }
+
     private var submitButton: some View {
-        Button {
-            isLoggedIn = true
-        } label: {
-            Text("完成設定")
-                .font(Typography.button)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .frame(height: 48)
-                .background(Theme.primary)
-                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        VStack(spacing: Spacing.xs) {
+            if showValidationError {
+                Text(validationMessage)
+                    .font(Typography.small)
+                    .foregroundColor(Theme.requiredText)
+                    .transition(.opacity)
+            }
+
+            Button {
+                if name.trimmingCharacters(in: .whitespaces).isEmpty {
+                    validationMessage = "請輸入姓名"
+                } else if selectedGender == nil {
+                    validationMessage = "請選擇性別"
+                } else if selectedAgeRange == nil {
+                    validationMessage = "請選擇年齡段"
+                } else if ntrpValue == nil {
+                    validationMessage = "NTRP 需在 1.0 – 7.0 之間"
+                } else {
+                    isLoggedIn = true
+                    return
+                }
+                withAnimation { showValidationError = true }
+            } label: {
+                Text("完成設定")
+                    .font(Typography.button)
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(isFormValid ? Theme.primary : Theme.chipUnselectedBg)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
         }
     }
 }

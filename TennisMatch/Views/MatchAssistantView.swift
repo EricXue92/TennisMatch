@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MatchAssistantView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedDetail: MatchDetailData?
 
     var body: some View {
         ScrollView {
@@ -49,6 +50,13 @@ struct MatchAssistantView: View {
             .padding(.vertical, Spacing.md)
         }
         .background(Theme.background)
+        .navigationDestination(item: $selectedDetail) { detail in
+            MatchDetailView(
+                match: detail,
+                acceptedMatches: .constant([]),
+                signedUpMatchIDs: .constant([])
+            )
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -132,7 +140,7 @@ struct MatchAssistantView: View {
                 Spacer()
 
                 Button {
-                    // TODO: navigate to MatchDetailView
+                    selectedDetail = rec.toMatchDetailData()
                 } label: {
                     Text("查看")
                         .font(.system(size: 12, weight: .medium))
@@ -164,6 +172,34 @@ private struct RecommendedMatch: Identifiable {
     let location: String
     let matchScore: Int
     let reason: String
+
+    /// 转换为 MatchDetailData 以导航到详情页
+    func toMatchDetailData() -> MatchDetailData {
+        let parts = dateTime.components(separatedBy: " ")
+        let dateStr = parts.first ?? dateTime
+        let timeStr = parts.count > 1 ? parts[1] : "10:00"
+        let endHour = (Int(timeStr.prefix(2)) ?? 10) + 2
+        let timeRange = "\(timeStr) - \(endHour):00"
+        return MatchDetailData(
+            name: name,
+            gender: gender,
+            ntrp: ntrp,
+            reputation: 85,
+            matchType: matchType,
+            date: "2026/\(dateStr)",
+            timeRange: timeRange,
+            location: "\(location)網球場",
+            district: "香港",
+            players: "1/2 人",
+            ntrpRange: "\(ntrp)",
+            fee: "AA",
+            notes: "",
+            weather: MatchWeather(temp: "--°C", humidity: "--%", uv: "--", wind: "--"),
+            participantList: [
+                MatchParticipant(name: name, gender: gender, ntrp: ntrp, isOrganizer: true)
+            ]
+        )
+    }
 }
 
 private let mockRecommendations: [RecommendedMatch] = [
