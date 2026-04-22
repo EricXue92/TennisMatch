@@ -13,6 +13,7 @@ struct MyMatchesView: View {
     var onMatchCancelled: ((UUID?) -> Void)? = nil
     @Environment(BookedSlotStore.self) private var bookedSlotStore
     @Environment(NotificationStore.self) private var notificationStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
@@ -145,6 +146,15 @@ struct MyMatchesView: View {
             }
             Button("確認取消", role: .destructive) {
                 if let match = matchToCancel {
+                    // 距开场剩余小时数 — 用于"临时取消"信用扣分判定(CLAUDE.md 边界 case #3)。
+                    // 解析失败时,保守地视为"距离很远",不扣分。
+                    let scheduleText = "\(match.dateLabel) \(match.timeRange)"
+                    let hoursToStart: Double = {
+                        guard let start = MatchSchedule.startDate(text: scheduleText) else {
+                            return .infinity
+                        }
+                        return start.timeIntervalSince(.now) / 3600
+                    }()
                     withAnimation {
                         if let aid = match.acceptedMatchID {
                             acceptedMatches.removeAll { $0.id == aid }
@@ -155,6 +165,20 @@ struct MyMatchesView: View {
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
+                    // 临时取消(<6h)扣 5 分,并推一条解释性通知。≥6h 不扣分。
+                    let creditDeducted = creditScoreStore.recordCancellation(
+                        hoursBeforeStart: hoursToStart,
+                        detail: "\(match.title) · \(match.location)"
+                    )
+                    if creditDeducted {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "信譽積分 -5",
+                            body: "距開場不足 6 小時取消,已扣除 5 分信譽積分（當前 \(creditScoreStore.score) 分）",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    }
                     // 发起者临时取消 → 推一条通知给"所有报名者"(CLAUDE.md 边界 case #1)。
                     // Mock 阶段:用户兼任发起者/参与者,这里把取消事件加入 NotificationStore,
                     // NotificationsView 与抽屉通知红点会立即反映。接后端时改为给参与者列表推送。
@@ -175,7 +199,10 @@ struct MyMatchesView: View {
                             isRead: false
                         ))
                     }
-                    toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
+                    let toastText = creditDeducted
+                        ? "已取消約球，距開場 < 6 小時，扣 5 分信譽"
+                        : "已取消約球，已通知所有參與者"
+                    toast = .init(kind: creditDeducted ? .warning : .success, text: toastText)
                 }
                 matchToCancel = nil
             }
