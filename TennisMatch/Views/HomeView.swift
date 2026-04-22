@@ -88,9 +88,24 @@ struct HomeView: View {
             // Custom tab bar
             customTabBar
 
-            // Drawer overlay
+            // 側邊抽屜
             if showDrawer {
-                drawerOverlay
+                DrawerView(
+                    isPresented: $showDrawer,
+                    unreadNotificationCount: notificationStore.unreadCount
+                ) { destination in
+                    switch destination {
+                    case .tournaments:    showTournaments = true
+                    case .matchAssistant: showMatchAssistant = true
+                    case .reviews:        showReviews = true
+                    case .notifications:  showNotifications = true
+                    case .blockList:      showBlockList = true
+                    case .inviteFriends:  showInviteFriends = true
+                    case .tipDeveloper:   showTipDeveloper = true
+                    case .settings:       showSettings = true
+                    case .help:           showHelp = true
+                    }
+                }
             }
         }
         .fullScreenCover(isPresented: $showTournaments) {
@@ -330,119 +345,6 @@ struct HomeView: View {
             }
         }
         .background(Theme.inputBg)
-    }
-}
-
-// MARK: - Drawer
-
-private extension HomeView {
-    var drawerOverlay: some View {
-        ZStack(alignment: .leading) {
-            // Dim background
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    withAnimation(.easeIn(duration: 0.2)) {
-                        showDrawer = false
-                    }
-                }
-
-            // Drawer panel
-            drawerPanel
-                .frame(width: 300)
-                .transition(.move(edge: .leading))
-        }
-    }
-
-    var drawerPanel: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Spacer().frame(height: 60)
-
-            // Menu items
-            ScrollView {
-                VStack(alignment: .leading, spacing: 0) {
-                    drawerMenuItem(icon: "🏆", label: "賽事") {
-                        showTournaments = true
-                    }
-                    drawerMenuItem(icon: "🤖", label: "約球助理") {
-                        showMatchAssistant = true
-                    }
-                    drawerMenuItem(icon: "⭐", label: "評價", badge: 2) {
-                        showReviews = true
-                    }
-                    drawerMenuItem(
-                        icon: "🔔",
-                        label: "通知",
-                        badge: notificationStore.unreadCount
-                    ) {
-                        showNotifications = true
-                    }
-                    drawerMenuItem(icon: "🚫", label: "封鎖名單") {
-                        showBlockList = true
-                    }
-                    drawerMenuItem(icon: "📨", label: "邀請好友") {
-                        showInviteFriends = true
-                    }
-                    drawerMenuItem(icon: "☕", label: "打賞開發者") {
-                        showTipDeveloper = true
-                    }
-
-                    // Divider
-                    Rectangle()
-                        .fill(Theme.inputBorder)
-                        .frame(height: 1)
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, Spacing.sm)
-
-                    drawerMenuItem(icon: "⚙️", label: "設定", isSecondary: true) {
-                        showSettings = true
-                    }
-                    drawerMenuItem(icon: "❓", label: "幫助", isSecondary: true) {
-                        showHelp = true
-                    }
-                }
-            }
-
-            Spacer()
-
-            // Version
-            Text("v0.1.0")
-                .font(Typography.fieldLabel)
-                .foregroundColor(Theme.textSecondary)
-                .padding(.horizontal, Spacing.lg)
-                .padding(.bottom, Spacing.lg)
-        }
-        .frame(maxHeight: .infinity)
-        .background(.white)
-    }
-
-    func drawerMenuItem(icon: String, label: String, badge: Int = 0, isSecondary: Bool = false, action: (() -> Void)? = nil) -> some View {
-        Button {
-            withAnimation(.easeIn(duration: 0.2)) {
-                showDrawer = false
-            }
-            action?()
-        } label: {
-            HStack {
-                Text(icon)
-                    .font(.system(size: 20))
-                    .frame(width: 28)
-                Text(label)
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(isSecondary ? Theme.textCaption : Theme.textPrimary)
-                Spacer()
-                if badge > 0 {
-                    Text("\(badge)")
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 20, height: 20)
-                        .background(Theme.badge)
-                        .clipShape(Circle())
-                }
-            }
-            .padding(.horizontal, Spacing.lg)
-            .frame(height: 48)
-        }
     }
 }
 
