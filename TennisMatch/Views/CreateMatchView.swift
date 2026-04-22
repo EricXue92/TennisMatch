@@ -282,13 +282,6 @@ struct CreateMatchView: View {
                             endTimeEdited = true
                         }
                     }
-                    let dismissId = UUID()
-                    startTimeDismissId = dismissId
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if startTimeDismissId == dismissId {
-                            showStartTimePicker = false
-                        }
-                    }
                 }
             }
 
@@ -302,13 +295,6 @@ struct CreateMatchView: View {
                 .labelsHidden()
                 .onChange(of: selectedEndTime) { _, _ in
                     endTimeEdited = true
-                    let dismissId = UUID()
-                    endTimeDismissId = dismissId
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if endTimeDismissId == dismissId {
-                            showEndTimePicker = false
-                        }
-                    }
                 }
             }
         }
@@ -317,8 +303,6 @@ struct CreateMatchView: View {
     @State private var dateWasEdited = false
     @State private var startTimeEdited = false
     @State private var endTimeEdited = false
-    @State private var startTimeDismissId = UUID()
-    @State private var endTimeDismissId = UUID()
 
     private var dateFormatted: String {
         if !dateWasEdited { return "選擇日期" }
