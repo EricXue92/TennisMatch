@@ -601,7 +601,7 @@ struct CreateMatchView: View {
                 confirmRow(icon: "mappin.circle.fill", text: selectedCourt?.name ?? "未選擇")
                 confirmRow(icon: "star.fill", text: "NTRP \(String(format: "%.1f - %.1f", ntrpLow, ntrpHigh))")
                 confirmRow(icon: "person.2.fill", text: genderRequirement)
-                confirmRow(icon: "dollarsign.circle.fill", text: costType == "免費" ? "免費" : "AA ¥\(costAmount)")
+                confirmRow(icon: "dollarsign.circle.fill", text: costType == "免費" ? "免費" : "AA HK$\(costAmount)")
                 if !notes.isEmpty {
                     confirmRow(icon: "note.text", text: notes)
                 }
