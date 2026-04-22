@@ -15,6 +15,7 @@ struct ProfileView: View {
     @State private var showTournaments = false
     @State private var showAchievements = false
     @State private var showFollowing = false
+    @State private var showCreditHistory = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -42,6 +43,12 @@ struct ProfileView: View {
         }
         .fullScreenCover(isPresented: $showTournaments) {
             TournamentView()
+        }
+        .sheet(isPresented: $showCreditHistory) {
+            CreditScoreHistoryView(
+                currentScore: 85,
+                entries: CreditScoreHistoryView.mockEntries
+            )
         }
     }
 
@@ -141,7 +148,12 @@ struct ProfileView: View {
             // Stat cards
             HStack(spacing: Spacing.xs) {
                 statCard(value: userStore.ntrpText, label: "NTRP")
-                statCard(value: "85", label: "信譽積分")
+                Button {
+                    showCreditHistory = true
+                } label: {
+                    statCard(value: "85", label: "信譽積分")
+                }
+                .buttonStyle(.plain)
                 statCard(value: "92%", label: "出席率")
             }
             .padding(.horizontal, Spacing.md)
