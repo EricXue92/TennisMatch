@@ -39,8 +39,8 @@ struct HomeView: View {
     @State private var showMatchAssistant = false
     @State private var showReviews = false
     @State private var showNotifications = false
-    @State private var showFollowing = false
     @State private var showBlockList = false
+    @State private var showTipDeveloper = false
     @State private var showInviteFriends = false
     @State private var showSettings = false
     @State private var showHelp = false
@@ -108,6 +108,8 @@ struct HomeView: View {
                     matches[idx].currentPlayers += 1
                     signedUpMatchIDs.insert(matchId)
                     registerBookedSlot(for: matches[idx])
+                    // 报名成功后加入"我的约球"列表
+                    addToAcceptedMatches(match: matches[idx])
                 }
                 pendingSignUpMessage = message
                 successMatch = info
@@ -158,8 +160,8 @@ struct HomeView: View {
         .navigationDestination(isPresented: $showNotifications) {
             NotificationsView()
         }
-        .navigationDestination(isPresented: $showFollowing) {
-            FollowingView()
+        .navigationDestination(isPresented: $showTipDeveloper) {
+            TipDeveloperView()
         }
         .navigationDestination(isPresented: $showBlockList) {
             BlockListView()
@@ -349,14 +351,14 @@ private extension HomeView {
                     ) {
                         showNotifications = true
                     }
-                    drawerMenuItem(icon: "👥", label: "關注") {
-                        showFollowing = true
-                    }
                     drawerMenuItem(icon: "🚫", label: "封鎖名單") {
                         showBlockList = true
                     }
                     drawerMenuItem(icon: "📨", label: "邀請好友") {
                         showInviteFriends = true
+                    }
+                    drawerMenuItem(icon: "☕", label: "打賞開發者") {
+                        showTipDeveloper = true
                     }
 
                     // Divider
@@ -1013,6 +1015,10 @@ private extension HomeView {
 private extension HomeView {
     var filteredMatches: [MockMatch] {
         let filtered = matches.filter { match in
+            // 首页只显示未来可约的信息,过期/自动取消的不展示
+            if match.isExpired { return false }
+            // 已报名的约球不再显示在首页,已移至"我的约球"
+            if signedUpMatchIDs.contains(match.id) { return false }
             // Hide full matches (but always show own)
             if match.isFull && !match.isOwnMatch { return false }
             // Match type filter
@@ -1281,6 +1287,28 @@ private extension HomeView {
             ],
             isOwnMatch: match.isOwnMatch
         )
+    }
+
+    /// 报名成功后,将约球信息加入 acceptedMatches,使其显示在"我的约球"页面。
+    func addToAcceptedMatches(match: MockMatch) {
+        let parts = match.dateTime.split(separator: " ")
+        let dateStr = String(parts[0]) // "04/19"
+        let startTime = parts.count > 1 ? String(parts[1]) : "\(match.hour):00"
+        let startHour = Int(startTime.prefix(2)) ?? match.hour
+        let endHour = startHour + 2
+
+        let accepted = AcceptedMatchInfo(
+            organizerName: match.name,
+            matchType: match.matchType,
+            dateString: dateStr,
+            time: startTime,
+            location: match.location,
+            sourceMatchID: match.id,
+            durationHours: 2,
+            players: "\(match.currentPlayers)/\(match.maxPlayers)",
+            ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh)
+        )
+        acceptedMatches.append(accepted)
     }
 
     func addPublishedMatch(_ info: PublishedMatchInfo) {

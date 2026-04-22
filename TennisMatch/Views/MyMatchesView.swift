@@ -18,6 +18,7 @@ struct MyMatchesView: View {
     @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
+    @State private var selectedChatMatchContext: String?
     @State private var matchToCancel: MyMatchItem?
     @State private var showCancelAlert = false
     @State private var showManageSheet = false
@@ -158,7 +159,8 @@ struct MyMatchesView: View {
         }
         .background(Theme.inputBg)
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches)
+            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: selectedChatMatchContext)
+                .onDisappear { selectedChatMatchContext = nil }
         }
         .alert("取消約球", isPresented: $showCancelAlert) {
             Button("再想想", role: .cancel) {
@@ -373,7 +375,11 @@ struct MyMatchesView: View {
         let chatTitle = "\(locationBase) \(match.matchType)"
         // Extract date/time from timeRange "10:00 - 12:00" → "10:00"
         let startTime = match.timeRange.components(separatedBy: " - ").first ?? ""
-        let dateTime = "\(match.dateLabel.replacingOccurrences(of: "明天 · ", with: "")) \(startTime)"
+        let dateStr = match.dateLabel.replacingOccurrences(of: "明天 · ", with: "")
+        let dateTime = "\(dateStr) \(startTime)"
+
+        // 构建约球信息摘要,进入聊天时作为置顶卡片显示
+        selectedChatMatchContext = "🎾 約球已確認\n📅 \(dateStr) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType)\n👥 \(match.players)"
 
         selectedChat = MockChat(
             type: .match(title: chatTitle, dateTime: dateTime),
