@@ -16,6 +16,7 @@ struct LoginView: View {
     @State private var glowPulse = false
     @State private var showVerification = false
     @State private var showHelpView = false
+    @State private var toastMessage: String?
 
     // MARK: Theme
     private let bgTop      = Theme.loginBgTop
@@ -60,6 +61,25 @@ struct LoginView: View {
         .navigationDestination(isPresented: $showHelpView) {
             HelpView()
         }
+        .overlay(alignment: .top) {
+            if let msg = toastMessage {
+                Text(msg)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Theme.textDeep.opacity(0.92))
+                    .clipShape(Capsule())
+                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            withAnimation { toastMessage = nil }
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: toastMessage)
     }
 
     // MARK: - Background
@@ -143,11 +163,11 @@ struct LoginView: View {
                 bg: wechat,
                 fg: .white,
                 delay: 0.60,
-                action: { isLoggedIn = true }
+                action: { toastMessage = "微信登录即將支持" }
             )
 
             // Apple
-            Button(action: { isLoggedIn = true }) {
+            Button(action: { toastMessage = "Apple 登录即將支持" }) {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
                         .font(.system(size: 18, weight: .semibold))
