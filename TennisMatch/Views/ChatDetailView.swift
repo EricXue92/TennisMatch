@@ -16,6 +16,7 @@ struct ChatDetailView: View {
     /// outgoing bubble on first appear so the organizer sees it at the top.
     var initialMessage: String? = nil
     @Environment(\.dismiss) private var dismiss
+    @Environment(BookedSlotStore.self) private var bookedSlotStore
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -426,6 +427,13 @@ struct ChatDetailView: View {
                             let parts = date.components(separatedBy: " ")
                             let dateStr = parts.first ?? date
                             let timeStr = parts.count > 1 ? parts[1] : "10:00"
+                            // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                            let scheduleText = "\(dateStr) \(timeStr)"
+                            if let range = MatchSchedule.dateRange(text: scheduleText),
+                               let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                                chatMenuToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                                return
+                            }
                             let match = AcceptedMatchInfo(
                                 organizerName: organizerName,
                                 matchType: matchTypeFromChat,
@@ -434,6 +442,15 @@ struct ChatDetailView: View {
                                 location: location
                             )
                             acceptedMatches.append(match)
+                            if let range = MatchSchedule.dateRange(text: scheduleText) {
+                                let label = "\(organizerName) \(scheduleText)"
+                                bookedSlotStore.add(BookedSlot(
+                                    id: match.id,
+                                    start: range.start,
+                                    end: range.end,
+                                    label: label
+                                ))
+                            }
                         } label: {
                             Text("接受")
                                 .font(.system(size: 12, weight: .bold))

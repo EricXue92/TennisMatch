@@ -11,18 +11,24 @@ import SwiftUI
 
 /// Top-aligned toast banner that renders when `message` is non-nil.
 /// Attach via `.overlay(alignment: .top) { calendarToastBanner($state) }`.
-func calendarToastBanner(_ message: Binding<String?>) -> some View {
-    CalendarToastBanner(message: message)
+/// `systemImage` defaults to the calendar success icon; pass an alternative
+/// (e.g. `"exclamationmark.triangle.fill"`) for warnings.
+func calendarToastBanner(
+    _ message: Binding<String?>,
+    systemImage: String = "calendar.badge.checkmark"
+) -> some View {
+    CalendarToastBanner(message: message, systemImage: systemImage)
 }
 
 private struct CalendarToastBanner: View {
     @Binding var message: String?
+    let systemImage: String
 
     var body: some View {
         Group {
             if let text = message {
                 HStack(spacing: Spacing.sm) {
-                    Image(systemName: "calendar.badge.checkmark")
+                    Image(systemName: systemImage)
                         .font(.system(size: 14, weight: .semibold))
                     Text(text)
                         .font(.system(size: 14, weight: .medium))

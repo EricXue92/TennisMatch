@@ -20,11 +20,14 @@ struct MatchDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
+    @Environment(BookedSlotStore.self) private var bookedSlotStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
     @State private var navigateToChat = false
     @State private var pendingContactOrganizer = false
+    /// Top toast for time-conflict warnings shown when 報名 overlaps an existing booking.
+    @State private var conflictToast: String?
 
     /// Live participant list (seeded from `match.participantList` on appear,
     /// the current user is appended on sign-up confirm).
@@ -72,6 +75,9 @@ struct MatchDetailView: View {
             if participants.isEmpty {
                 participants = match.participantList
             }
+        }
+        .overlay(alignment: .top) {
+            calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -366,6 +372,17 @@ private extension MatchDetailView {
                 }()
 
                 Button {
+                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                    let scheduleText = "\(match.date) \(match.timeRange)"
+                    if let range = MatchSchedule.dateRange(text: scheduleText),
+                       let conflict = bookedSlotStore.conflict(
+                           start: range.start,
+                           end: range.end,
+                           excluding: match.matchId
+                       ) {
+                        conflictToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                        return
+                    }
                     showSignUpConfirm = true
                 } label: {
                     Text(label)

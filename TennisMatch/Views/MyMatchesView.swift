@@ -11,6 +11,7 @@ struct MyMatchesView: View {
     @Binding var acceptedMatches: [AcceptedMatchInfo]
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
     var onMatchCancelled: ((UUID?) -> Void)? = nil
+    @Environment(BookedSlotStore.self) private var bookedSlotStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
@@ -146,6 +147,9 @@ struct MyMatchesView: View {
                     withAnimation {
                         if let aid = match.acceptedMatchID {
                             acceptedMatches.removeAll { $0.id == aid }
+                            // 邀请接受类型的预订:slot 是用 aid 登记的,从 store 中移除。
+                            // sourceMatchID 不为 nil 的情形由 onMatchCancelled 在 HomeView 内处理。
+                            bookedSlotStore.remove(id: aid)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
@@ -176,6 +180,22 @@ struct MyMatchesView: View {
             Button("取消", role: .cancel) {}
         } message: { match in
             Text(match.title)
+        }
+        .task {
+            // 把 mock 中"已确认"的 upcomingMatches 登记到 BookedSlotStore,
+            // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截。
+            // BookedSlotStore.add 按 id 去重,重复 task 触发是安全的。
+            for item in upcomingMatches where item.status == .confirmed {
+                let scheduleText = "\(item.dateLabel) \(item.timeRange)"
+                guard let range = MatchSchedule.dateRange(text: scheduleText) else { continue }
+                let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
+                bookedSlotStore.add(BookedSlot(
+                    id: item.id,
+                    start: range.start,
+                    end: range.end,
+                    label: label
+                ))
+            }
         }
         .overlay(alignment: .top) {
             if let current = toast {
@@ -478,15 +498,43 @@ private extension MyMatchesView {
                 }
 
                 Button {
-                    acceptedMatches.append(AcceptedMatchInfo(
+                    let dateString = invitation.details.components(separatedBy: " · ").first ?? ""
+                    let location = invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
+                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                    let scheduleText = "\(dateString) \(invitation.time)"
+                    if let range = MatchSchedule.dateRange(
+                        text: scheduleText,
+                        defaultDurationHours: invitation.durationHours
+                    ),
+                       let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                        toast = .init(
+                            kind: .warning,
+                            text: "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                        )
+                        return
+                    }
+                    let accepted = AcceptedMatchInfo(
                         organizerName: invitation.inviterName,
                         matchType: invitation.matchType,
-                        dateString: invitation.details.components(separatedBy: " · ").first ?? "",
+                        dateString: dateString,
                         time: invitation.time,
-                        location: invitation.details.components(separatedBy: " · ").dropFirst().first ?? "",
+                        location: location,
                         sourceMatchID: nil,
                         durationHours: invitation.durationHours
-                    ))
+                    )
+                    acceptedMatches.append(accepted)
+                    if let range = MatchSchedule.dateRange(
+                        text: scheduleText,
+                        defaultDurationHours: invitation.durationHours
+                    ) {
+                        let label = "\(invitation.inviterName) \(scheduleText)"
+                        bookedSlotStore.add(BookedSlot(
+                            id: accepted.id,
+                            start: range.start,
+                            end: range.end,
+                            label: label
+                        ))
+                    }
                     acceptedInvitation = invitation
                     showAcceptSuccess = true
                 } label: {
