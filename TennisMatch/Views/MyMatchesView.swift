@@ -81,7 +81,7 @@ struct MyMatchesView: View {
                 dateLabel: "\(info.dateString)",
                 location: "\(info.location)網球場",
                 timeRange: "\(timeStr) - \(endTime)",
-                players: "2/2 · NTRP 3.0-4.0",
+                players: "\(info.players) · NTRP \(info.ntrpRange)",
                 weather: "☀️ 24°C",
                 matchType: info.matchType,
                 acceptedMatchID: info.id,

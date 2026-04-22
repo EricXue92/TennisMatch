@@ -260,6 +260,8 @@ struct AcceptedMatchInfo: Identifiable {
     /// Nil when the accepted entry does not originate from a HomeView sign-up (e.g., invitation accept, chat accept).
     var sourceMatchID: UUID? = nil
     var durationHours: Int = 2
+    var players: String = "2/2"
+    var ntrpRange: String = "3.0-4.0"
 }
 
 let mockChatsInitial: [MockChat] = [
