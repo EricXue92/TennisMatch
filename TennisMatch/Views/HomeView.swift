@@ -1386,10 +1386,46 @@ struct SignUpMatchInfo: Identifiable {
     let notes: String
     let players: String
     let isFull: Bool
+    /// 独立的日期字段（来自 MatchDetailData），用于日历解析
+    var date: String? = nil
+    /// 独立的时间范围字段（来自 MatchDetailData），用于日历解析
+    var timeRange: String? = nil
+
+    /// 从 MatchDetailData 构造，便于 MatchDetailView 复用共享报名组件
+    init(from detail: MatchDetailData) {
+        self.organizerName = detail.name
+        self.organizerGender = detail.gender
+        self.dateTime = "\(detail.date) \(detail.timeRange)"
+        self.location = detail.location
+        self.matchType = detail.matchType
+        self.ntrpRange = detail.ntrpRange
+        self.fee = detail.fee
+        self.notes = detail.notes
+        self.players = detail.players
+        self.isFull = detail.isFull
+        self.date = detail.date
+        self.timeRange = detail.timeRange
+    }
+
+    init(organizerName: String, organizerGender: Gender, dateTime: String,
+         location: String, matchType: String, ntrpRange: String,
+         fee: String, notes: String, players: String, isFull: Bool) {
+        self.organizerName = organizerName
+        self.organizerGender = organizerGender
+        self.dateTime = dateTime
+        self.location = location
+        self.matchType = matchType
+        self.ntrpRange = ntrpRange
+        self.fee = fee
+        self.notes = notes
+        self.players = players
+        self.isFull = isFull
+    }
 }
 
-private struct SignUpConfirmSheet: View {
+struct SignUpConfirmSheet: View {
     let match: SignUpMatchInfo
+    var showNotes: Bool = true
     var onConfirm: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var message = ""
@@ -1405,7 +1441,9 @@ private struct SignUpConfirmSheet: View {
                 infoRow(icon: "mappin.circle.fill", text: match.location)
                 infoRow(icon: "figure.tennis", text: "\(match.matchType)  ·  NTRP \(match.ntrpRange)")
                 infoRow(icon: "dollarsign.circle.fill", text: match.fee)
-                infoRow(icon: "exclamationmark.triangle.fill", text: match.notes)
+                if showNotes {
+                    infoRow(icon: "exclamationmark.triangle.fill", text: match.notes)
+                }
             }
 
             Theme.divider.frame(height: 1)
@@ -1463,11 +1501,17 @@ private struct SignUpConfirmSheet: View {
 
 // MARK: - Sign Up Success
 
-private struct SignUpSuccessView: View {
+struct SignUpSuccessView: View {
     let match: SignUpMatchInfo
+    var dismissButtonTitle: String = "返回首頁"
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
     @State private var calendarToast: String?
+
+    /// 玩家人数标签：若 players 已包含"人"则直接使用，否则追加" 人"
+    private var playersLabel: String {
+        match.players.hasSuffix("人") ? match.players : "\(match.players) 人"
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1518,7 +1562,7 @@ private struct SignUpSuccessView: View {
                 summaryRow(icon: "calendar", text: match.dateTime)
                 summaryRow(icon: "mappin.and.ellipse", text: match.location)
                 summaryRow(icon: "dollarsign.circle", text: match.fee)
-                summaryRow(icon: "person.2.fill", text: "\(match.players) 人 · 水平 \(match.ntrpRange)")
+                summaryRow(icon: "person.2.fill", text: "\(playersLabel) · 水平 \(match.ntrpRange)")
             }
             .padding(Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -1567,7 +1611,7 @@ private struct SignUpSuccessView: View {
             Button {
                 dismiss()
             } label: {
-                Text("返回首頁")
+                Text(dismissButtonTitle)
                     .font(.system(size: 16, weight: .medium))
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
@@ -1583,11 +1627,21 @@ private struct SignUpSuccessView: View {
     }
 
     private func saveMatchToCalendar() {
-        guard let range = CalendarService.parseCombinedDateTime(match.dateTime) else {
+        // 当有独立的 date/timeRange 时使用 parseDateTimeRange，否则用 parseCombinedDateTime
+        let range: (start: Date, end: Date)? = {
+            if let date = match.date, let timeRange = match.timeRange {
+                return CalendarService.parseDateTimeRange(date: date, timeRange: timeRange)
+            }
+            return CalendarService.parseCombinedDateTime(match.dateTime)
+        }()
+        guard let range else {
             calendarToast = "無法解析約球時間"
             return
         }
-        let title = "\(match.organizerName) 的\(match.matchType)"
+        // 来自详情页时用"·"分隔，首页用"的"
+        let title = match.date != nil
+            ? "\(match.organizerName) · \(match.matchType)"
+            : "\(match.organizerName) 的\(match.matchType)"
         let notes = "\(match.matchType) · NTRP \(match.ntrpRange)\n費用：\(match.fee)"
         Task {
             do {
