@@ -11,6 +11,7 @@ import SwiftUI
 
 struct HomeView: View {
     @Environment(UserStore.self) private var userStore
+    @Environment(FollowStore.self) private var followStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -551,15 +552,20 @@ private extension HomeView {
                     .font(.system(size: 11))
                     .foregroundColor(Theme.textCaption)
 
+                let isFollowing = followStore.isFollowing(name)
                 Button {
-                    // TODO: follow
+                    followStore.toggle(name)
                 } label: {
-                    Text("關注")
+                    Text(isFollowing ? "已關注" : "關注")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.white)
+                        .foregroundColor(isFollowing ? Theme.primary : .white)
                         .frame(width: 60, height: 24)
-                        .background(Theme.primary)
+                        .background(isFollowing ? Color.clear : Theme.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                .stroke(isFollowing ? Theme.primary : Color.clear, lineWidth: 1)
+                        )
                 }
             }
         }
