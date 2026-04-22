@@ -15,6 +15,7 @@ struct TennisMatchApp: App {
     @State private var bookedSlotStore = BookedSlotStore()
     @State private var notificationStore = NotificationStore()
     @State private var creditScoreStore = CreditScoreStore()
+    @State private var ratingFeedbackStore = RatingFeedbackStore()
 
     var body: some Scene {
         WindowGroup {
@@ -30,6 +31,7 @@ struct TennisMatchApp: App {
             .environment(bookedSlotStore)
             .environment(notificationStore)
             .environment(creditScoreStore)
+            .environment(ratingFeedbackStore)
         }
     }
 }

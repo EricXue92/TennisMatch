@@ -11,18 +11,28 @@ struct ProfileView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
+    @Environment(RatingFeedbackStore.self) private var ratingFeedbackStore
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var showTournaments = false
     @State private var showAchievements = false
     @State private var showFollowing = false
     @State private var showCreditHistory = false
+    @State private var showCalibrationSheet = false
+
+    /// 用戶上次 dismiss / 接受 校準提示時的 peerAverage 快照。下一次提示
+    /// 只在 peerAverage 漂移 ≥ 0.1 後才會再彈,避免頻繁打擾。
+    /// `Double.nan` 作為 "尚未 dismiss 過" 的哨兵(AppStorage 不接 Optional<Double>)。
+    @AppStorage("calibrationDismissedAvg") private var calibrationDismissedAvg: Double = .nan
 
     var body: some View {
         VStack(spacing: 0) {
             headerSection
             ScrollView {
                 VStack(spacing: Spacing.sm) {
+                    if let suggestion = visibleCalibrationSuggestion {
+                        calibrationBanner(suggestion)
+                    }
                     recordCard
                     tournamentCard
                     achievementCard
@@ -51,6 +61,86 @@ struct ProfileView: View {
                 entries: creditScoreStore.entries
             )
         }
+        .sheet(isPresented: $showCalibrationSheet) {
+            if let suggestion = ratingFeedbackStore.calibrationSuggestion(selfNTRP: userStore.ntrpLevel) {
+                CalibrationSheet(
+                    suggestion: suggestion,
+                    selfNTRP: userStore.ntrpLevel,
+                    onCalibrate: {
+                        userStore.ntrpLevel = suggestion.suggested
+                        calibrationDismissedAvg = suggestion.peerAverage
+                        showCalibrationSheet = false
+                    },
+                    onKeep: {
+                        calibrationDismissedAvg = suggestion.peerAverage
+                        showCalibrationSheet = false
+                    },
+                    onLater: {
+                        showCalibrationSheet = false
+                    }
+                )
+                .presentationDetents([.medium])
+            }
+        }
+    }
+
+    // MARK: - Calibration
+
+    /// 當前需要展示的校準建議。已被用戶 dismiss 過的(且球友均值無顯著漂移)會被過濾。
+    private var visibleCalibrationSuggestion: CalibrationSuggestion? {
+        guard let suggestion = ratingFeedbackStore.calibrationSuggestion(selfNTRP: userStore.ntrpLevel) else {
+            return nil
+        }
+        // 沒 dismiss 過 → 直接顯示。
+        if calibrationDismissedAvg.isNaN { return suggestion }
+        // dismiss 過後,球友均值漂移 ≥ 0.1 才再次提示。
+        if abs(suggestion.peerAverage - calibrationDismissedAvg) >= 0.1 {
+            return suggestion
+        }
+        return nil
+    }
+
+    private func calibrationBanner(_ suggestion: CalibrationSuggestion) -> some View {
+        Button {
+            showCalibrationSheet = true
+        } label: {
+            HStack(alignment: .top, spacing: Spacing.sm) {
+                Image(systemName: "scope")
+                    .font(.system(size: 18, weight: .medium))
+                    .foregroundColor(Theme.primary)
+                    .frame(width: 32, height: 32)
+                    .background(Theme.primaryLight)
+                    .clipShape(Circle())
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("水平校準建議")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+
+                    Text(suggestion.bannerSubtitle(selfNTRP: userStore.ntrpLevel))
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textBody)
+                        .multilineTextAlignment(.leading)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+
+                Spacer(minLength: Spacing.xs)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+            }
+            .padding(Spacing.md)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(.white)
+            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(Theme.primary.opacity(0.4), lineWidth: 1)
+            )
+            .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: - Header
@@ -452,16 +542,146 @@ private let mockTournamentRecords: [TournamentRecord] = [
     ),
 ]
 
+// MARK: - Calibration Sheet
+
+private extension CalibrationSuggestion {
+    /// 銀行式短描述,給 Profile 入口卡片用,字數壓在兩行內。
+    func bannerSubtitle(selfNTRP: Double) -> String {
+        let selfText = String(format: "%.1f", selfNTRP)
+        let avgText = String(format: "%.1f", peerAverage)
+        switch direction {
+        case .selfUnderrated:
+            return "\(sampleSize) 位球友平均評你 \(avgText)，比自評 \(selfText) 高，建議上調。"
+        case .selfOverrated:
+            return "\(sampleSize) 位球友平均評你 \(avgText)，比自評 \(selfText) 低，建議下調。"
+        }
+    }
+
+    var directionHeadline: String {
+        switch direction {
+        case .selfUnderrated: return "你可能低估了自己的水平"
+        case .selfOverrated:  return "你可能高估了自己的水平"
+        }
+    }
+}
+
+private struct CalibrationSheet: View {
+    let suggestion: CalibrationSuggestion
+    let selfNTRP: Double
+    let onCalibrate: () -> Void
+    let onKeep: () -> Void
+    let onLater: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("水平校準")
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(Theme.textPrimary)
+                Text(suggestion.directionHeadline)
+                    .font(.system(size: 13))
+                    .foregroundColor(Theme.textBody)
+            }
+
+            // 對比卡:自評 vs 球友均值
+            HStack(spacing: Spacing.sm) {
+                comparisonCard(
+                    title: "你的自評",
+                    value: String(format: "%.1f", selfNTRP),
+                    accent: Theme.textBody
+                )
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(Theme.textSecondary)
+                comparisonCard(
+                    title: "球友均值",
+                    value: String(format: "%.1f", suggestion.peerAverage),
+                    accent: Theme.primary
+                )
+            }
+            .frame(maxWidth: .infinity)
+
+            Text("基於 \(suggestion.sampleSize) 位球友賽後評估,差距已超過 \(String(format: "%.1f", RatingFeedbackStore.deviationThreshold)) 級。建議將 NTRP 調整至 \(String(format: "%.1f", suggestion.suggested)),匹配更精準。")
+                .font(.system(size: 12))
+                .foregroundColor(Theme.textCaption)
+                .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
+
+            VStack(spacing: Spacing.xs) {
+                Button(action: onCalibrate) {
+                    Text("校準到 \(String(format: "%.1f", suggestion.suggested))")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Theme.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
+
+                HStack(spacing: Spacing.sm) {
+                    Button(action: onKeep) {
+                        Text("保留 \(String(format: "%.1f", selfNTRP))")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Theme.textBody)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(Theme.inputBorder, lineWidth: 1)
+                            )
+                    }
+                    Button(action: onLater) {
+                        Text("稍後再說")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(Theme.textBody)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(.white)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                                    .stroke(Theme.inputBorder, lineWidth: 1)
+                            )
+                    }
+                }
+            }
+        }
+        .padding(Spacing.lg)
+    }
+
+    private func comparisonCard(title: String, value: String, accent: Color) -> some View {
+        VStack(spacing: 4) {
+            Text(title)
+                .font(.system(size: 11))
+                .foregroundColor(Theme.textCaption)
+            Text(value)
+                .font(.system(size: 28, weight: .bold))
+                .foregroundColor(accent)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 76)
+        .background(Theme.inputBg)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+    }
+}
+
 // MARK: - Preview
 
 #Preview("iPhone SE") {
     ProfileView()
         .environment(FollowStore())
         .environment(UserStore())
+        .environment(CreditScoreStore())
+        .environment(RatingFeedbackStore())
 }
 
 #Preview("iPhone 15 Pro") {
     ProfileView()
         .environment(FollowStore())
         .environment(UserStore())
+        .environment(CreditScoreStore())
+        .environment(RatingFeedbackStore())
 }
