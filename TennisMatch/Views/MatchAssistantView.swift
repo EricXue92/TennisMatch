@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MatchAssistantView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UserStore.self) private var userStore
     @State private var selectedDetail: MatchDetailData?
 
     var body: some View {
@@ -28,7 +29,7 @@ struct MatchAssistantView: View {
                         Text("約球助理")
                             .font(.system(size: 15, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
-                        Text("根據你的 NTRP 3.5、常去球場和空閒時間為你推薦")
+                        Text("根據你的 NTRP \(userStore.ntrpText)、常去球場和空閒時間為你推薦")
                             .font(.system(size: 12))
                             .foregroundColor(Theme.textSecondary)
                     }
