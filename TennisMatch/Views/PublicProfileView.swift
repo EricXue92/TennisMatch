@@ -74,7 +74,7 @@ struct PublicProfileView: View {
                         Text(player.name)
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
-                        Text(player.gender == .female ? "♀" : "♂")
+                        Text(player.gender.symbol)
                             .font(.system(size: 18))
                             .foregroundColor(player.gender == .female ? Theme.genderFemale : Theme.genderMale)
                     }
@@ -188,7 +188,7 @@ struct PublicProfileView: View {
     private var bottomBar: some View {
         Button {
             selectedChat = MockChat(
-                type: .personal(name: player.name, symbol: player.gender == .female ? "♀" : "♂", symbolColor: player.gender == .female ? Theme.genderFemale : Theme.genderMale),
+                type: .personal(name: player.name, symbol: player.gender.symbol, symbolColor: player.gender == .female ? Theme.genderFemale : Theme.genderMale),
                 lastMessage: "點擊開始聊天",
                 time: "now",
                 unreadCount: 0

@@ -744,6 +744,13 @@ enum Gender: String, CaseIterable, Identifiable, Equatable {
         case .female: return "女"
         }
     }
+
+    var symbol: String {
+        switch self {
+        case .male:   return "♂"
+        case .female: return "♀"
+        }
+    }
 }
 
 enum AgeRange: String, CaseIterable, Identifiable, Equatable {

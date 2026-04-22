@@ -119,7 +119,7 @@ private extension MatchDetailView {
                         Text(match.name)
                             .font(.system(size: 17, weight: .semibold))
                             .foregroundColor(Theme.textPrimary)
-                        Text(match.gender == .female ? "♀" : "♂")
+                        Text(match.gender.symbol)
                             .font(.system(size: 17))
                             .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
                     }
@@ -294,7 +294,7 @@ private extension MatchDetailView {
                             Text(p.name)
                                 .font(.system(size: 14, weight: .medium))
                                 .foregroundColor(Theme.textPrimary)
-                            Text(p.gender == .female ? "♀" : "♂")
+                            Text(p.gender.symbol)
                                 .font(.system(size: 14))
                                 .foregroundColor(p.gender == .female ? Theme.genderFemale : Theme.genderMale)
                         }
@@ -449,7 +449,7 @@ private extension MatchDetailView {
         .navigationDestination(isPresented: $navigateToChat) {
             ChatDetailView(
                 chat: MockChat(
-                    type: .personal(name: match.name, symbol: match.gender == .female ? "♀" : "♂", symbolColor: match.gender == .female ? Theme.genderFemale : Theme.genderMale),
+                    type: .personal(name: match.name, symbol: match.gender.symbol, symbolColor: match.gender == .female ? Theme.genderFemale : Theme.genderMale),
                     lastMessage: "點擊開始聊天",
                     time: "now",
                     unreadCount: 0

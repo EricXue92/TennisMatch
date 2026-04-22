@@ -93,7 +93,7 @@ struct MatchAssistantView: View {
                         Text(rec.name)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(Theme.textPrimary)
-                        Text(rec.gender == .female ? "♀" : "♂")
+                        Text(rec.gender.symbol)
                             .font(.system(size: 14))
                             .foregroundColor(rec.gender == .female ? Theme.genderFemale : Theme.genderMale)
                         Text(rec.matchType)

@@ -116,7 +116,7 @@ struct HomeView: View {
         }
         .fullScreenCover(item: $successMatch, onDismiss: {
             if let info = pendingDMOrganizer {
-                let symbol = info.organizerGender == .female ? "♀" : "♂"
+                let symbol = info.organizerGender.symbol
                 let color = info.organizerGender == .female ? Theme.genderFemale : Theme.genderMale
                 dmChat = MockChat(
                     type: .personal(name: info.organizerName, symbol: symbol, symbolColor: color),
@@ -569,7 +569,7 @@ private extension HomeView {
                     Text(name)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
-                    Text(gender == .female ? "♀" : "♂")
+                    Text(gender.symbol)
                         .font(.system(size: 13))
                         .foregroundColor(gender == .female ? Theme.genderFemale : Theme.genderMale)
                 }
@@ -1090,7 +1090,7 @@ private extension HomeView {
                         Text(match.name)
                             .font(.system(size: 14, weight: .medium))
                             .foregroundColor(Theme.textPrimary)
-                        Text(match.gender == .female ? "♀" : "♂")
+                        Text(match.gender.symbol)
                             .font(.system(size: 14))
                             .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
 
