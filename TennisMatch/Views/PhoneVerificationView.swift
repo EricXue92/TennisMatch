@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct PhoneVerificationView: View {
     let phoneNumber: String
@@ -18,7 +19,7 @@ struct PhoneVerificationView: View {
     @State private var code = ""
     @State private var countdown = 60
     @State private var canResend = false
-    @State private var timer: Timer?
+    @State private var timerActive = false
     @State private var showRegister = false
     @State private var toastMessage: String?
     @State private var isLoading = false
@@ -53,7 +54,15 @@ struct PhoneVerificationView: View {
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
         .onAppear { startCountdown(); isFieldFocused = true }
-        .onDisappear { timer?.invalidate() }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            guard timerActive else { return }
+            if countdown > 1 {
+                countdown -= 1
+            } else {
+                canResend = true
+                timerActive = false
+            }
+        }
         .navigationDestination(isPresented: $showRegister) {
             RegisterView()
         }
@@ -242,15 +251,7 @@ struct PhoneVerificationView: View {
     private func startCountdown() {
         countdown = 60
         canResend = false
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if countdown > 1 {
-                countdown -= 1
-            } else {
-                canResend = true
-                timer?.invalidate()
-            }
-        }
+        timerActive = true
     }
 
     private func resend() {

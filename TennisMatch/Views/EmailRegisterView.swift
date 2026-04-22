@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import Combine
 
 struct EmailRegisterView: View {
     @Environment(\.dismiss) private var dismiss
@@ -17,7 +18,7 @@ struct EmailRegisterView: View {
     @State private var codeSent = false
     @State private var countdown = 60
     @State private var canResend = false
-    @State private var timer: Timer?
+    @State private var timerActive = false
     @State private var showProfileSetup = false
     @State private var validationMessage = ""
     @State private var showValidationError = false
@@ -248,7 +249,15 @@ struct EmailRegisterView: View {
         .navigationDestination(isPresented: $showProfileSetup) {
             RegisterView()
         }
-        .onDisappear { timer?.invalidate() }
+        .onReceive(Timer.publish(every: 1, on: .main, in: .common).autoconnect()) { _ in
+            guard timerActive else { return }
+            if countdown > 1 {
+                countdown -= 1
+            } else {
+                canResend = true
+                timerActive = false
+            }
+        }
     }
 
     // MARK: - Helpers
@@ -278,15 +287,7 @@ struct EmailRegisterView: View {
         codeSent = true
         countdown = 60
         canResend = false
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(withTimeInterval: 1, repeats: true) { _ in
-            if countdown > 1 {
-                countdown -= 1
-            } else {
-                canResend = true
-                timer?.invalidate()
-            }
-        }
+        timerActive = true
         focusedField = .code
     }
 
