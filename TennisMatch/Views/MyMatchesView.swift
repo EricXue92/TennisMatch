@@ -35,6 +35,7 @@ struct MyMatchesView: View {
     @State private var pendingDMContact: MyMatchInvitation?
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
+    @State private var registrantMatch: MyMatchItem?
 
     private var sortedUpcoming: [MyMatchItem] {
         (acceptedMatchItems + upcomingMatches).sorted { $0.sortDate < $1.sortDate }
@@ -233,7 +234,7 @@ struct MyMatchesView: View {
                 toast = .init(kind: .info, text: "編輯約球功能即將推出")
             }
             Button("查看報名者") {
-                toast = .init(kind: .info, text: "查看報名者功能即將推出")
+                registrantMatch = match
             }
             Button("關閉報名") {
                 toast = .init(kind: .info, text: "關閉報名功能即將推出")
@@ -245,6 +246,55 @@ struct MyMatchesView: View {
             Button("取消", role: .cancel) {}
         } message: { match in
             Text(match.title)
+        }
+        .sheet(item: $registrantMatch) { match in
+            NavigationStack {
+                List {
+                    let count = match.playerCounts.current
+                    ForEach(0..<max(count, 1), id: \.self) { i in
+                        let names = ["小王", "艾美", "大衛", "莎拉", "小張"]
+                        let name = names[i % names.count]
+                        HStack(spacing: Spacing.sm) {
+                            ZStack {
+                                Circle()
+                                    .fill(Theme.avatarPlaceholder)
+                                    .frame(width: 36, height: 36)
+                                Text(String(name.suffix(1)))
+                                    .font(.system(size: 14, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(name)
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(Theme.textPrimary)
+                                Text("NTRP 3.5")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(Theme.textSecondary)
+                            }
+                            Spacer()
+                            if i == 0 {
+                                Text("發起人")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(Theme.primary)
+                                    .padding(.horizontal, Spacing.xs)
+                                    .frame(height: 20)
+                                    .background(Theme.primaryLight)
+                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                            }
+                        }
+                    }
+                }
+                .listStyle(.plain)
+                .navigationTitle("報名者 (\(match.playerCounts.current)/\(match.playerCounts.max))")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("完成") {
+                            registrantMatch = nil
+                        }
+                    }
+                }
+            }
         }
         .task {
             // 把 mock 中"已确认"的 upcomingMatches 登记到 BookedSlotStore,
