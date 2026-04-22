@@ -25,6 +25,10 @@ struct ChatDetailView: View {
     /// Lets the user clear the sign-up-success context card. Once dismissed
     /// for this session, the card does not re-appear on re-entry to the chat.
     @State private var matchContextDismissed = false
+    @State private var isMuted = false
+    @State private var chatMenuToast: String?
+    @State private var showBlockAlert = false
+    @State private var selectedPlayer: PublicPlayerData?
 
     private var chatTitle: String {
         switch chat.type {
@@ -168,26 +172,36 @@ struct ChatDetailView: View {
             switch chat.type {
             case .match:
                 Button("查看約球詳情") {
-                    // TODO: navigate to MatchDetailView
+                    chatMenuToast = "約球詳情 即將推出"
                 }
                 Button("查看群成員") {
-                    // TODO: show members
+                    chatMenuToast = "群成員列表 即將推出"
                 }
-                Button("靜音通知") {
-                    // TODO: toggle mute
+                Button(isMuted ? "取消靜音" : "靜音通知") {
+                    isMuted.toggle()
+                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
                 }
                 Button("退出群聊", role: .destructive) {
                     dismiss()
                 }
             case .personal(let name, _, _):
                 Button("查看 \(name) 的資料") {
-                    // TODO: navigate to PublicProfileView
+                    selectedPlayer = PublicPlayerData(
+                        name: name,
+                        gender: .male,
+                        ntrp: "3.5",
+                        reputation: 88,
+                        matchCount: 20,
+                        bio: "熱愛網球",
+                        recentMatches: []
+                    )
                 }
-                Button("靜音通知") {
-                    // TODO: toggle mute
+                Button(isMuted ? "取消靜音" : "靜音通知") {
+                    isMuted.toggle()
+                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
                 }
                 Button("封鎖對方", role: .destructive) {
-                    // TODO: block
+                    showBlockAlert = true
                 }
                 Button("刪除聊天", role: .destructive) {
                     dismiss()
@@ -195,6 +209,43 @@ struct ChatDetailView: View {
             }
             Button("取消", role: .cancel) {}
         }
+        .alert("封鎖用戶", isPresented: $showBlockAlert) {
+            Button("取消", role: .cancel) {}
+            Button("確認封鎖", role: .destructive) {
+                dismiss()
+            }
+        } message: {
+            if case .personal(let name, _, _) = chat.type {
+                Text("封鎖「\(name)」後，對方將無法查看你的資料和約球，也無法向你發送私信。")
+            } else {
+                Text("封鎖後對方將無法再聯絡你。")
+            }
+        }
+        .navigationDestination(item: $selectedPlayer) { player in
+            PublicProfileView(player: player)
+        }
+        .overlay(alignment: .top) {
+            if let text = chatMenuToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "info.circle.fill").foregroundColor(.white)
+                    Text(text)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .task(id: text) {
+                    try? await Task.sleep(nanoseconds: 2_200_000_000)
+                    if chatMenuToast == text {
+                        withAnimation { chatMenuToast = nil }
+                    }
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: chatMenuToast)
     }
 
     // MARK: - Message Routing
