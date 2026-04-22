@@ -1282,9 +1282,19 @@ private struct MatchReviewItem: Identifiable {
 private struct CompletedMatchReviewSheet: View {
     let match: MyMatchItem
     @Environment(\.dismiss) private var dismiss
+    @Environment(RatingFeedbackStore.self) private var ratingFeedbackStore
+    @Environment(UserStore.self) private var userStore
+    @State private var showWriteReview = false
+    @State private var reviewRating = 5
+    @State private var reviewText = ""
+    @State private var submittedReview: MatchReviewItem?
 
     private var reviews: [MatchReviewItem] {
         reviewsForMatch(match)
+    }
+
+    private var hasMyReview: Bool {
+        reviews.contains { $0.isMyReview } || submittedReview != nil
     }
 
     var body: some View {
@@ -1335,6 +1345,28 @@ private struct CompletedMatchReviewSheet: View {
                             reviewCard(review)
                         }
                     }
+
+                    // 寫評論按鈕
+                    if !hasMyReview {
+                        Button {
+                            showWriteReview = true
+                        } label: {
+                            HStack {
+                                Image(systemName: "square.and.pencil")
+                                Text("寫評論")
+                            }
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .frame(height: 44)
+                            .background(Theme.primary)
+                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+
+                    if let myReview = submittedReview {
+                        reviewCard(myReview)
+                    }
                 }
                 .padding(Spacing.md)
             }
@@ -1346,6 +1378,48 @@ private struct CompletedMatchReviewSheet: View {
                     Button("完成") { dismiss() }
                         .foregroundColor(Theme.primary)
                 }
+            }
+            .sheet(isPresented: $showWriteReview) {
+                WriteReviewSheet(
+                    matchTitle: match.title,
+                    rating: $reviewRating,
+                    text: $reviewText,
+                    onSubmit: {
+                        // 記錄到 RatingFeedbackStore
+                        let ntrpEstimate: Double = {
+                            let base = userStore.ntrpLevel
+                            switch reviewRating {
+                            case 5: return base + 0.5
+                            case 4: return base
+                            case 3: return base - 0.5
+                            default: return base - 1.0
+                            }
+                        }()
+                        // Extract opponent name from match title
+                        let opponent = match.title
+                            .replacingOccurrences(of: " 發起的.*", with: "", options: .regularExpression)
+                        if opponent != "我" {
+                            ratingFeedbackStore.recordPeerRating(
+                                reviewer: opponent,
+                                ntrpEstimate: min(max(ntrpEstimate, 1.0), 7.0)
+                            )
+                        }
+
+                        submittedReview = MatchReviewItem(
+                            reviewerName: "我",
+                            isMyReview: true,
+                            rating: reviewRating,
+                            comment: reviewText,
+                            date: {
+                                let f = DateFormatter()
+                                f.dateFormat = "MM/dd"
+                                return f.string(from: .now)
+                            }()
+                        )
+                        showWriteReview = false
+                    }
+                )
+                .presentationDetents([.medium])
             }
         }
     }
@@ -1400,6 +1474,65 @@ private struct CompletedMatchReviewSheet: View {
     }
 }
 
+private struct WriteReviewSheet: View {
+    let matchTitle: String
+    @Binding var rating: Int
+    @Binding var text: String
+    var onSubmit: () -> Void
+    @Environment(\.dismiss) private var dismiss
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.md) {
+            Text("評價對手")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(Theme.textPrimary)
+
+            Text(matchTitle)
+                .font(Typography.caption)
+                .foregroundColor(Theme.textSecondary)
+
+            HStack(spacing: Spacing.xs) {
+                ForEach(1...5, id: \.self) { i in
+                    Button {
+                        rating = i
+                    } label: {
+                        Image(systemName: i <= rating ? "star.fill" : "star")
+                            .font(.system(size: 28))
+                            .foregroundColor(i <= rating ? Theme.starYellow : Theme.textSecondary)
+                    }
+                }
+            }
+            .frame(maxWidth: .infinity)
+
+            TextField("說說你的打球體驗...", text: $text, axis: .vertical)
+                .font(.system(size: 14))
+                .lineLimit(3...5)
+                .padding(Spacing.sm)
+                .background(Theme.inputBg)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .stroke(Theme.inputBorder, lineWidth: 1)
+                )
+
+            Spacer()
+
+            Button(action: onSubmit) {
+                Text("提交評價")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+        }
+        .padding(.horizontal, Spacing.lg)
+        .padding(.top, Spacing.lg)
+        .padding(.bottom, Spacing.md)
+    }
+}
+
 /// 根据已完成约球生成 mock 评论数据。评论是自愿的,部分约球可能没有评论。
 /// 通過比對球場名稱識別對應的約球，避免依賴固定日期字符串。
 private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
@@ -1442,8 +1575,12 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 
 #Preview("iPhone SE") {
     MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
+        .environment(RatingFeedbackStore())
+        .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
+        .environment(RatingFeedbackStore())
+        .environment(UserStore())
 }
