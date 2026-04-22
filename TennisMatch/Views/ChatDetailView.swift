@@ -173,12 +173,10 @@ struct ChatDetailView: View {
         .confirmationDialog("", isPresented: $showChatMenu) {
             switch chat.type {
             case .match:
-                Button("查看約球詳情") {
-                    chatMenuToast = "約球詳情 即將推出"
-                }
-                Button("查看群成員") {
-                    chatMenuToast = "群成員列表 即將推出"
-                }
+                Button("查看約球詳情（即將推出）") {}
+                    .disabled(true)
+                Button("查看群成員（即將推出）") {}
+                    .disabled(true)
                 Button(isMuted ? "取消靜音" : "靜音通知") {
                     isMuted.toggle()
                     chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
