@@ -142,9 +142,9 @@ struct EditProfileView: View {
 
     private var formCard: some View {
         VStack(spacing: 0) {
-            // 姓名
-            formRow(label: "姓名") {
-                TextField("請輸入姓名", text: $name)
+            // 用戶名
+            formRow(label: "用戶名") {
+                TextField("請輸入用戶名", text: $name)
                     .font(.system(size: 14))
                     .foregroundColor(Theme.textBody)
             }
@@ -298,12 +298,12 @@ struct EditProfileView: View {
             Button {
                 let trimmed = name.trimmingCharacters(in: .whitespaces)
                 if trimmed.isEmpty {
-                    nameErrorMessage = "請輸入姓名"
+                    nameErrorMessage = "請輸入用戶名"
                     withAnimation { showNameError = true }
                     return
                 }
                 if userStore.isNameTaken(trimmed, excludingCurrent: true) {
-                    nameErrorMessage = "該名稱已被使用，請換一個"
+                    nameErrorMessage = "該用戶名已被使用，請換一個"
                     withAnimation { showNameError = true }
                     return
                 }

@@ -124,9 +124,9 @@ struct RegisterView: View {
             sectionHeader(title: "基本資料", badge: "必填", badgeBg: Theme.requiredBg, badgeFg: Theme.requiredText)
                 .padding(.bottom, Spacing.xs)
 
-            // 姓名
-            fieldRow(label: "姓名", required: true) {
-                TextField("請輸入姓名", text: $name)
+            // 用戶名
+            fieldRow(label: "用戶名", required: true) {
+                TextField("請輸入用戶名", text: $name)
                     .font(Typography.fieldValue)
                     .foregroundColor(Theme.textPrimary)
             }
@@ -508,9 +508,9 @@ struct RegisterView: View {
 
             Button {
                 if name.trimmingCharacters(in: .whitespaces).isEmpty {
-                    validationMessage = "請輸入姓名"
+                    validationMessage = "請輸入用戶名"
                 } else if UserStore.reservedNames.contains(name.trimmingCharacters(in: .whitespaces)) {
-                    validationMessage = "該名稱已被使用，請換一個"
+                    validationMessage = "該用戶名已被使用，請換一個"
                 } else if selectedGender == nil {
                     validationMessage = "請選擇性別"
                 } else if selectedAgeRange == nil {
