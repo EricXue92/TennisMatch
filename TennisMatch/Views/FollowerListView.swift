@@ -11,6 +11,8 @@ struct FollowerListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
     @State private var selectedPlayer: PublicPlayerData?
+    @State private var playerToUnfollow: FollowPlayer?
+    @State private var showUnfollowAlert = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -53,6 +55,19 @@ struct FollowerListView: View {
         .navigationDestination(item: $selectedPlayer) { player in
             PublicProfileView(player: player)
         }
+        .alert("取消關注", isPresented: $showUnfollowAlert) {
+            Button("取消", role: .cancel) { playerToUnfollow = nil }
+            Button("確認", role: .destructive) {
+                if let p = playerToUnfollow {
+                    withAnimation { followStore.unfollow(p.name) }
+                }
+                playerToUnfollow = nil
+            }
+        } message: {
+            if let p = playerToUnfollow {
+                Text("確定要取消關注「\(p.name)」嗎？")
+            }
+        }
     }
 
     private func followerRow(_ follower: FollowPlayer) -> some View {
@@ -86,7 +101,12 @@ struct FollowerListView: View {
             Spacer()
 
             Button {
-                withAnimation { followStore.toggle(follower.name) }
+                if isMutual {
+                    playerToUnfollow = follower
+                    showUnfollowAlert = true
+                } else {
+                    withAnimation { followStore.toggle(follower.name) }
+                }
             } label: {
                 Text(isMutual ? "互相關注" : "關注")
                     .font(.system(size: 12, weight: .medium))
