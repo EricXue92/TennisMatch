@@ -262,6 +262,22 @@ private struct ChangePasswordSheet: View {
 
                 Button {
                     focusedField = nil
+                    // 驗證當前密碼
+                    guard !currentPassword.isEmpty else {
+                        withAnimation { toastMessage = "請輸入目前的密碼" }
+                        return
+                    }
+                    // 驗證新密碼長度（Mock 階段：接受任何非空當前密碼）
+                    guard newPassword.count >= 6 else {
+                        withAnimation { toastMessage = "新密碼至少需要 6 位" }
+                        return
+                    }
+                    // 驗證兩次新密碼一致
+                    guard newPassword == confirmPassword else {
+                        withAnimation { toastMessage = "兩次新密碼不一致" }
+                        return
+                    }
+                    // 所有驗證通過，顯示成功並關閉
                     withAnimation { toastMessage = "密碼修改成功" }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
                         dismiss()
@@ -287,7 +303,7 @@ private struct ChangePasswordSheet: View {
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.xs)
-                        .background(Capsule().fill(Theme.primary))
+                        .background(Capsule().fill(msg == "密碼修改成功" ? Theme.primary : Theme.requiredText))
                         .transition(.move(edge: .top).combined(with: .opacity))
                 }
             }
