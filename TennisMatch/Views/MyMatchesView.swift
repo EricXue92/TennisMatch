@@ -350,7 +350,7 @@ struct MyMatchesView: View {
         .fullScreenCover(isPresented: $showAcceptSuccess, onDismiss: {
             if let inv = pendingDMContact {
                 let chat = MockChat(
-                    type: .personal(name: inv.inviterName, symbol: "♂", symbolColor: Theme.genderMale),
+                    type: .personal(name: inv.inviterName, symbol: inv.gender.symbol, symbolColor: inv.gender == .female ? Theme.genderFemale : Theme.genderMale),
                     lastMessage: "點擊開始聊天",
                     time: "剛剛",
                     unreadCount: 0
@@ -838,6 +838,7 @@ private struct MyMatchItem: Identifiable {
 private struct MyMatchInvitation: Identifiable {
     let id = UUID()
     let inviterName: String
+    let gender: Gender          // 邀請者性別，用於聊天頭像符號
     let matchType: String
     let details: String
     let time: String            // "14:00"
@@ -970,6 +971,7 @@ private let mockCompletedMatches: [MyMatchItem] = [
 private let mockInvitations: [MyMatchInvitation] = [
     MyMatchInvitation(
         inviterName: "艾美",
+        gender: .female,
         matchType: "單打",
         details: "04/24 · 京士柏 · NTRP 3.0",
         time: "14:00",
@@ -977,6 +979,7 @@ private let mockInvitations: [MyMatchInvitation] = [
     ),
     MyMatchInvitation(
         inviterName: "俊傑",
+        gender: .male,
         matchType: "雙打",
         details: "04/26 · 將軍澳 · NTRP 3.5-4.5",
         time: "18:00",
@@ -984,6 +987,7 @@ private let mockInvitations: [MyMatchInvitation] = [
     ),
     MyMatchInvitation(
         inviterName: "思慧",
+        gender: .female,
         matchType: "單打",
         details: "04/28 · 香港公園 · NTRP 3.0-3.5",
         time: "09:00",
