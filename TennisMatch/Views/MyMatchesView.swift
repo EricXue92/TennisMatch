@@ -324,8 +324,8 @@ private extension MyMatchesView {
                 .font(.system(size: 20, weight: .semibold))
                 .foregroundColor(Theme.textPrimary)
             Spacer()
-            if !mockInvitations.isEmpty {
-                Text("邀請 \(mockInvitations.count)")
+            if !visibleInvitations.isEmpty {
+                Text("邀請 \(visibleInvitations.count)")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
