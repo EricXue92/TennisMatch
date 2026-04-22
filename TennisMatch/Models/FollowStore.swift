@@ -15,22 +15,18 @@ final class FollowStore {
     /// 当前用户关注的球员名字集合。
     var following: Set<String>
 
-    /// 当前用户的粉丝数(mock 阶段静态)。
-    var followerCount: Int
+    /// 粉絲數 = mockAllFollowers 中的人數（mock 階段固定）
+    var followerCount: Int { mockAllFollowers.count }
 
-    /// 互相关注数(mock 阶段静态)。
-    var mutualCount: Int
+    /// 互關數 = 同時在 following 和 mockAllFollowers 名單中的人
+    var mutualCount: Int {
+        mockAllFollowers.filter { following.contains($0.name) }.count
+    }
 
     var followingCount: Int { following.count }
 
-    init(
-        following: Set<String> = FollowStore.seedFollowing,
-        followerCount: Int = 18,
-        mutualCount: Int = 12
-    ) {
+    init(following: Set<String> = FollowStore.seedFollowing) {
         self.following = following
-        self.followerCount = followerCount
-        self.mutualCount = mutualCount
     }
 
     func isFollowing(_ name: String) -> Bool {
