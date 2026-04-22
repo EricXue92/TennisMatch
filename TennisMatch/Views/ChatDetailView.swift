@@ -174,10 +174,12 @@ struct ChatDetailView: View {
         .confirmationDialog("", isPresented: $showChatMenu) {
             switch chat.type {
             case .match:
-                Button("查看約球詳情（即將推出）") {}
-                    .disabled(true)
-                Button("查看群成員（即將推出）") {}
-                    .disabled(true)
+                Button("查看約球詳情") {
+                    chatMenuToast = "即將推出"
+                }
+                Button("查看群成員") {
+                    chatMenuToast = "即將推出"
+                }
                 Button(isMuted ? "取消靜音" : "靜音通知") {
                     isMuted.toggle()
                     chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
@@ -186,11 +188,12 @@ struct ChatDetailView: View {
                     onRemoveChat?()
                     dismiss()
                 }
-            case .personal(let name, _, _):
+            case .personal(let name, let symbol, _):
                 Button("查看 \(name) 的資料") {
+                    let gender: Gender = symbol == "♀" ? .female : .male
                     selectedPlayer = PublicPlayerData(
                         name: name,
-                        gender: .male,
+                        gender: gender,
                         ntrp: "3.5",
                         reputation: 88,
                         matchCount: 20,
