@@ -1000,7 +1000,7 @@ private struct InvitationAcceptSuccessView: View {
     @State private var calendarToast: String?
 
     private var detailParts: [String] {
-        invitation.details.components(separatedBy: " · ")
+        invitation.displayDetails.components(separatedBy: " · ")
     }
 
     var body: some View {
