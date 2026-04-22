@@ -63,6 +63,9 @@ struct EditProfileView: View {
                 bio = userStore.bio
                 ntrpLevel = userStore.ntrpLevel
                 region = userStore.region
+                if let court = userStore.selectedCourt {
+                    selectedCourt = court
+                }
             }
         }
         .sheet(isPresented: $showCourtPicker) {
@@ -287,6 +290,7 @@ struct EditProfileView: View {
             userStore.bio = bio
             userStore.ntrpLevel = ntrpLevel
             userStore.region = region
+            userStore.selectedCourt = selectedCourt
             dismiss()
         } label: {
             Text("儲存修改")

@@ -29,18 +29,23 @@ final class UserStore {
     /// 所在地区。
     var region: String
 
+    /// 偏好球场。
+    var selectedCourt: TennisCourt?
+
     init(
         displayName: String = "小李",
         gender: Gender = .male,
         bio: String = "熱愛網球，週末經常打球",
         ntrpLevel: Double = 3.5,
-        region: String = "香港"
+        region: String = "香港",
+        selectedCourt: TennisCourt? = nil
     ) {
         self.displayName = displayName
         self.gender = gender
         self.bio = bio
         self.ntrpLevel = ntrpLevel
         self.region = region
+        self.selectedCourt = selectedCourt
     }
 
     /// 头像显示用的单字缩写,取 displayName 末位字符。
