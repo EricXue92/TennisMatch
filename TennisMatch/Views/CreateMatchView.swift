@@ -48,6 +48,7 @@ struct CreateMatchView: View {
     @State private var costType: String = "AA制"
     @State private var costAmount: String = ""
     @State private var notes: String = ""
+    @State private var showCostError = false
 
     // MARK: - Court picker bridge
     @State private var courtPickerSelection: Set<TennisCourt> = []
@@ -493,6 +494,7 @@ struct CreateMatchView: View {
                 }
                 radioButton(label: "免費", isSelected: costType == "免費") {
                     costType = "免費"
+                    showCostError = false
                 }
             }
 
@@ -509,6 +511,11 @@ struct CreateMatchView: View {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .stroke(Theme.border, lineWidth: 1)
                     )
+            }
+            if showCostError && costType == "AA制" {
+                Text("請填寫費用金額")
+                    .font(.system(size: 12))
+                    .foregroundColor(Theme.requiredText)
             }
         }
     }
@@ -539,6 +546,11 @@ struct CreateMatchView: View {
 
     private var submitButton: some View {
         Button {
+            if costType == "AA制" && (costAmount.isEmpty || Int(costAmount) ?? 0 <= 0) {
+                showCostError = true
+                return
+            }
+            showCostError = false
             showConfirmation = true
         } label: {
             Text("發布約球")
