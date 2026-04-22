@@ -1110,12 +1110,18 @@ private extension HomeView {
 
                 if !match.isOwnMatch {
                     let alreadySignedUp = signedUpMatchIDs.contains(match.id)
-                    // Precedence: already-signed-up > full > open for sign-up.
-                    // Full-state only shows when the user hasn't already booked a slot,
-                    // otherwise the "已報名" affirmation is more relevant.
-                    let isFullForOthers = !alreadySignedUp && match.isFull
-                    let disabled = alreadySignedUp || isFullForOthers
-                    let label = alreadySignedUp ? "已報名" : (isFullForOthers ? "已額滿" : "報名")
+                    // Precedence: already-signed-up > expired > full > open for sign-up.
+                    // - Already-signed-up wins because the slot is genuinely booked.
+                    // - Expired beats full: a past match is no longer actionable regardless of capacity.
+                    let expiredForOthers = !alreadySignedUp && match.isExpired
+                    let isFullForOthers = !alreadySignedUp && !expiredForOthers && match.isFull
+                    let disabled = alreadySignedUp || expiredForOthers || isFullForOthers
+                    let label: String = {
+                        if alreadySignedUp { return "已報名" }
+                        if expiredForOthers { return "已過期" }
+                        if isFullForOthers { return "已額滿" }
+                        return "報名"
+                    }()
 
                     Button {
                         showSignUp(match)
@@ -1154,6 +1160,7 @@ private extension HomeView {
 
     func showSignUp(_ match: MockMatch) {
         guard !match.isFull else { return }
+        guard !match.isExpired else { return }
         guard !signedUpMatchIDs.contains(match.id) else { return }
 
         let parts = match.dateTime.split(separator: " ")
@@ -1313,6 +1320,10 @@ private struct MockMatch: Identifiable {
     }
 
     var isFull: Bool { currentPlayers >= maxPlayers }
+
+    /// 起始时间已过(根据 `dateTime` 中的 MM/dd HH:mm,与当前年组合)。
+    /// 解析失败时返回 `false`,避免误把数据当成过期。
+    var isExpired: Bool { MatchSchedule.isExpired(text: dateTime, hourFallback: hour) }
 }
 
 private let initialMockMatches: [MockMatch] = [

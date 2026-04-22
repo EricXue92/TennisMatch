@@ -351,12 +351,19 @@ private extension MatchDetailView {
                         }
                 }
 
-                // Precedence: 已報名 > 已額滿 > 報名.
-                // Already-signed-up takes priority because the slot has
-                // genuinely been booked from this user's perspective.
-                let full = displayIsFull && !hasSignedUp
-                let disabled = hasSignedUp || full
-                let label = hasSignedUp ? "已報名" : (full ? "已額滿" : "報名")
+                // Precedence: 已報名 > 已過期 > 已額滿 > 報名.
+                // - Already-signed-up takes priority: the slot is already booked
+                //   from this user's perspective even if the start time has passed.
+                // - Expired beats full: a past match is no longer actionable.
+                let expired = !hasSignedUp && match.isExpired
+                let full = displayIsFull && !hasSignedUp && !expired
+                let disabled = hasSignedUp || expired || full
+                let label: String = {
+                    if hasSignedUp { return "已報名" }
+                    if expired { return "已過期" }
+                    if full { return "已額滿" }
+                    return "報名"
+                }()
 
                 Button {
                     showSignUpConfirm = true
@@ -474,6 +481,12 @@ struct MatchDetailData: Identifiable, Hashable {
     var isFull: Bool {
         let c = playerCounts
         return c.max > 0 && c.current >= c.max
+    }
+
+    /// 起始时间已过(由 `date` 中的 MM/dd 与 `timeRange` 起始 HH:mm 组合)。
+    /// 解析失败时返回 `false`,避免误把数据当成过期。
+    var isExpired: Bool {
+        MatchSchedule.isExpired(text: "\(date) \(timeRange)")
     }
 }
 
