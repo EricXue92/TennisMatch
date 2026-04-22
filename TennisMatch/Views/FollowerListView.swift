@@ -129,22 +129,7 @@ struct FollowerListView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture {
-            selectedPlayer = PublicPlayerData(
-                name: follower.name,
-                gender: follower.gender,
-                ntrp: follower.ntrp,
-                reputation: 85,
-                matchCount: 15,
-                bio: "熱愛網球",
-                recentMatches: [
-                    "04/23 10:00 - 12:00 單打 · 維多利亞公園",
-                    "04/26 14:00 - 16:00 雙打 · 跑馬地",
-                ],
-                preferredCourts: ["維多利亞公園", "跑馬地"],
-                preferredTimes: ["週末上午", "工作日晚間"],
-                matchTypes: ["單打", "雙打"],
-                ageRange: "26-35"
-            )
+            selectedPlayer = mockPublicPlayerData(name: follower.name, gender: follower.gender, ntrp: follower.ntrp)
         }
     }
 }

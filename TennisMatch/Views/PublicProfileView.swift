@@ -326,6 +326,57 @@ struct PublicPlayerData: Hashable {
     var ageRange: String = ""
 }
 
+// MARK: - Mock Data Helper
+
+/// 根據名稱查找 Mock 球友資料，確保同一球友在不同頁面資料一致。
+func mockPublicPlayerData(name: String, gender: Gender, ntrp: String) -> PublicPlayerData {
+    // 用名字的 hashValue 生成穩定但看起來不同的數值
+    let nameHash = abs(name.hashValue)
+    let reputation = 75 + (nameHash % 20)  // 75-94
+    let matchCount = 10 + (nameHash % 25)   // 10-34
+
+    let bios: [String] = [
+        "熱愛網球，週末經常打球",
+        "喜歡打網球，歡迎切磋",
+        "網球愛好者，球齡3年",
+        "享受比賽的樂趣",
+        "業餘選手，持續進步中",
+    ]
+    let bio = bios[nameHash % bios.count]
+
+    let courtSets: [[String]] = [
+        ["維多利亞公園", "跑馬地"],
+        ["九龍仔公園", "歌和老街公園"],
+        ["沙田公園", "將軍澳運動場"],
+        ["維多利亞公園", "香港網球中心"],
+    ]
+    let courts = courtSets[nameHash % courtSets.count]
+
+    let timeSets: [[String]] = [
+        ["週末上午", "工作日晚間"],
+        ["週末下午", "工作日傍晚"],
+        ["週末全天", "平日晚間"],
+    ]
+    let times = timeSets[nameHash % timeSets.count]
+
+    return PublicPlayerData(
+        name: name,
+        gender: gender,
+        ntrp: ntrp,
+        reputation: reputation,
+        matchCount: matchCount,
+        bio: bio,
+        recentMatches: [
+            "04/23 10:00 - 12:00 單打 · \(courts[0])",
+            "04/26 15:00 - 17:00 雙打 · \(courts.count > 1 ? courts[1] : courts[0])",
+        ],
+        preferredCourts: courts,
+        preferredTimes: times,
+        matchTypes: ["單打", "雙打"],
+        ageRange: "26-35"
+    )
+}
+
 // MARK: - Preview
 
 #Preview("iPhone SE") {

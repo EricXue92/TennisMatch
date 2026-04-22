@@ -191,22 +191,7 @@ struct ChatDetailView: View {
             case .personal(let name, let symbol, _):
                 Button("查看 \(name) 的資料") {
                     let gender: Gender = symbol == "♀" ? .female : .male
-                    selectedPlayer = PublicPlayerData(
-                        name: name,
-                        gender: gender,
-                        ntrp: "3.5",
-                        reputation: 88,
-                        matchCount: 20,
-                        bio: "熱愛網球",
-                        recentMatches: [
-                            "04/23 10:00 - 12:00 單打 · 維多利亞公園",
-                            "04/26 15:00 - 17:00 雙打 · 跑馬地",
-                        ],
-                        preferredCourts: ["維多利亞公園", "跑馬地"],
-                        preferredTimes: ["週末上午", "工作日晚間"],
-                        matchTypes: ["單打", "雙打"],
-                        ageRange: "26-35"
-                    )
+                    selectedPlayer = mockPublicPlayerData(name: name, gender: gender, ntrp: "3.5")
                 }
                 Button(isMuted ? "取消靜音" : "靜音通知") {
                     isMuted.toggle()
@@ -307,23 +292,9 @@ struct ChatDetailView: View {
                 )
                 .onTapGesture {
                     // 點擊頭像查看對方資料
-                    if case .personal(let name, _, _) = chat.type {
-                        selectedPlayer = PublicPlayerData(
-                            name: name,
-                            gender: .male,
-                            ntrp: "3.5",
-                            reputation: 88,
-                            matchCount: 20,
-                            bio: "熱愛網球",
-                            recentMatches: [
-                                "04/23 10:00 - 12:00 單打 · 維多利亞公園",
-                                "04/26 15:00 - 17:00 雙打 · 跑馬地",
-                            ],
-                            preferredCourts: ["維多利亞公園", "跑馬地"],
-                            preferredTimes: ["週末上午", "工作日晚間"],
-                            matchTypes: ["單打", "雙打"],
-                            ageRange: "26-35"
-                        )
+                    if case .personal(let name, let symbol, _) = chat.type {
+                        let gender: Gender = symbol == "♀" ? .female : .male
+                        selectedPlayer = mockPublicPlayerData(name: name, gender: gender, ntrp: "3.5")
                     }
                 }
 

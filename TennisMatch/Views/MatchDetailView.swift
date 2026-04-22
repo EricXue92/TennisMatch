@@ -138,22 +138,7 @@ private extension MatchDetailView {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    selectedPlayer = PublicPlayerData(
-                        name: match.name,
-                        gender: match.gender,
-                        ntrp: match.ntrp,
-                        reputation: match.reputation,
-                        matchCount: 20,
-                        bio: "熱愛網球",
-                        recentMatches: [
-                            "04/23 09:00 - 11:00 單打 · 維多利亞公園",
-                            "04/26 15:00 - 17:00 雙打 · 跑馬地",
-                        ],
-                        preferredCourts: ["維多利亞公園", "跑馬地"],
-                        preferredTimes: ["週末上午", "工作日晚間"],
-                        matchTypes: ["單打", "雙打"],
-                        ageRange: "26-35"
-                    )
+                    selectedPlayer = mockPublicPlayerData(name: match.name, gender: match.gender, ntrp: match.ntrp)
                 }
 
                 Spacer()
@@ -348,22 +333,7 @@ private extension MatchDetailView {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    selectedPlayer = PublicPlayerData(
-                        name: p.name,
-                        gender: p.gender,
-                        ntrp: p.ntrp,
-                        reputation: 80,
-                        matchCount: 10,
-                        bio: "熱愛網球",
-                        recentMatches: [
-                            "04/24 10:00 - 12:00 單打 · 沙田公園",
-                            "04/28 14:00 - 16:00 雙打 · 九龍仔公園",
-                        ],
-                        preferredCourts: ["沙田公園", "九龍仔公園"],
-                        preferredTimes: ["週末下午", "工作日傍晚"],
-                        matchTypes: ["單打"],
-                        ageRange: "20-30"
-                    )
+                    selectedPlayer = mockPublicPlayerData(name: p.name, gender: p.gender, ntrp: p.ntrp)
                 }
             }
         }
