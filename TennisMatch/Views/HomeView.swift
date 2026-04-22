@@ -785,15 +785,29 @@ private extension HomeView {
     var matchCardList: some View {
         VStack(spacing: Spacing.md) {
             if filteredMatches.isEmpty {
-                VStack(spacing: Spacing.sm) {
-                    Text("🎾")
-                        .font(.system(size: 40))
-                    Text("沒有符合條件的約球")
-                        .font(.system(size: 14))
-                        .foregroundColor(Theme.textSecondary)
+                ContentUnavailableView {
+                    Label("沒有符合條件的約球", systemImage: "magnifyingglass")
+                } description: {
+                    Text("試試調整篩選條件，或發起一場新的約球")
+                } actions: {
+                    Button("清除篩選") {
+                        selectedFilter = "全部"
+                        ntrpLow = 1.0; ntrpHigh = 7.0
+                        selectedAgeRange.removeAll()
+                        selectedGender = ""
+                        selectedCourts.removeAll()
+                        selectedDays.removeAll()
+                        timeFrom = 7.0; timeTo = 23.0
+                        showFilterPanel = false
+                    }
+                    .buttonStyle(.bordered)
+
+                    Button("發起約球") {
+                        showCreateMatch = true
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .tint(Theme.primary)
                 }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 60)
             } else {
                 ForEach(filteredMatches) { match in
                     matchCard(match)
