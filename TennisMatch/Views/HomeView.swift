@@ -1119,14 +1119,17 @@ private extension HomeView {
                 Spacer()
 
                 if !match.isOwnMatch {
-                    let alreadySignedUp = signedUpMatchIDs.contains(match.id)
-                    // Precedence: already-signed-up > expired > full > open for sign-up.
-                    // - Already-signed-up wins because the slot is genuinely booked.
+                    let autoCancelled = match.isAutoCancelled
+                    let alreadySignedUp = !autoCancelled && signedUpMatchIDs.contains(match.id)
+                    // Precedence: auto-cancel > already-signed-up > expired > full > open for sign-up.
+                    // - Auto-cancelled (expired & under capacity) wins over 已報名 because the match never ran.
+                    // - Already-signed-up wins next: the slot is genuinely booked.
                     // - Expired beats full: a past match is no longer actionable regardless of capacity.
-                    let expiredForOthers = !alreadySignedUp && match.isExpired
-                    let isFullForOthers = !alreadySignedUp && !expiredForOthers && match.isFull
-                    let disabled = alreadySignedUp || expiredForOthers || isFullForOthers
+                    let expiredForOthers = !autoCancelled && !alreadySignedUp && match.isExpired
+                    let isFullForOthers = !autoCancelled && !alreadySignedUp && !expiredForOthers && match.isFull
+                    let disabled = autoCancelled || alreadySignedUp || expiredForOthers || isFullForOthers
                     let label: String = {
+                        if autoCancelled { return "已自動取消" }
                         if alreadySignedUp { return "已報名" }
                         if expiredForOthers { return "已過期" }
                         if isFullForOthers { return "已額滿" }
@@ -1139,7 +1142,9 @@ private extension HomeView {
                         Text(label)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(disabled ? Theme.textSecondary : .white)
-                            .frame(width: 52, height: 30)
+                            .frame(minWidth: 52, idealWidth: 52)
+                            .padding(.horizontal, autoCancelled ? Spacing.xs : 0)
+                            .frame(height: 30)
                             .background(disabled ? Theme.chipUnselectedBg : Theme.primaryDark)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .frame(minWidth: 44, minHeight: 44)
@@ -1356,6 +1361,10 @@ private struct MockMatch: Identifiable {
     /// 起始时间已过(根据 `dateTime` 中的 MM/dd HH:mm,与当前年组合)。
     /// 解析失败时返回 `false`,避免误把数据当成过期。
     var isExpired: Bool { MatchSchedule.isExpired(text: dateTime, hourFallback: hour) }
+
+    /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
+    /// 即使用户已报名,该约球实际未进行,UI 应优先展示"已自動取消"覆盖"已報名"。
+    var isAutoCancelled: Bool { isExpired && !isFull }
 }
 
 private let initialMockMatches: [MockMatch] = [

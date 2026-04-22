@@ -185,7 +185,8 @@ struct MyMatchesView: View {
             // 把 mock 中"已确认"的 upcomingMatches 登记到 BookedSlotStore,
             // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截。
             // BookedSlotStore.add 按 id 去重,重复 task 触发是安全的。
-            for item in upcomingMatches where item.status == .confirmed {
+            // 自动取消的约球不再登记 — 它实际未进行,不应阻塞后续报名。
+            for item in upcomingMatches where item.status == .confirmed && !item.isAutoCancelled {
                 let scheduleText = "\(item.dateLabel) \(item.timeRange)"
                 guard let range = MatchSchedule.dateRange(text: scheduleText) else { continue }
                 let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
@@ -363,8 +364,8 @@ private extension MyMatchesView {
                 matchDetailRow(icon: "🕐", text: match.timeRange)
                 matchDetailRow(icon: "👥", text: match.players)
 
-                // Action buttons
-                if match.status != .completed {
+                // Action buttons — 自动取消的约球不再展示操作按钮(已无可继续/聊天/管理的语义)。
+                if match.status != .completed && !match.isAutoCancelled {
                     HStack {
                         Spacer()
                         if match.isOrganizer {
@@ -396,24 +397,29 @@ private extension MyMatchesView {
     }
 
     func dateBanner(_ match: MyMatchItem) -> some View {
-        HStack {
+        // 人员不足 + 已过开始时间 → 自动取消(覆盖 confirmed/pending 状态)。
+        let autoCancelled = match.isAutoCancelled
+        let badgeText = autoCancelled ? "已自動取消" : match.status.rawValue
+        let badgeColor = autoCancelled ? Theme.requiredText : match.status.badgeColor
+        let bannerColor = autoCancelled ? Theme.requiredBg : match.status.bannerColor
+        return HStack {
             Text("🗓️ \(match.dateLabel)")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(Theme.textPrimary)
 
             Spacer()
 
-            Text(match.status.rawValue)
+            Text(badgeText)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.white)
                 .padding(.horizontal, Spacing.xs)
                 .frame(height: 20)
-                .background(match.status.badgeColor)
+                .background(badgeColor)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .padding(.horizontal, Spacing.sm)
         .frame(height: 30)
-        .background(match.status.bannerColor)
+        .background(bannerColor)
     }
 
     func matchDetailRow(icon: String, text: String) -> some View {
@@ -597,6 +603,25 @@ private struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+
+    /// Parses `"2/4 · NTRP 3.0-4.0"` → (current: 2, max: 4). Falls back to (0, 0)
+    /// when the players string lacks two leading numeric tokens.
+    var playerCounts: (current: Int, max: Int) {
+        let digits = players.split { !$0.isNumber }.map(String.init)
+        guard digits.count >= 2,
+              let current = Int(digits[0]),
+              let mx = Int(digits[1]) else { return (0, 0) }
+        return (current, mx)
+    }
+
+    /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
+    /// `sortDate == .distantFuture` 表示无法解析日期,此时保守返回 false。
+    var isAutoCancelled: Bool {
+        let counts = playerCounts
+        guard counts.max > 0, counts.current < counts.max else { return false }
+        guard sortDate != .distantFuture else { return false }
+        return sortDate < .now
+    }
 
     /// Parsed date used for chronological sorting. Pulls MM/dd from `dateLabel`
     /// and combines it with the start hour of `timeRange` so same-day items

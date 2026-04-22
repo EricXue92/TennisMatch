@@ -357,14 +357,17 @@ private extension MatchDetailView {
                         }
                 }
 
-                // Precedence: 已報名 > 已過期 > 已額滿 > 報名.
-                // - Already-signed-up takes priority: the slot is already booked
+                // Precedence: 已自動取消 > 已報名 > 已過期 > 已額滿 > 報名.
+                // - Auto-cancel (expired & under capacity) overrides 已報名 because the match never ran.
+                // - Already-signed-up takes priority next: the slot is already booked
                 //   from this user's perspective even if the start time has passed.
                 // - Expired beats full: a past match is no longer actionable.
-                let expired = !hasSignedUp && match.isExpired
-                let full = displayIsFull && !hasSignedUp && !expired
-                let disabled = hasSignedUp || expired || full
+                let autoCancelled = match.isAutoCancelled
+                let expired = !autoCancelled && !hasSignedUp && match.isExpired
+                let full = !autoCancelled && displayIsFull && !hasSignedUp && !expired
+                let disabled = autoCancelled || hasSignedUp || expired || full
                 let label: String = {
+                    if autoCancelled { return "已自動取消" }
                     if hasSignedUp { return "已報名" }
                     if expired { return "已過期" }
                     if full { return "已額滿" }
@@ -505,6 +508,9 @@ struct MatchDetailData: Identifiable, Hashable {
     var isExpired: Bool {
         MatchSchedule.isExpired(text: "\(date) \(timeRange)")
     }
+
+    /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
+    var isAutoCancelled: Bool { isExpired && !isFull }
 }
 
 struct MatchWeather: Hashable {
