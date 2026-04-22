@@ -17,6 +17,8 @@ struct ProfileView: View {
     @State private var showTournaments = false
     @State private var showAchievements = false
     @State private var showFollowing = false
+    @State private var showFollowers = false
+    @State private var showMutual = false
     @State private var showCreditHistory = false
     @State private var showCalibrationSheet = false
 
@@ -51,6 +53,12 @@ struct ProfileView: View {
         }
         .navigationDestination(isPresented: $showFollowing) {
             FollowingView()
+        }
+        .navigationDestination(isPresented: $showFollowers) {
+            FollowerListView()
+        }
+        .navigationDestination(isPresented: $showMutual) {
+            MutualFollowListView()
         }
         .fullScreenCover(isPresented: $showTournaments) {
             TournamentView()
@@ -211,8 +219,12 @@ struct ProfileView: View {
                     Button { showFollowing = true } label: {
                         followStat(count: "\(followStore.followingCount)", label: "關注")
                     }
-                    followStat(count: "\(followStore.followerCount)", label: "粉絲")
-                    followStat(count: "\(followStore.mutualCount)", label: "互相關注")
+                    Button { showFollowers = true } label: {
+                        followStat(count: "\(followStore.followerCount)", label: "粉絲")
+                    }
+                    Button { showMutual = true } label: {
+                        followStat(count: "\(followStore.mutualCount)", label: "互相關注")
+                    }
                 }
 
                 Spacer()
