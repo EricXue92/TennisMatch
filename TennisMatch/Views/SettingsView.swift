@@ -10,11 +10,11 @@ import SwiftUI
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @AppStorage("isLoggedIn") private var isLoggedIn = false
-    @State private var matchReminders = true
-    @State private var chatNotifications = true
-    @State private var tournamentUpdates = true
-    @State private var profileVisibility = "所有人"
-    @State private var dmPermission = "所有人"
+    @AppStorage("matchReminders") private var matchReminders = true
+    @AppStorage("chatNotifications") private var chatNotifications = true
+    @AppStorage("tournamentUpdates") private var tournamentUpdates = true
+    @AppStorage("profileVisibility") private var profileVisibility = "所有人"
+    @AppStorage("dmPermission") private var dmPermission = "所有人"
     @State private var showLogoutAlert = false
     @State private var toastMessage: String?
     @State private var showChangePassword = false
@@ -326,9 +326,9 @@ private struct ChangePasswordSheet: View {
 
 private struct LinkedAccountsSheet: View {
     @Environment(\.dismiss) private var dismiss
-    @State private var wechatLinked = true
-    @State private var appleLinked = true
-    @State private var googleLinked = false
+    @AppStorage("linkedWechat") private var wechatLinked = true
+    @AppStorage("linkedApple") private var appleLinked = true
+    @AppStorage("linkedGoogle") private var googleLinked = false
     @State private var toastMessage: String?
 
     var body: some View {
