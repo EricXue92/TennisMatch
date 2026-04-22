@@ -49,6 +49,7 @@ struct CreateMatchView: View {
     @State private var costAmount: String = ""
     @State private var notes: String = ""
     @State private var showCostError = false
+    @State private var validationMessage = ""
 
     // MARK: - Court picker bridge
     @State private var courtPickerSelection: Set<TennisCourt> = []
@@ -512,8 +513,8 @@ struct CreateMatchView: View {
                             .stroke(Theme.border, lineWidth: 1)
                     )
             }
-            if showCostError && costType == "AA制" {
-                Text("請填寫費用金額")
+            if showCostError && !validationMessage.isEmpty {
+                Text(validationMessage)
                     .font(Typography.small)
                     .foregroundColor(Theme.requiredText)
             }
@@ -546,10 +547,17 @@ struct CreateMatchView: View {
 
     private var submitButton: some View {
         Button {
-            if costType == "AA制" && (costAmount.isEmpty || Int(costAmount) ?? 0 <= 0) {
+            // 必填項校驗
+            if selectedCourt == nil {
+                validationMessage = "請選擇球場"
+                showCostError = true
+                return
+            } else if costType == "AA制" && (costAmount.isEmpty || Int(costAmount) ?? 0 <= 0) {
+                validationMessage = "請輸入有效的費用金額"
                 showCostError = true
                 return
             }
+            validationMessage = ""
             showCostError = false
             showConfirmation = true
         } label: {
