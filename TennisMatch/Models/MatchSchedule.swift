@@ -119,8 +119,11 @@ enum MatchSchedule {
         var endComps = calendar.dateComponents([.year, .month, .day], from: start)
         endComps.hour = endTime.hour
         endComps.minute = endTime.minute
-        let end = calendar.date(from: endComps) ?? fallback
-        // 若 end <= start(罕见的解析异常),用 fallback 兜底,避免空区间被误判为不冲突。
+        var end = calendar.date(from: endComps) ?? fallback
+        // 跨午夜(如 23:00 - 01:00):end 落在同日 01:00 < start 23:00,向后推一天。
+        if end <= start, let nextDay = calendar.date(byAdding: .day, value: 1, to: end) {
+            end = nextDay
+        }
         return (start, end > start ? end : fallback)
     }
 }
