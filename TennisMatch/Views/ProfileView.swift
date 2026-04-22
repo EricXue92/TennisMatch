@@ -151,6 +151,41 @@ struct ProfileView: View {
         .buttonStyle(.plain)
     }
 
+    // MARK: - 統計計算（mock 階段用信譽記錄推算，接後端後替換）
+
+    /// 總場次：從信譽記錄中統計「完成約球」條目數
+    private var totalMatches: Int {
+        creditScoreStore.entries.filter { $0.reason == "完成約球" }.count
+    }
+
+    /// 本月場次：統計當月的「完成約球」條目數
+    private var monthlyMatches: Int {
+        let calendar = Calendar.current
+        let now = Date()
+        return creditScoreStore.entries.filter { entry in
+            guard entry.reason == "完成約球" else { return false }
+            // 從 "MM/dd" 格式解析月份
+            let formatter = DateFormatter()
+            formatter.dateFormat = "MM/dd"
+            guard let entryDate = formatter.date(from: entry.date) else { return false }
+            let entryMonth = calendar.component(.month, from: entryDate)
+            let currentMonth = calendar.component(.month, from: now)
+            return entryMonth == currentMonth
+        }.count
+    }
+
+    /// 出席率：以信譽積分推算（爽約會扣分，積分高則出席率高）
+    /// 公式：min(100, score) / 100，轉換為百分比字串
+    private var attendanceRate: String {
+        let rate = min(100, max(0, creditScoreStore.score))
+        return "\(rate)%"
+    }
+
+    /// 是否顯示「理想球友」金色標籤：信譽積分 ≥ 85 且至少完成 5 場約球
+    private var showIdealBadge: Bool {
+        creditScoreStore.score >= 85 && totalMatches >= 5
+    }
+
     // MARK: - Header
 
     private var headerSection: some View {
@@ -185,13 +220,16 @@ struct ProfileView: View {
                     HStack(spacing: 6) {
                         headerPill(userStore.gender.displayName)
                         headerPill(userStore.region)
-                        Text("理想球友")
-                            .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Theme.goldText)
-                            .padding(.horizontal, Spacing.xs)
-                            .frame(height: 20)
-                            .background(Theme.goldBg)
-                            .clipShape(Capsule())
+                        // 只有信譽積分 ≥ 85 且完成場次 ≥ 5 才顯示金色勳章
+                        if showIdealBadge {
+                            Text("理想球友")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(Theme.goldText)
+                                .padding(.horizontal, Spacing.xs)
+                                .frame(height: 20)
+                                .background(Theme.goldBg)
+                                .clipShape(Capsule())
+                        }
                     }
 
                     Text(userStore.bio)
@@ -257,8 +295,7 @@ struct ProfileView: View {
                     statCard(value: "\(creditScoreStore.score)", label: "信譽積分")
                 }
                 .buttonStyle(.plain)
-                // TODO: 接入统计模块后替换 mock 数据
-                statCard(value: "92%", label: "出席率")
+                statCard(value: attendanceRate, label: "出席率")
             }
             .padding(.horizontal, Spacing.md)
             .padding(.top, Spacing.sm)
@@ -317,9 +354,8 @@ struct ProfileView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(Theme.textPrimary)
 
-            // TODO: 接入统计模块后替换 mock 数据
-            recordRow(label: "總場次", value: "28")
-            recordRow(label: "本月場次", value: "5")
+            recordRow(label: "總場次", value: "\(totalMatches)")
+            recordRow(label: "本月場次", value: "\(monthlyMatches)")
             recordRow(label: "常去球場", value: userStore.selectedCourt?.name ?? "未設定")
         }
         .padding(Spacing.md)
