@@ -1217,6 +1217,7 @@ let allCourts: [TennisCourt] = [
 
 struct CourtPickerView: View {
     @Binding var selected: Set<TennisCourt>
+    var singleSelect: Bool = false
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     @State private var selectedCity: City = .hongKong
@@ -1259,7 +1260,10 @@ struct CourtPickerView: View {
                             ForEach(courts) { court in
                                 let isSelected = selected.contains(court)
                                 Button {
-                                    if isSelected {
+                                    if singleSelect {
+                                        selected = [court]
+                                        dismiss()
+                                    } else if isSelected {
                                         selected.remove(court)
                                     } else {
                                         selected.insert(court)

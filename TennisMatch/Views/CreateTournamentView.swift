@@ -72,7 +72,7 @@ struct CreateTournamentView: View {
         .background(Theme.tournamentBg)
         .navigationBarHidden(true)
         .sheet(isPresented: $showCourtPicker) {
-            CourtPickerView(selected: $courtPickerSelection)
+            CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
                 .onDisappear {
                     if let court = courtPickerSelection.first {
                         selectedCourt = court

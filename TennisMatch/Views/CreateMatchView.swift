@@ -77,7 +77,7 @@ struct CreateMatchView: View {
         .background(Theme.background)
         .navigationBarHidden(true)
         .sheet(isPresented: $showCourtPicker) {
-            CourtPickerView(selected: $courtPickerSelection)
+            CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
                 .onDisappear {
                     if let court = courtPickerSelection.first {
                         selectedCourt = court

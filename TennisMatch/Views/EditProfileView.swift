@@ -102,7 +102,7 @@ struct EditProfileView: View {
             }
         }
         .sheet(isPresented: $showCourtPicker) {
-            CourtPickerView(selected: $courtPickerSelection)
+            CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
                 .onDisappear {
                     if let court = courtPickerSelection.first {
                         selectedCourt = court
