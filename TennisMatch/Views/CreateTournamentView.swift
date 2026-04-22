@@ -410,11 +410,11 @@ private extension CreateTournamentView {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             sectionTitle("賽事規則")
 
-            TextField("例如：單淘汰制，三盤兩勝", text: $rules)
+            TextField("例如：單淘汰制，三盤兩勝\n每場比賽採用三盤兩勝制\n選手需提前15分鐘到場", text: $rules, axis: .vertical)
                 .font(Typography.caption)
                 .foregroundColor(Theme.textDark)
-                .frame(height: 36)
-                .padding(.horizontal, Spacing.sm)
+                .lineLimit(3...8)
+                .padding(Spacing.sm)
                 .background(.white)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
