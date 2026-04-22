@@ -18,6 +18,7 @@ struct PhoneVerificationView: View {
     @State private var canResend = false
     @State private var timer: Timer?
     @State private var showRegister = false
+    @State private var toastMessage: String?
 
     private let codeLength = 6
 
@@ -53,6 +54,25 @@ struct PhoneVerificationView: View {
         .navigationDestination(isPresented: $showRegister) {
             RegisterView()
         }
+        .overlay(alignment: .top) {
+            if let msg = toastMessage {
+                Text(msg)
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 12)
+                    .background(Theme.primary.opacity(0.92))
+                    .clipShape(Capsule())
+                    .padding(.top, 60)
+                    .transition(.move(edge: .top).combined(with: .opacity))
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            withAnimation { toastMessage = nil }
+                        }
+                    }
+            }
+        }
+        .animation(.easeInOut(duration: 0.3), value: toastMessage)
     }
 
     // MARK: - Content
@@ -215,8 +235,9 @@ struct PhoneVerificationView: View {
     }
 
     private func resend() {
+        code = ""
         startCountdown()
-        // TODO: resend verification code
+        withAnimation { toastMessage = "驗證碼已重新發送至 \(phoneNumber)" }
     }
 }
 

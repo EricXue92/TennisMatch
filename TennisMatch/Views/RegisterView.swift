@@ -20,6 +20,7 @@ struct RegisterView: View {
     @State private var ntrpScore = ""
 
     // MARK: - Optional fields
+    @State private var bio = ""
     @State private var selectedMatchTypes: Set<MatchType> = []
     @State private var selectedCourts: Set<TennisCourt> = []
     @State private var selectedTimeSlots: Set<TimeSlot> = []
@@ -201,6 +202,14 @@ struct RegisterView: View {
                     .foregroundColor(Theme.textSecondary)
             }
             .padding(.bottom, Spacing.xs)
+
+            // 個人簡介
+            fieldRow(label: "個人簡介", required: false) {
+                TextField("一句話介紹自己", text: $bio)
+                    .font(Typography.fieldValue)
+                    .foregroundColor(Theme.textPrimary)
+            }
+            Theme.divider.frame(height: 1)
 
             // 比賽類型
             fieldRow(label: "比賽類型", required: false) {
@@ -522,6 +531,9 @@ struct RegisterView: View {
                     userStore.displayName = name.trimmingCharacters(in: .whitespaces)
                     userStore.gender = selectedGender!
                     userStore.ntrpLevel = ntrpValue!
+                    if !bio.trimmingCharacters(in: .whitespaces).isEmpty {
+                        userStore.bio = bio.trimmingCharacters(in: .whitespaces)
+                    }
                     isLoggedIn = true
                     return
                 }

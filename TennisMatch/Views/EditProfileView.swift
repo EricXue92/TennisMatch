@@ -624,7 +624,7 @@ private struct AddPreferredSlotSheet: View {
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                     Picker("", selection: $endTime) {
-                        ForEach(timeSlots, id: \.self) { slot in
+                        ForEach(endTimeSlots, id: \.self) { slot in
                             Text(slot).tag(slot)
                         }
                     }
@@ -632,6 +632,13 @@ private struct AddPreferredSlotSheet: View {
                     .tint(Theme.primary)
                 }
                 Spacer()
+            }
+            .onChange(of: startTime) { _, newStart in
+                if endTime <= newStart {
+                    if let idx = timeSlots.firstIndex(of: newStart), idx + 1 < timeSlots.count {
+                        endTime = timeSlots[idx + 1]
+                    }
+                }
             }
 
             // Preview
@@ -684,6 +691,12 @@ private struct AddPreferredSlotSheet: View {
             }
         }
         .padding(Spacing.lg)
+    }
+
+    /// 結束時間只顯示開始時間之後的選項
+    private var endTimeSlots: [String] {
+        guard let startIdx = timeSlots.firstIndex(of: startTime) else { return timeSlots }
+        return Array(timeSlots.suffix(from: timeSlots.index(after: startIdx)))
     }
 
     private func buildSlot() -> PreferredTimeSlot {

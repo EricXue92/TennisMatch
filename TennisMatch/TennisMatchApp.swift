@@ -22,7 +22,8 @@ struct TennisMatchApp: App {
             Group {
                 if isLoggedIn {
                     NavigationStack {
-                        HomeView()
+                        //HomeView()
+                        LoginView()
                     }
                 } else {
                     NavigationStack {
