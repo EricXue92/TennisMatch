@@ -188,6 +188,17 @@ struct HomeView: View {
         .overlay(alignment: .top) {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
         }
+        .onAppear {
+            if let data = UserDefaults.standard.data(forKey: "signedUpMatchIDs"),
+               let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
+                signedUpMatchIDs = ids
+            }
+        }
+        .onChange(of: signedUpMatchIDs) { _, newValue in
+            if let data = try? JSONEncoder().encode(newValue) {
+                UserDefaults.standard.set(data, forKey: "signedUpMatchIDs")
+            }
+        }
     }
 
     private func placeholderTab(_ title: String) -> some View {
