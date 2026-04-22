@@ -45,6 +45,17 @@ struct CreateTournamentView: View {
     @State private var rules = ""
     @State private var showValidationError = false
     @State private var validationMessage = ""
+    @State private var publishToast: String?
+    @State private var showDiscardAlert = false
+
+    /// 若任何欄位有填寫即視為有未儲存的修改
+    private var hasUnsavedChanges: Bool {
+        !tournamentName.isEmpty ||
+        !participantCount.isEmpty ||
+        selectedCourt != nil ||
+        !fee.isEmpty ||
+        !rules.isEmpty
+    }
 
     private var isFormValid: Bool {
         !tournamentName.trimmingCharacters(in: .whitespaces).isEmpty
@@ -71,6 +82,29 @@ struct CreateTournamentView: View {
         }
         .background(Theme.tournamentBg)
         .navigationBarHidden(true)
+        .alert("放棄編輯？", isPresented: $showDiscardAlert) {
+            Button("繼續編輯", role: .cancel) { }
+            Button("放棄", role: .destructive) { dismiss() }
+        } message: {
+            Text("你有未儲存的內容，確定要放棄嗎？")
+        }
+        .overlay(alignment: .top) {
+            // 發布成功提示
+            if let toast = publishToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.white)
+                    Text(toast)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+            }
+        }
         .sheet(isPresented: $showCourtPicker) {
             CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
                 .onDisappear {
@@ -92,7 +126,12 @@ private extension CreateTournamentView {
     var navBar: some View {
         HStack(spacing: Spacing.sm) {
             Button {
-                dismiss()
+                // 若有未儲存內容，先彈出確認對話框
+                if hasUnsavedChanges {
+                    showDiscardAlert = true
+                } else {
+                    dismiss()
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .medium))
@@ -624,7 +663,11 @@ private extension CreateTournamentView {
         )
         showConfirmation = false
         onPublish?(info)
-        dismiss()
+        // 顯示成功提示，1.5 秒後關閉頁面
+        withAnimation { publishToast = "賽事已成功發布 🎾" }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+            dismiss()
+        }
     }
 }
 
