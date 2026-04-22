@@ -598,9 +598,12 @@ struct ChatDetailView: View {
                         .foregroundColor(.white)
                         .frame(width: 50, height: 36)
                         .background(
-                            Capsule().fill(Theme.accentGreen)
+                            Capsule().fill(messageText.trimmingCharacters(in: .whitespaces).isEmpty
+                                ? Theme.chipUnselectedBg
+                                : Theme.accentGreen)
                         )
                 }
+                .disabled(messageText.trimmingCharacters(in: .whitespaces).isEmpty)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
