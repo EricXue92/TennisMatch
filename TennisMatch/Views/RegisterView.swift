@@ -491,6 +491,7 @@ struct RegisterView: View {
 
     @State private var showValidationError = false
     @State private var validationMessage = ""
+    @State private var isLoading = false
 
     /// 必填字段是否全部有效
     private var isFormValid: Bool {
@@ -529,27 +530,41 @@ struct RegisterView: View {
                 } else if ntrpValue == nil {
                     validationMessage = "NTRP 需在 1.0 – 7.0 之間"
                 } else {
-                    // 保存到 UserStore
-                    guard let gender = selectedGender, let ntrp = ntrpValue else { return }
-                    userStore.displayName = name.trimmingCharacters(in: .whitespaces)
-                    userStore.gender = gender
-                    userStore.ntrpLevel = ntrp
-                    if !bio.trimmingCharacters(in: .whitespaces).isEmpty {
-                        userStore.bio = bio.trimmingCharacters(in: .whitespaces)
+                    isLoading = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        isLoading = false
+                        // 保存到 UserStore
+                        guard let gender = selectedGender, let ntrp = ntrpValue else { return }
+                        userStore.displayName = name.trimmingCharacters(in: .whitespaces)
+                        userStore.gender = gender
+                        userStore.ntrpLevel = ntrp
+                        if !bio.trimmingCharacters(in: .whitespaces).isEmpty {
+                            userStore.bio = bio.trimmingCharacters(in: .whitespaces)
+                        }
+                        isLoggedIn = true
                     }
-                    isLoggedIn = true
                     return
                 }
                 withAnimation { showValidationError = true }
             } label: {
-                Text("完成設定")
-                    .font(Typography.button)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(isFormValid ? Theme.primary : Theme.chipUnselectedBg)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                if isLoading {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Theme.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Text("完成設定")
+                        .font(Typography.button)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(isFormValid ? Theme.primary : Theme.chipUnselectedBg)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
+            .disabled(isLoading)
         }
     }
 }

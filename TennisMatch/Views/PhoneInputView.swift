@@ -16,6 +16,7 @@ struct PhoneInputView: View {
     @State private var showVerification = false
     @State private var errorMessage = ""
     @State private var showError = false
+    @State private var isLoading = false
 
     private let countryCodes: [(code: String, label: String, lengths: [Int])] = [
         ("+852", "🇭🇰 +852", [8]),
@@ -139,18 +140,31 @@ struct PhoneInputView: View {
                     errorMessage = "手機號碼長度不正確，\(countryCode) 號碼應為 \(lengthHint) 數字"
                     withAnimation { showError = true }
                 } else {
-                    showVerification = true
+                    isLoading = true
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                        isLoading = false
+                        showVerification = true
+                    }
                 }
             } label: {
-                Text("獲取驗證碼")
-                    .font(Typography.button)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(!phoneNumber.isEmpty ? Theme.primary : Theme.chipUnselectedBg)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                if isLoading {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Theme.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Text("獲取驗證碼")
+                        .font(Typography.button)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(!phoneNumber.isEmpty ? Theme.primary : Theme.chipUnselectedBg)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
-            .disabled(phoneNumber.isEmpty)
+            .disabled(phoneNumber.isEmpty || isLoading)
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }

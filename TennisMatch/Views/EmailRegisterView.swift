@@ -23,6 +23,7 @@ struct EmailRegisterView: View {
     @State private var showValidationError = false
     @State private var showPassword = false
     @State private var showConfirmPassword = false
+    @State private var isLoading = false
     @FocusState private var focusedField: Field?
 
     private enum Field { case email, code, password, confirmPassword }
@@ -68,17 +69,30 @@ struct EmailRegisterView: View {
                                 .focused($focusedField, equals: .email)
 
                             Button {
-                                sendCode()
+                                isLoading = true
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                                    isLoading = false
+                                    sendCode()
+                                }
                             } label: {
-                                Text(codeSent ? (canResend ? "重新發送" : "\(countdown)s") : "發送驗證碼")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(sendButtonEnabled ? .white : Theme.textSecondary)
-                                    .padding(.horizontal, 12)
-                                    .frame(height: 34)
-                                    .background(sendButtonEnabled ? Theme.primary : Theme.chipUnselectedBg)
-                                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                if isLoading {
+                                    ProgressView()
+                                        .tint(.white)
+                                        .padding(.horizontal, 12)
+                                        .frame(height: 34)
+                                        .background(Theme.primary)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                } else {
+                                    Text(codeSent ? (canResend ? "重新發送" : "\(countdown)s") : "發送驗證碼")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(sendButtonEnabled ? .white : Theme.textSecondary)
+                                        .padding(.horizontal, 12)
+                                        .frame(height: 34)
+                                        .background(sendButtonEnabled ? Theme.primary : Theme.chipUnselectedBg)
+                                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                }
                             }
-                            .disabled(!sendButtonEnabled)
+                            .disabled(!sendButtonEnabled || isLoading)
                         }
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 48)

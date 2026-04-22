@@ -21,6 +21,7 @@ struct PhoneVerificationView: View {
     @State private var timer: Timer?
     @State private var showRegister = false
     @State private var toastMessage: String?
+    @State private var isLoading = false
 
     private let codeLength = 6
 
@@ -192,18 +193,31 @@ struct PhoneVerificationView: View {
         VStack(spacing: Spacing.md) {
             Button {
                 guard code.count == codeLength else { return }
-                maskedPhone = phoneNumber
-                showRegister = true
+                isLoading = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    isLoading = false
+                    maskedPhone = phoneNumber
+                    showRegister = true
+                }
             } label: {
-                Text("驗證並登入")
-                    .font(Typography.button)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(code.count == codeLength ? Theme.primary : Theme.chipUnselectedBg)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                if isLoading {
+                    ProgressView()
+                        .tint(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(Theme.primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Text("驗證並登入")
+                        .font(Typography.button)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 48)
+                        .background(code.count == codeLength ? Theme.primary : Theme.chipUnselectedBg)
+                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                }
             }
-            .disabled(code.count != codeLength)
+            .disabled(code.count != codeLength || isLoading)
 
             HStack(spacing: 0) {
                 Text("沒有收到驗證碼？")
