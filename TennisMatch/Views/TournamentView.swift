@@ -70,6 +70,7 @@ struct TournamentView: View {
             participants: "0/\(info.participantCount.isEmpty ? "16" : info.participantCount)",
             fee: info.fee.isEmpty ? "免費" : "\(info.fee) 港幣",
             organizer: userStore.displayName,
+            organizerGender: userStore.gender,
             gradientColors: [Theme.gradGreenLight, Theme.primary],
             rules: info.rules.isEmpty ? [] : [info.rules],
             playerList: [],
@@ -356,7 +357,11 @@ struct TournamentDetailView: View {
             if pendingContactOrganizer {
                 pendingContactOrganizer = false
                 dmChat = MockChat(
-                    type: .personal(name: tournament.organizer, symbol: "♂", symbolColor: Theme.genderMale),
+                    type: .personal(
+                        name: tournament.organizer,
+                        symbol: tournament.organizerGender.symbol,
+                        symbolColor: tournament.organizerGender == .female ? Theme.genderFemale : Theme.genderMale
+                    ),
                     lastMessage: "點擊開始聊天",
                     time: "now",
                     unreadCount: 0
@@ -831,6 +836,7 @@ struct MockTournament: Identifiable, Hashable {
     let participants: String
     let fee: String
     let organizer: String
+    let organizerGender: Gender
     let gradientColors: [Color]
     let rules: [String]
     let playerList: [TournamentPlayer]
@@ -852,6 +858,7 @@ let mockTournaments: [MockTournament] = [
         participants: "4/16",
         fee: "300 港幣",
         organizer: "莎拉",
+        organizerGender: .female,
         gradientColors: [Theme.gradAmberLight, Theme.gradAmberDeep],
         rules: [
             "單淘汰制，一局定勝負",
@@ -875,6 +882,7 @@ let mockTournaments: [MockTournament] = [
         participants: "3/30",
         fee: "200 港幣",
         organizer: "王強",
+        organizerGender: .male,
         gradientColors: [Theme.gradSkyLight, Theme.accentBlueAlt],
         rules: [
             "階梯積分制，可隨時挑戰排名更高的選手",
@@ -897,6 +905,7 @@ let mockTournaments: [MockTournament] = [
         participants: "6/16",
         fee: "250 港幣",
         organizer: "美琪",
+        organizerGender: .female,
         gradientColors: [Theme.gradPurpleLight, Theme.gradPurpleDeep],
         rules: [
             "小組循環賽 + 淘汰賽",
@@ -922,6 +931,7 @@ let mockTournaments: [MockTournament] = [
         participants: "16/16",
         fee: "350 港幣",
         organizer: "陳教練",
+        organizerGender: .male,
         gradientColors: [Theme.gradGrayLight, Theme.gradGrayDeep],
         rules: [
             "單淘汰制",
@@ -957,6 +967,7 @@ let mockTournaments: [MockTournament] = [
         participants: "7/16",
         fee: "180 港幣",
         organizer: "艾美",
+        organizerGender: .female,
         gradientColors: [Theme.gradGreenLight, Theme.gradGreenDeep],
         rules: [
             "單淘汰制，一盤定勝負（搶七）",
@@ -983,6 +994,7 @@ let mockTournaments: [MockTournament] = [
         participants: "12/16",
         fee: "400 港幣",
         organizer: "老張",
+        organizerGender: .male,
         gradientColors: [Theme.gradPinkLight, Theme.gradPinkDeep],
         rules: [
             "混雙循環賽，每組需一男一女",
