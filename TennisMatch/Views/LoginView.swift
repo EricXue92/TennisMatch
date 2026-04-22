@@ -17,6 +17,7 @@ struct LoginView: View {
     @State private var showVerification = false
     @State private var showHelpView = false
     @State private var toastMessage: String?
+    @State private var showRegister = false
 
     // MARK: Theme
     private let bgTop      = Theme.loginBgTop
@@ -60,6 +61,9 @@ struct LoginView: View {
         }
         .navigationDestination(isPresented: $showHelpView) {
             HelpView()
+        }
+        .navigationDestination(isPresented: $showRegister) {
+            RegisterView()
         }
         .overlay(alignment: .top) {
             if let msg = toastMessage {
@@ -225,7 +229,7 @@ struct LoginView: View {
             HStack(spacing: 3) {
                 Text("還沒有帳號？")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: { showVerification = true }) {
+                Button(action: { showRegister = true }) {
                     Text("立即註冊")
                         .foregroundColor(chartreuse)
                         .underline()
