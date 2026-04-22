@@ -32,10 +32,34 @@ struct EditProfileView: View {
         PreferredTimeSlot(day: .sun, startTime: "09:00", endTime: "10:00"),
     ]
     @State private var showAddSlot = false
+    @State private var showDiscardAlert = false
 
     private let ntrpMin: Double = 1.0
     private let ntrpMax: Double = 7.0
     private let regionOptions = ["香港", "上海", "深圳", "廣州"]
+
+    // MARK: - Unsaved Changes Detection
+
+    /// 比較偏好時段內容（UUID 每次建立都不同，改用內容比對）
+    private var slotsChanged: Bool {
+        guard preferredSlots.count == userStore.preferredSlots.count else { return true }
+        return zip(preferredSlots, userStore.preferredSlots).contains { a, b in
+            a.day != b.day || a.startTime != b.startTime || a.endTime != b.endTime
+        }
+    }
+
+    /// 如果任何欄位與 UserStore 中的值不同，則視為有未儲存的修改
+    private var hasUnsavedChanges: Bool {
+        name != userStore.displayName ||
+        selectedGender != userStore.gender ||
+        bio != userStore.bio ||
+        ntrpLevel != userStore.ntrpLevel ||
+        region != userStore.region ||
+        selectedCourt?.id != userStore.selectedCourt?.id ||
+        partnerLevelLow != userStore.partnerLevelLow ||
+        partnerLevelHigh != userStore.partnerLevelHigh ||
+        slotsChanged
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -51,6 +75,12 @@ struct EditProfileView: View {
                 .padding(.top, Spacing.sm)
                 .padding(.bottom, Spacing.xl)
             }
+        }
+        .alert("放棄修改？", isPresented: $showDiscardAlert) {
+            Button("繼續編輯", role: .cancel) { }
+            Button("放棄", role: .destructive) { dismiss() }
+        } message: {
+            Text("你有未儲存的修改，確定要放棄嗎？")
         }
         .background(Theme.background)
         .navigationBarHidden(true)
@@ -92,7 +122,12 @@ struct EditProfileView: View {
     private var navBar: some View {
         HStack(spacing: Spacing.sm) {
             Button {
-                dismiss()
+                // 若有未儲存修改，先彈出確認對話框
+                if hasUnsavedChanges {
+                    showDiscardAlert = true
+                } else {
+                    dismiss()
+                }
             } label: {
                 Image(systemName: "chevron.left")
                     .font(.system(size: 18, weight: .medium))
