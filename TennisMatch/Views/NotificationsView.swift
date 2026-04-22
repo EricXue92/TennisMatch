@@ -125,31 +125,40 @@ struct NotificationsView: View {
     // MARK: - Mock Match Detail
 
     /// 根據通知內容生成對應的約球詳情(Mock 階段)。
+    /// 每種通知類型使用不同的時間、地點、參與者，避免所有通知顯示相同資料。
     private func mockMatchDetail(for notification: MatchNotification) -> MatchDetailData {
+        let matchType = notification.body.contains("雙打") ? "雙打" : "單打"
+        // 嘗試從通知 body 的括號內提取日期（「MM/dd」格式）
+        let dateStr = extractDateString(from: notification.body)
+
         switch notification.type {
         case .signUp:
+            // 有人報名了自己發起的約球：顯示自己的約球詳情
             return MatchDetailData(
                 name: extractName(from: notification.body) ?? "球友",
                 gender: .male, ntrp: "3.5", reputation: 88,
-                matchType: notification.body.contains("雙打") ? "雙打" : "單打",
-                date: "2026/04/20", timeRange: "14:00 - 16:00",
+                matchType: matchType,
+                date: dateStr ?? "2026/04/20", timeRange: "14:00 - 16:00",
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
-                district: "香港",
+                district: "香港銅鑼灣",
                 players: "2/4 人", ntrpRange: "3.0-4.5", fee: "AA ¥100",
-                notes: "歡迎加入,請準時到場！",
+                notes: "歡迎加入，請準時到場！",
                 weather: MatchWeather(temp: "26°C", humidity: "65%", uv: "6", wind: "10"),
                 participantList: [
                     MatchParticipant(name: "我", gender: .male, ntrp: "3.5", isOrganizer: true),
+                    MatchParticipant(name: extractName(from: notification.body) ?? "球友",
+                                     gender: .male, ntrp: "3.5", isOrganizer: false),
                 ],
                 isOwnMatch: true
             )
         case .accepted:
+            // 自己報名被接受：顯示發起人的約球詳情
             let name = extractOrganizerName(from: notification.body) ?? "球友"
             return MatchDetailData(
                 name: name,
                 gender: .female, ntrp: "3.5", reputation: 90,
-                matchType: notification.body.contains("雙打") ? "雙打" : "單打",
-                date: "2026/04/19", timeRange: "10:00 - 12:00",
+                matchType: matchType,
+                date: dateStr ?? "2026/04/19", timeRange: "10:00 - 12:00",
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
                 district: "香港銅鑼灣",
                 players: "2/2 人", ntrpRange: "3.0-4.0", fee: "AA ¥120",
@@ -161,12 +170,13 @@ struct NotificationsView: View {
                 ]
             )
         case .cancelled:
+            // 約球被取消通知：顯示已取消的約球詳情
             let name = extractName(from: notification.body) ?? "球友"
             return MatchDetailData(
                 name: name,
                 gender: .female, ntrp: "3.0", reputation: 85,
-                matchType: notification.body.contains("雙打") ? "雙打" : "單打",
-                date: "2026/04/22", timeRange: "09:00 - 11:00",
+                matchType: matchType,
+                date: dateStr ?? "2026/04/22", timeRange: "09:00 - 11:00",
                 location: extractLocation(from: notification.body) ?? "沙田公園網球場",
                 district: "新界沙田",
                 players: "1/4 人", ntrpRange: "2.5-4.0", fee: "AA ¥80",
@@ -177,25 +187,27 @@ struct NotificationsView: View {
                 ]
             )
         case .updated:
+            // 約球資訊更新通知：顯示更新後的約球詳情
             let name = extractName(from: notification.body) ?? "球友"
             return MatchDetailData(
                 name: name,
                 gender: .male, ntrp: "4.5", reputation: 92,
-                matchType: notification.body.contains("雙打") ? "雙打" : "單打",
-                date: "2026/04/25", timeRange: "16:30 - 18:30",
+                matchType: matchType,
+                date: dateStr ?? "2026/04/25", timeRange: "16:30 - 18:30",
                 location: extractLocation(from: notification.body) ?? "跑馬地運動場",
                 district: "香港灣仔",
                 players: "2/2 人", ntrpRange: "3.5-5.0", fee: "AA ¥150",
-                notes: "時間已更新",
+                notes: "時間已更新，請注意新的時間安排",
                 weather: MatchWeather(temp: "27°C", humidity: "60%", uv: "5", wind: "15"),
                 participantList: [
                     MatchParticipant(name: name, gender: .male, ntrp: "4.5", isOrganizer: true),
+                    MatchParticipant(name: "我", gender: .male, ntrp: "3.5", isOrganizer: false),
                 ]
             )
         }
     }
 
-    /// 從通知 body 提取球友名字(第一個空格前的中文/英文名)。
+    /// 從通知 body 提取球友名字（第一個空格前的中文/英文名）。
     private func extractName(from body: String) -> String? {
         let parts = body.split(separator: " ", maxSplits: 1)
         guard let first = parts.first else { return nil }
@@ -212,7 +224,7 @@ struct NotificationsView: View {
         return nil
     }
 
-    /// 從括號中提取地點(「04/20 跑馬地」→「跑馬地網球場」)。
+    /// 從括號中提取地點（「04/20 跑馬地」→「跑馬地網球場」）。
     private func extractLocation(from body: String) -> String? {
         guard let open = body.firstIndex(of: "（"),
               let close = body.firstIndex(of: "）") else { return nil }
@@ -222,6 +234,19 @@ struct NotificationsView: View {
             return parts.dropFirst().joined(separator: " ") + "網球場"
         }
         return inside + "網球場"
+    }
+
+    /// 從括號中提取日期字符串（「MM/dd」→「2026/MM/dd」）。
+    private func extractDateString(from body: String) -> String? {
+        guard let open = body.firstIndex(of: "（"),
+              let close = body.firstIndex(of: "）") else { return nil }
+        let inside = String(body[body.index(after: open)..<close])
+        // 取第一段（空格前）作為日期，格式如「04/20」
+        let datePart = inside.split(separator: " ").first.map(String.init) ?? inside
+        guard datePart.contains("/") else { return nil }
+        let cal = Calendar.current
+        let year = cal.component(.year, from: Date())
+        return "\(year)/\(datePart)"
     }
 }
 
