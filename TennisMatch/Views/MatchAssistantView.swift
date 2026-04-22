@@ -216,10 +216,10 @@ private struct RecommendedMatch: Identifiable {
 }
 
 private let mockRecommendations: [RecommendedMatch] = [
-    RecommendedMatch(name: "莎拉", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/19 10:00", location: "維多利亞公園", matchScore: 95, reason: "NTRP 完全匹配"),
-    RecommendedMatch(name: "美琪", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/21 08:30", location: "九龍仔公園", matchScore: 88, reason: "常去球場"),
-    RecommendedMatch(name: "小美", gender: .female, ntrp: "3.0", matchType: "雙打", dateTime: "04/22 10:00", location: "沙田公園", matchScore: 82, reason: "時間吻合"),
-    RecommendedMatch(name: "俊傑", gender: .male, ntrp: "4.0", matchType: "雙打", dateTime: "04/23 15:00", location: "將軍澳運動場", matchScore: 75, reason: "水平接近"),
+    RecommendedMatch(name: "莎拉", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/23 10:00", location: "維多利亞公園", matchScore: 95, reason: "NTRP 完全匹配"),
+    RecommendedMatch(name: "美琪", gender: .female, ntrp: "3.5", matchType: "單打", dateTime: "04/25 08:30", location: "九龍仔公園", matchScore: 88, reason: "常去球場"),
+    RecommendedMatch(name: "小美", gender: .female, ntrp: "3.0", matchType: "雙打", dateTime: "04/26 10:00", location: "沙田公園", matchScore: 82, reason: "時間吻合"),
+    RecommendedMatch(name: "俊傑", gender: .male, ntrp: "4.0", matchType: "雙打", dateTime: "04/28 15:00", location: "將軍澳運動場", matchScore: 75, reason: "水平接近"),
 ]
 
 // MARK: - Preview
