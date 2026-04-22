@@ -858,142 +858,188 @@ private struct MyMatchInvitation: Identifiable {
     }
 }
 
-private let mockUpcomingMatchesInitial: [MyMatchItem] = [
-    MyMatchItem(
-        title: "莎拉 發起的單打",
-        isOrganizer: false,
-        status: .confirmed,
-        dateLabel: "明天 · 04/23（三）",
-        location: "維多利亞公園網球場",
-        timeRange: "10:00 - 12:00",
-        players: "2/2 · NTRP 3.0-4.0",
-        weather: "☀️ 24°C"
-    ),
-    MyMatchItem(
-        title: "我發起的雙打",
-        isOrganizer: true,
-        status: .pending,
-        dateLabel: "04/25（五）",
-        location: "跑馬地遊樂場",
-        timeRange: "14:00 - 16:00",
-        players: "2/4 · NTRP 3.5-4.5",
-        weather: "⛅ 26°C"
-    ),
-    MyMatchItem(
-        title: "大衛 發起的雙打",
-        isOrganizer: false,
-        status: .confirmed,
-        dateLabel: "04/26（六）",
-        location: "歌和老街公園網球場",
-        timeRange: "18:30 - 20:00",
-        players: "3/4 · NTRP 4.0-5.0",
-        weather: "☀️ 24°C",
-        matchType: "雙打"
-    ),
-    MyMatchItem(
-        title: "我發起的雙打",
-        isOrganizer: true,
-        status: .pending,
-        dateLabel: "04/28（一）",
-        location: "將軍澳運動場",
-        timeRange: "18:00 - 20:00",
-        players: "2/2 · NTRP 3.0-4.0",
-        weather: "☀️ 24°C",
-        matchType: "雙打"
-    ),
-    MyMatchItem(
-        title: "Michael 發起的單打",
-        isOrganizer: false,
-        status: .confirmed,
-        dateLabel: "04/30（三）",
-        location: "跑馬地遊樂場",
-        timeRange: "08:00 - 10:00",
-        players: "2/2 · NTRP 4.5-5.0",
-        weather: "☀️ 25°C"
-    ),
-]
+// MARK: - Dynamic Date Helpers
 
-private let mockCompletedMatches: [MyMatchItem] = [
-    MyMatchItem(
-        title: "王強 發起的雙打",
-        isOrganizer: false,
-        status: .completed,
-        dateLabel: "04/12（六）",
-        location: "九龍仔公園",
-        timeRange: "14:00 - 16:00",
-        players: "4/4 · NTRP 3.5-4.5",
-        weather: "☀️ 28°C"
-    ),
-    MyMatchItem(
-        title: "我發起的單打",
-        isOrganizer: true,
-        status: .completed,
-        dateLabel: "04/10（四）",
-        location: "香港網球中心",
-        timeRange: "09:00 - 11:00",
-        players: "2/2 · NTRP 3.0-4.0",
-        weather: "🌤 25°C"
-    ),
-    MyMatchItem(
-        title: "大衛 發起的雙打",
-        isOrganizer: false,
-        status: .completed,
-        dateLabel: "04/06（日）",
-        location: "歌和老街公園",
-        timeRange: "16:00 - 18:00",
-        players: "4/4 · NTRP 4.0-5.0",
-        weather: "☀️ 27°C",
-        matchType: "雙打"
-    ),
-    MyMatchItem(
-        title: "嘉欣 發起的雙打",
-        isOrganizer: false,
-        status: .completed,
-        dateLabel: "03/29（六）",
-        location: "沙田公園",
-        timeRange: "10:00 - 12:00",
-        players: "4/4 · NTRP 3.0-3.5",
-        weather: "⛅ 23°C",
-        matchType: "雙打"
-    ),
-    MyMatchItem(
-        title: "我發起的單打",
-        isOrganizer: true,
-        status: .completed,
-        dateLabel: "03/22（六）",
-        location: "維多利亞公園網球場",
-        timeRange: "08:00 - 10:00",
-        players: "2/2 · NTRP 3.5-4.0",
-        weather: "☀️ 22°C"
-    ),
-]
+/// 根據距今天數生成日期標籤，格式如「明天 · 04/23（三）」或「04/25（五）」。
+/// 供 mock 數據使用，確保日期標籤始終相對於今天正確。
+private func relativeDateLabel(daysFromNow: Int) -> String {
+    let calendar = Calendar.current
+    let date = calendar.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
+    let formatter = DateFormatter()
+    formatter.locale = Locale(identifier: "zh_TW")
 
-private let mockInvitations: [MyMatchInvitation] = [
-    MyMatchInvitation(
-        inviterName: "艾美",
-        gender: .female,
-        matchType: "單打",
-        details: "04/24 · 京士柏 · NTRP 3.0",
-        time: "14:00",
-        durationHours: 2
-    ),
-    MyMatchInvitation(
-        inviterName: "俊傑",
-        gender: .male,
-        matchType: "雙打",
-        details: "04/26 · 將軍澳 · NTRP 3.5-4.5",
-        time: "18:00",
-        durationHours: 2
-    ),
-    MyMatchInvitation(
-        inviterName: "思慧",
-        gender: .female,
-        matchType: "單打",
-        details: "04/28 · 香港公園 · NTRP 3.0-3.5",
-        time: "09:00",
-        durationHours: 2
-    ),
-]
+    let weekdaySymbols = ["日", "一", "二", "三", "四", "五", "六"]
+    let weekday = calendar.component(.weekday, from: date)
+    let weekdayStr = weekdaySymbols[weekday - 1]
+
+    formatter.dateFormat = "MM/dd"
+    let dateStr = formatter.string(from: date)
+
+    let prefix: String
+    switch daysFromNow {
+    case 0:  prefix = "今天"
+    case 1:  prefix = "明天"
+    case 2:  prefix = "後天"
+    default: prefix = ""
+    }
+
+    if prefix.isEmpty {
+        return "\(dateStr)（\(weekdayStr)）"
+    }
+    return "\(prefix) · \(dateStr)（\(weekdayStr)）"
+}
+
+/// 根據距今天數生成短日期字符串（MM/dd），供邀請 details 字段使用。
+private func relativeDateShort(daysFromNow: Int) -> String {
+    let calendar = Calendar.current
+    let date = calendar.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
+    let formatter = DateFormatter()
+    formatter.dateFormat = "MM/dd"
+    return formatter.string(from: date)
+}
+
+private var mockUpcomingMatchesInitial: [MyMatchItem] {
+    [
+        MyMatchItem(
+            title: "莎拉 發起的單打",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 1),   // 明天
+            location: "維多利亞公園網球場",
+            timeRange: "10:00 - 12:00",
+            players: "2/2 · NTRP 3.0-4.0",
+            weather: "☀️ 24°C"
+        ),
+        MyMatchItem(
+            title: "我發起的雙打",
+            isOrganizer: true,
+            status: .pending,
+            dateLabel: relativeDateLabel(daysFromNow: 3),   // 3 天後
+            location: "跑馬地遊樂場",
+            timeRange: "14:00 - 16:00",
+            players: "2/4 · NTRP 3.5-4.5",
+            weather: "⛅ 26°C"
+        ),
+        MyMatchItem(
+            title: "大衛 發起的雙打",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 4),   // 4 天後
+            location: "歌和老街公園網球場",
+            timeRange: "18:30 - 20:00",
+            players: "3/4 · NTRP 4.0-5.0",
+            weather: "☀️ 24°C",
+            matchType: "雙打"
+        ),
+        MyMatchItem(
+            title: "我發起的雙打",
+            isOrganizer: true,
+            status: .pending,
+            dateLabel: relativeDateLabel(daysFromNow: 6),   // 6 天後
+            location: "將軍澳運動場",
+            timeRange: "18:00 - 20:00",
+            players: "2/2 · NTRP 3.0-4.0",
+            weather: "☀️ 24°C",
+            matchType: "雙打"
+        ),
+        MyMatchItem(
+            title: "Michael 發起的單打",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 8),   // 8 天後
+            location: "跑馬地遊樂場",
+            timeRange: "08:00 - 10:00",
+            players: "2/2 · NTRP 4.5-5.0",
+            weather: "☀️ 25°C"
+        ),
+    ]
+}
+
+private var mockCompletedMatches: [MyMatchItem] {
+    [
+        MyMatchItem(
+            title: "王強 發起的雙打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -10),  // 10 天前
+            location: "九龍仔公園",
+            timeRange: "14:00 - 16:00",
+            players: "4/4 · NTRP 3.5-4.5",
+            weather: "☀️ 28°C"
+        ),
+        MyMatchItem(
+            title: "我發起的單打",
+            isOrganizer: true,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -12),  // 12 天前
+            location: "香港網球中心",
+            timeRange: "09:00 - 11:00",
+            players: "2/2 · NTRP 3.0-4.0",
+            weather: "🌤 25°C"
+        ),
+        MyMatchItem(
+            title: "大衛 發起的雙打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -16),  // 16 天前
+            location: "歌和老街公園",
+            timeRange: "16:00 - 18:00",
+            players: "4/4 · NTRP 4.0-5.0",
+            weather: "☀️ 27°C",
+            matchType: "雙打"
+        ),
+        MyMatchItem(
+            title: "嘉欣 發起的雙打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -24),  // 24 天前
+            location: "沙田公園",
+            timeRange: "10:00 - 12:00",
+            players: "4/4 · NTRP 3.0-3.5",
+            weather: "⛅ 23°C",
+            matchType: "雙打"
+        ),
+        MyMatchItem(
+            title: "我發起的單打",
+            isOrganizer: true,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -31),  // 31 天前
+            location: "維多利亞公園網球場",
+            timeRange: "08:00 - 10:00",
+            players: "2/2 · NTRP 3.5-4.0",
+            weather: "☀️ 22°C"
+        ),
+    ]
+}
+
+private var mockInvitations: [MyMatchInvitation] {
+    [
+        MyMatchInvitation(
+            inviterName: "艾美",
+            gender: .female,
+            matchType: "單打",
+            details: "\(relativeDateShort(daysFromNow: 2)) · 京士柏 · NTRP 3.0",   // 後天
+            time: "14:00",
+            durationHours: 2
+        ),
+        MyMatchInvitation(
+            inviterName: "俊傑",
+            gender: .male,
+            matchType: "雙打",
+            details: "\(relativeDateShort(daysFromNow: 4)) · 將軍澳 · NTRP 3.5-4.5",  // 4 天後
+            time: "18:00",
+            durationHours: 2
+        ),
+        MyMatchInvitation(
+            inviterName: "思慧",
+            gender: .female,
+            matchType: "單打",
+            details: "\(relativeDateShort(daysFromNow: 6)) · 香港公園 · NTRP 3.0-3.5",  // 6 天後
+            time: "09:00",
+            durationHours: 2
+        ),
+    ]
+}
 
 // MARK: - Invitation Accept Success
 
@@ -1310,37 +1356,38 @@ private struct CompletedMatchReviewSheet: View {
 }
 
 /// 根据已完成约球生成 mock 评论数据。评论是自愿的,部分约球可能没有评论。
+/// 通過比對球場名稱識別對應的約球，避免依賴固定日期字符串。
 private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
     let dateStr = match.dateLabel.replacingOccurrences(of: "（.*?）", with: "", options: .regularExpression)
         .trimmingCharacters(in: .whitespaces)
-    if dateStr.contains("04/12") {
+    if match.location.contains("九龍仔") {
         return [
             MatchReviewItem(reviewerName: "王強", isMyReview: false, rating: 5,
-                            comment: "配合默契，球技穩健，歡迎下次再來！", date: "04/12"),
+                            comment: "配合默契，球技穩健，歡迎下次再來！", date: dateStr),
             MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 4,
-                            comment: "打得很開心，場地不錯", date: "04/12"),
+                            comment: "打得很開心，場地不錯", date: dateStr),
         ]
-    } else if dateStr.contains("04/10") {
+    } else if match.location.contains("香港網球中心") {
         return [
             MatchReviewItem(reviewerName: "莎拉", isMyReview: false, rating: 5,
-                            comment: "很準時到達，球技好，節奏掌控佳", date: "04/10"),
+                            comment: "很準時到達，球技好，節奏掌控佳", date: dateStr),
         ]
-    } else if dateStr.contains("04/06") {
+    } else if match.location.contains("歌和老街") {
         return [
             MatchReviewItem(reviewerName: "大衛", isMyReview: false, rating: 4,
-                            comment: "接發球很到位，下次再約！", date: "04/06"),
+                            comment: "接發球很到位，下次再約！", date: dateStr),
             MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 5,
-                            comment: "球風穩健，值得推薦的球友", date: "04/06"),
+                            comment: "球風穩健，值得推薦的球友", date: dateStr),
         ]
-    } else if dateStr.contains("03/29") {
+    } else if match.location.contains("沙田") {
         // 暂无评论 — 双方都没有留下评论(自愿)
         return []
-    } else if dateStr.contains("03/22") {
+    } else if match.location.contains("維多利亞") && match.status == .completed {
         return [
             MatchReviewItem(reviewerName: "對手", isMyReview: false, rating: 4,
-                            comment: "準時開場，球場狀況好", date: "03/22"),
+                            comment: "準時開場，球場狀況好", date: dateStr),
             MatchReviewItem(reviewerName: "我", isMyReview: true, rating: 4,
-                            comment: "對手水平匹配，打得盡興", date: "03/22"),
+                            comment: "對手水平匹配，打得盡興", date: dateStr),
         ]
     }
     return []
