@@ -1475,6 +1475,15 @@ private let initialMockMatches: [MockMatch] = [
         currentPlayers: 2, maxPlayers: 4
     ),
     MockMatch(
+        name: "小李", gender: .male, matchType: "雙打",
+        weather: "⛅ 26°C", dateTime: "04/25 14:00",
+        location: "跑馬地遊樂場", fee: "AA ¥200",
+        ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
+        genderLabel: "男", hour: 14, dayOfWeek: "五",
+        currentPlayers: 2, maxPlayers: 4,
+        isOwnMatch: true
+    ),
+    MockMatch(
         name: "美琪", gender: .female, matchType: "單打",
         weather: "☀️ 28°C", dateTime: "04/25 08:30",
         location: "九龍仔公園", fee: "AA ¥100",
