@@ -313,6 +313,8 @@ struct TournamentDetailView: View {
     @State private var pendingContactOrganizer = false
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
+    @State private var displayParticipants: String = ""
+    @State private var displayPlayerList: [TournamentPlayer] = []
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -329,6 +331,10 @@ struct TournamentDetailView: View {
             .background(Theme.inputBg)
 
             bottomBar
+        }
+        .onAppear {
+            displayParticipants = tournament.participants
+            displayPlayerList = tournament.playerList
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -348,8 +354,18 @@ struct TournamentDetailView: View {
         }
         .sheet(isPresented: $showSignUpConfirm) {
             TournamentSignUpSheet(tournament: tournament) {
+                guard !isSignedUp else { return }
                 isSignedUp = true
                 showSignUpSuccess = true
+                // 更新參賽人數顯示
+                if let slash = displayParticipants.firstIndex(of: "/") {
+                    let currentStr = String(displayParticipants[displayParticipants.startIndex..<slash])
+                    if let current = Int(currentStr) {
+                        let rest = String(displayParticipants[slash...])
+                        displayParticipants = "\(current + 1)\(rest)"
+                    }
+                }
+                displayPlayerList.append(TournamentPlayer(name: "小李", ntrp: "3.5"))
             }
             .presentationDetents([.medium])
         }
@@ -451,7 +467,7 @@ private extension TournamentDetailView {
 
             detailInfoRow(icon: "📅", label: "比賽日期", value: tournament.dateRange)
             detailInfoRow(icon: "📍", label: "比賽場地", value: tournament.location)
-            detailInfoRow(icon: "👥", label: "參賽人數", value: tournament.participants)
+            detailInfoRow(icon: "👥", label: "參賽人數", value: displayParticipants)
             detailInfoRow(icon: "💰", label: "報名費用", value: tournament.fee)
 
             Rectangle()
@@ -543,12 +559,12 @@ private extension TournamentDetailView {
                     .font(Typography.button)
                     .foregroundColor(Theme.textInk)
                 Spacer()
-                Text(tournament.participants)
+                Text(displayParticipants)
                     .font(.system(size: 13, weight: .medium))
                     .foregroundColor(Theme.textSubtle)
             }
 
-            ForEach(Array(tournament.playerList.enumerated()), id: \.offset) { index, player in
+            ForEach(Array(displayPlayerList.enumerated()), id: \.offset) { index, player in
                 HStack(spacing: Spacing.sm) {
                     if isCompleted && index < 3 {
                         Text(["🥇", "🥈", "🥉"][index])
