@@ -324,7 +324,7 @@ struct MyMatchesView: View {
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.sm)
-                .background(Capsule().fill(Theme.textBody))
+                .background(Capsule().fill(Theme.textDeep))
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .padding(.top, Spacing.lg)
                 .task(id: current.id) {
