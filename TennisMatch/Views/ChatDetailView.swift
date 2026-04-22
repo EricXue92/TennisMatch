@@ -35,6 +35,8 @@ struct ChatDetailView: View {
     @State private var chatMenuToast: String?
     @State private var showBlockAlert = false
     @State private var selectedPlayer: PublicPlayerData?
+    // Mock 階段：婉拒狀態僅保存在 @State 中，離開頁面即重置。
+    // 正式版應持久化至 UserDefaults 或資料庫，注意 @AppStorage JSON 有大小限制。
     @State private var declinedInvitationIDs: Set<UUID> = []
 
     private var chatTitle: String {
