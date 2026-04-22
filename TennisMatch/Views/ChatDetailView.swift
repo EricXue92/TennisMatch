@@ -15,6 +15,7 @@ struct ChatDetailView: View {
     /// Seed message from the sign-up "給發起人留言" field. Sent as an
     /// outgoing bubble on first appear so the organizer sees it at the top.
     var initialMessage: String? = nil
+    var onRemoveChat: (() -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(BookedSlotStore.self) private var bookedSlotStore
     @State private var messageText = ""
@@ -182,6 +183,7 @@ struct ChatDetailView: View {
                     chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
                 }
                 Button("退出群聊", role: .destructive) {
+                    onRemoveChat?()
                     dismiss()
                 }
             case .personal(let name, _, _):
@@ -211,6 +213,7 @@ struct ChatDetailView: View {
                     showBlockAlert = true
                 }
                 Button("刪除聊天", role: .destructive) {
+                    onRemoveChat?()
                     dismiss()
                 }
             }
@@ -219,6 +222,7 @@ struct ChatDetailView: View {
         .alert("封鎖用戶", isPresented: $showBlockAlert) {
             Button("取消", role: .cancel) {}
             Button("確認封鎖", role: .destructive) {
+                onRemoveChat?()
                 dismiss()
             }
         } message: {

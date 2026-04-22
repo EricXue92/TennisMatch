@@ -72,7 +72,12 @@ struct MessagesView: View {
         .background(.white)
         .onAppear { recalculateUnread() }
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches)
+            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, onRemoveChat: {
+                withAnimation {
+                    chats.removeAll { $0.id == chat.id }
+                }
+                recalculateUnread()
+            })
         }
         .onChange(of: selectedChat) { _, newChat in
             guard let chat = newChat, !readChatIDs.contains(chat.id) else { return }
