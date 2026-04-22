@@ -823,6 +823,9 @@ private extension HomeView {
     }
 
     func matchCard(_ match: MockMatch) -> some View {
+        Button {
+            navigateToDetail(match)
+        } label: {
         VStack(alignment: .leading, spacing: 6) {
             // Row 1: avatar + name + gender + type + weather
             HStack(spacing: Spacing.sm) {
@@ -928,9 +931,8 @@ private extension HomeView {
                     .padding(.vertical, Spacing.sm)
             }
         }
-        .onTapGesture {
-            navigateToDetail(match)
-        }
+        } // end label
+        .buttonStyle(.plain)
     }
 
     func navigateToDetail(_ match: MockMatch) {
