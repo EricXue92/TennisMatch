@@ -1401,7 +1401,7 @@ private extension HomeView {
     }
 }
 
-private let matchFilterOptions = ["全部", "單打", "雙打"]
+private let matchFilterOptions = ["全部", "單打", "雙打", "拉球"]
 
 // MARK: - Filter Options
 

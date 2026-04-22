@@ -161,6 +161,9 @@ struct CreateMatchView: View {
                 radioButton(label: "雙打", isSelected: matchType == "雙打") {
                     matchType = "雙打"
                 }
+                radioButton(label: "拉球", isSelected: matchType == "拉球") {
+                    matchType = "拉球"
+                }
             }
         }
     }
