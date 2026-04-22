@@ -602,19 +602,7 @@ private struct ChatBubble: Identifiable {
     }
 }
 
-private let mockMessages: [ChatBubble] = [
-    ChatBubble(.incoming("嗨！明天下午的單打還缺人嗎？")),
-    ChatBubble(.outgoing("還缺一位，歡迎加入！")),
-    ChatBubble(.incoming("太好了！幾點開始？")),
-    ChatBubble(.outgoing("下午3點，維多利亞公園3號場")),
-    ChatBubble(.incoming("好的，我會準時到 👍")),
-    ChatBubble(.outgoing("記得帶水，天氣會比較熱 ☀️")),
-    ChatBubble(.incoming("沒問題！我帶球，你帶球拍？")),
-    ChatBubble(.outgoing("👌 我有兩副拍子可以用")),
-    ChatBubble(.invitation(date: "04/19 15:00", location: "維多利亞公園")),
-    ChatBubble(.incoming("太好了，那就這樣定了！")),
-    ChatBubble(.outgoing("明天見！🎾"), timestamp: "14:30"),
-]
+private let mockMessages: [ChatBubble] = []
 
 // MARK: - Preview
 
