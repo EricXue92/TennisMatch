@@ -280,7 +280,7 @@ private struct ChangePasswordSheet: View {
                     }
                     // 所有驗證通過，顯示成功並關閉
                     withAnimation { toastMessage = "密碼修改成功" }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                         dismiss()
                     }
                 } label: {

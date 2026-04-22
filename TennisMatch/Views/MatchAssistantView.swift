@@ -181,8 +181,9 @@ private struct RecommendedMatch: Identifiable {
         let dateStr = parts[0]
         let startTime = parts[1]
         let startHour = Int(startTime.prefix(2)) ?? 10
-        let endHour = startHour + 2
-        let endTime = String(format: "%02d:00", endHour)
+        // 防止結束時間超過 24:00（隔天 00:00）
+        let endHour = min(startHour + 2, 24)
+        let endTime = endHour == 24 ? "00:00(隔天)" : String(format: "%02d:00", endHour)
         return "\(dateStr) \(startTime) - \(endTime)"
     }
 
@@ -191,8 +192,9 @@ private struct RecommendedMatch: Identifiable {
         let parts = dateTime.components(separatedBy: " ")
         let dateStr = parts.first ?? dateTime
         let timeStr = parts.count > 1 ? parts[1] : "10:00"
-        let endHour = (Int(timeStr.prefix(2)) ?? 10) + 2
-        let timeRange = "\(timeStr) - \(endHour):00"
+        // 防止結束時間超過 24:00（隔天 00:00）
+        let endHour = min((Int(timeStr.prefix(2)) ?? 10) + 2, 24)
+        let timeRange = endHour == 24 ? "\(timeStr) - 00:00(隔天)" : "\(timeStr) - \(String(format: "%02d:00", endHour))"
         return MatchDetailData(
             name: name,
             gender: gender,

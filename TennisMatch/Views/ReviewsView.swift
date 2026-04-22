@@ -14,7 +14,7 @@ struct ReviewsView: View {
     @State private var selectedTab = "收到的評價"
     @State private var pendingReviews: [PendingReview] = mockPendingReviews
     @State private var reviewTarget: PendingReview?
-    @State private var reviewRating: Int = 5
+    @State private var reviewRating: Int = 0
     @State private var reviewText = ""
     @State private var showReviewSheet = false
     @State private var showSubmitToast = false
@@ -102,7 +102,7 @@ struct ReviewsView: View {
                         showReviewSheet = false
                         showSubmitToast = true
                         reviewTarget = nil
-                        reviewRating = 5
+                        reviewRating = 0
                         reviewText = ""
                     }
                 )
@@ -256,18 +256,26 @@ private struct ReviewFormSheet: View {
                 .font(.system(size: 20, weight: .bold))
                 .foregroundColor(Theme.textPrimary)
 
-            HStack(spacing: Spacing.xs) {
-                ForEach(1...5, id: \.self) { i in
-                    Button {
-                        rating = i
-                    } label: {
-                        Image(systemName: i <= rating ? "star.fill" : "star")
-                            .font(.system(size: 28))
-                            .foregroundColor(i <= rating ? Theme.starYellow : Theme.textSecondary)
+            VStack(spacing: Spacing.xs) {
+                HStack(spacing: Spacing.xs) {
+                    ForEach(1...5, id: \.self) { i in
+                        Button {
+                            rating = i
+                        } label: {
+                            Image(systemName: i <= rating ? "star.fill" : "star")
+                                .font(.system(size: 28))
+                                .foregroundColor(i <= rating ? Theme.starYellow : Theme.textSecondary)
+                        }
                     }
                 }
+                .frame(maxWidth: .infinity)
+                // 未選星級時顯示提示
+                if rating == 0 {
+                    Text("請先選擇評分")
+                        .font(.system(size: 12))
+                        .foregroundColor(Theme.textSecondary)
+                }
             }
-            .frame(maxWidth: .infinity)
 
             TextField("說說你的打球體驗...", text: $text, axis: .vertical)
                 .font(.system(size: 14))
@@ -288,9 +296,11 @@ private struct ReviewFormSheet: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(Theme.primary)
+                    // 未選星級時顯示灰色，已選則顯示主色
+                    .background(rating == 0 ? Theme.chipUnselectedBg : Theme.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .disabled(rating == 0)
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.top, Spacing.lg)

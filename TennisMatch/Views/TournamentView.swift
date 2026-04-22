@@ -104,7 +104,7 @@ private extension TournamentView {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
-                    .frame(height: 28)
+                    .frame(minHeight: 44)
                     .background(Theme.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
             }
@@ -226,6 +226,8 @@ private extension TournamentView {
                                 .frame(width: 70, height: 26)
                                 .background(Theme.primary)
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                // 擴大點擊區域至 44pt（HIG 最小觸控目標）
+                                .frame(minWidth: 44, minHeight: 44)
                         }
                     } else if t.status == "進行中" {
                         Button {
@@ -240,6 +242,8 @@ private extension TournamentView {
                                     RoundedRectangle(cornerRadius: 8, style: .continuous)
                                         .stroke(Theme.primary, lineWidth: 1)
                                 }
+                                // 擴大點擊區域至 44pt（HIG 最小觸控目標）
+                                .frame(minWidth: 44, minHeight: 44)
                         }
                     }
                 }
