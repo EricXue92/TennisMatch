@@ -32,13 +32,25 @@ final class UserStore {
     /// 偏好球场。
     var selectedCourt: TennisCourt?
 
+    /// 球友水平偏好範圍。
+    var partnerLevelLow: Double
+
+    /// 球友水平偏好範圍上限。
+    var partnerLevelHigh: Double
+
+    /// 偏好時段。
+    var preferredSlots: [PreferredTimeSlot]
+
     init(
         displayName: String = "小李",
         gender: Gender = .male,
         bio: String = "熱愛網球，週末經常打球",
         ntrpLevel: Double = 3.5,
         region: String = "香港",
-        selectedCourt: TennisCourt? = nil
+        selectedCourt: TennisCourt? = nil,
+        partnerLevelLow: Double = 3.0,
+        partnerLevelHigh: Double = 4.5,
+        preferredSlots: [PreferredTimeSlot] = []
     ) {
         self.displayName = displayName
         self.gender = gender
@@ -46,6 +58,9 @@ final class UserStore {
         self.ntrpLevel = ntrpLevel
         self.region = region
         self.selectedCourt = selectedCourt
+        self.partnerLevelLow = partnerLevelLow
+        self.partnerLevelHigh = partnerLevelHigh
+        self.preferredSlots = preferredSlots
     }
 
     // MARK: - 名称唯一性检查

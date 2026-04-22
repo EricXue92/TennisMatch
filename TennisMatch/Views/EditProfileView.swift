@@ -66,6 +66,9 @@ struct EditProfileView: View {
                 if let court = userStore.selectedCourt {
                     selectedCourt = court
                 }
+                partnerLevelLow = userStore.partnerLevelLow
+                partnerLevelHigh = userStore.partnerLevelHigh
+                preferredSlots = userStore.preferredSlots
             }
         }
         .sheet(isPresented: $showCourtPicker) {
@@ -314,6 +317,9 @@ struct EditProfileView: View {
                 userStore.ntrpLevel = ntrpLevel
                 userStore.region = region
                 userStore.selectedCourt = selectedCourt
+                userStore.partnerLevelLow = partnerLevelLow
+                userStore.partnerLevelHigh = partnerLevelHigh
+                userStore.preferredSlots = preferredSlots
                 dismiss()
             } label: {
                 Text("儲存修改")
