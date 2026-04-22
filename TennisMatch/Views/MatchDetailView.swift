@@ -278,7 +278,7 @@ private extension MatchDetailView {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(Theme.textPrimary)
 
-            ForEach(participants, id: \.name) { p in
+            ForEach(participants) { p in
                 HStack(spacing: Spacing.sm) {
                     ZStack {
                         Circle()
@@ -520,7 +520,8 @@ struct MatchWeather: Hashable {
     let wind: String
 }
 
-struct MatchParticipant: Hashable {
+struct MatchParticipant: Identifiable, Hashable {
+    let id = UUID()
     let name: String
     let gender: Gender
     let ntrp: String
