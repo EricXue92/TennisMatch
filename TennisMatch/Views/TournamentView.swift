@@ -306,6 +306,7 @@ struct TournamentDetailView: View {
     let tournament: MockTournament
     @Environment(\.dismiss) private var dismiss
     @State private var isFollowing = false
+    @State private var isSignedUp = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
     @State private var pendingContactOrganizer = false
@@ -346,6 +347,7 @@ struct TournamentDetailView: View {
         }
         .sheet(isPresented: $showSignUpConfirm) {
             TournamentSignUpSheet(tournament: tournament) {
+                isSignedUp = true
                 showSignUpSuccess = true
             }
             .presentationDetents([.medium])
@@ -586,16 +588,19 @@ private extension TournamentDetailView {
         if !isCompleted {
             VStack {
                 Button {
-                    showSignUpConfirm = true
+                    if !isSignedUp {
+                        showSignUpConfirm = true
+                    }
                 } label: {
-                    Text("立即報名 · \(tournament.fee)")
+                    Text(isSignedUp ? "已報名" : "立即報名 · \(tournament.fee)")
                         .font(Typography.button)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Theme.primaryEmerald)
+                        .background(isSignedUp ? Theme.chipUnselectedBg : Theme.primaryEmerald)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
+                .disabled(isSignedUp)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.top, Spacing.sm)
