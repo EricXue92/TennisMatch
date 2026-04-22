@@ -156,7 +156,9 @@ enum CalendarService {
         let parts = t.components(separatedBy: ":")
         guard parts.count == 2,
               let hour = Int(parts[0]),
-              let minute = Int(parts[1]) else { return nil }
+              let minute = Int(parts[1]),
+              (0...23).contains(hour),
+              (0...59).contains(minute) else { return nil }
         return Calendar.current.date(
             bySettingHour: hour, minute: minute, second: 0, of: day
         )
