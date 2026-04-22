@@ -12,6 +12,9 @@ struct TennisMatchApp: App {
     @AppStorage("isLoggedIn") private var isLoggedIn = true
     @State private var followStore = FollowStore()
     @State private var userStore = UserStore()
+    @State private var bookedSlotStore = BookedSlotStore()
+    @State private var notificationStore = NotificationStore()
+    @State private var creditScoreStore = CreditScoreStore()
 
     var body: some Scene {
         WindowGroup {
@@ -24,6 +27,9 @@ struct TennisMatchApp: App {
             }
             .environment(followStore)
             .environment(userStore)
+            .environment(bookedSlotStore)
+            .environment(notificationStore)
+            .environment(creditScoreStore)
         }
     }
 }

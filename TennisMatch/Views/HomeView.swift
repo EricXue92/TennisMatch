@@ -12,6 +12,8 @@ import SwiftUI
 struct HomeView: View {
     @Environment(UserStore.self) private var userStore
     @Environment(FollowStore.self) private var followStore
+    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(NotificationStore.self) private var notificationStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -50,6 +52,9 @@ struct HomeView: View {
     /// Sign-up留言 captured on confirm — carried to dmChat when user
     /// chooses "聯繫發起人" from the success screen.
     @State private var pendingSignUpMessage: String = ""
+    /// Top toast for booking-conflict warnings shown when the user taps 報名
+    /// on a match whose start window overlaps an existing booking.
+    @State private var conflictToast: String?
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -67,6 +72,7 @@ struct HomeView: View {
                         matches[idx].currentPlayers -= 1
                     }
                     signedUpMatchIDs.remove(id)
+                    bookedSlotStore.remove(id: id)
                 })
                 case 2: MatchAssistantView()
                 case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches)
@@ -101,6 +107,7 @@ struct HomeView: View {
                    let idx = matches.firstIndex(where: { $0.id == matchId }) {
                     matches[idx].currentPlayers += 1
                     signedUpMatchIDs.insert(matchId)
+                    registerBookedSlot(for: matches[idx])
                 }
                 pendingSignUpMessage = message
                 successMatch = info
@@ -137,6 +144,7 @@ struct HomeView: View {
                 onSignUp: { matchId in
                     if let idx = matches.firstIndex(where: { $0.id == matchId }) {
                         matches[idx].currentPlayers += 1
+                        registerBookedSlot(for: matches[idx])
                     }
                 }
             )
@@ -176,6 +184,9 @@ struct HomeView: View {
                 dmMatchContext = nil
                 dmInitialMessage = nil
             }
+        }
+        .overlay(alignment: .top) {
+            calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
         }
     }
 
@@ -320,7 +331,11 @@ private extension HomeView {
                     drawerMenuItem(icon: "⭐", label: "評價", badge: 2) {
                         showReviews = true
                     }
-                    drawerMenuItem(icon: "🔔", label: "通知", badge: 5) {
+                    drawerMenuItem(
+                        icon: "🔔",
+                        label: "通知",
+                        badge: notificationStore.unreadCount
+                    ) {
                         showNotifications = true
                     }
                     drawerMenuItem(icon: "👥", label: "關注") {
@@ -1109,14 +1124,17 @@ private extension HomeView {
                 Spacer()
 
                 if !match.isOwnMatch {
-                    let alreadySignedUp = signedUpMatchIDs.contains(match.id)
-                    // Precedence: already-signed-up > expired > full > open for sign-up.
-                    // - Already-signed-up wins because the slot is genuinely booked.
+                    let autoCancelled = match.isAutoCancelled
+                    let alreadySignedUp = !autoCancelled && signedUpMatchIDs.contains(match.id)
+                    // Precedence: auto-cancel > already-signed-up > expired > full > open for sign-up.
+                    // - Auto-cancelled (expired & under capacity) wins over 已報名 because the match never ran.
+                    // - Already-signed-up wins next: the slot is genuinely booked.
                     // - Expired beats full: a past match is no longer actionable regardless of capacity.
-                    let expiredForOthers = !alreadySignedUp && match.isExpired
-                    let isFullForOthers = !alreadySignedUp && !expiredForOthers && match.isFull
-                    let disabled = alreadySignedUp || expiredForOthers || isFullForOthers
+                    let expiredForOthers = !autoCancelled && !alreadySignedUp && match.isExpired
+                    let isFullForOthers = !autoCancelled && !alreadySignedUp && !expiredForOthers && match.isFull
+                    let disabled = autoCancelled || alreadySignedUp || expiredForOthers || isFullForOthers
                     let label: String = {
+                        if autoCancelled { return "已自動取消" }
                         if alreadySignedUp { return "已報名" }
                         if expiredForOthers { return "已過期" }
                         if isFullForOthers { return "已額滿" }
@@ -1129,7 +1147,9 @@ private extension HomeView {
                         Text(label)
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(disabled ? Theme.textSecondary : .white)
-                            .frame(width: 52, height: 30)
+                            .frame(minWidth: 52, idealWidth: 52)
+                            .padding(.horizontal, autoCancelled ? Spacing.xs : 0)
+                            .frame(height: 30)
                             .background(disabled ? Theme.chipUnselectedBg : Theme.primaryDark)
                             .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             .frame(minWidth: 44, minHeight: 44)
@@ -1163,6 +1183,14 @@ private extension HomeView {
         guard !match.isExpired else { return }
         guard !signedUpMatchIDs.contains(match.id) else { return }
 
+        // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+        // 这里查询的是全局 BookedSlotStore,涵盖其它已报名 + 已接受邀请。
+        if let range = matchTimeWindow(for: match),
+           let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
+            conflictToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+            return
+        }
+
         let parts = match.dateTime.split(separator: " ")
         let date = "2026/\(parts[0])"
         let startTime = String(parts[1])
@@ -1188,6 +1216,20 @@ private extension HomeView {
             players: playersStr,
             isFull: newCount >= match.maxPlayers
         )
+    }
+
+    /// 解析 `MockMatch.dateTime` 起止窗口。`hour` 字段作为 fallback,
+    /// 防止 dateTime 偶尔缺少 HH:mm 导致整个冲突检测被绕过。
+    func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date)? {
+        MatchSchedule.dateRange(text: match.dateTime, hourFallback: match.hour)
+    }
+
+    /// 报名成功后向 BookedSlotStore 登记该时段,
+    /// 后续在其它入口(MyMatches 接受邀请 / ChatDetail)拦截冲突。
+    func registerBookedSlot(for match: MockMatch) {
+        guard let range = matchTimeWindow(for: match) else { return }
+        let label = "\(match.name) \(match.dateTime)"
+        bookedSlotStore.add(BookedSlot(id: match.id, start: range.start, end: range.end, label: label))
     }
 
     func makeMatchDetail(from match: MockMatch) -> MatchDetailData {
@@ -1324,6 +1366,10 @@ private struct MockMatch: Identifiable {
     /// 起始时间已过(根据 `dateTime` 中的 MM/dd HH:mm,与当前年组合)。
     /// 解析失败时返回 `false`,避免误把数据当成过期。
     var isExpired: Bool { MatchSchedule.isExpired(text: dateTime, hourFallback: hour) }
+
+    /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
+    /// 即使用户已报名,该约球实际未进行,UI 应优先展示"已自動取消"覆盖"已報名"。
+    var isAutoCancelled: Bool { isExpired && !isFull }
 }
 
 private let initialMockMatches: [MockMatch] = [

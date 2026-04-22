@@ -11,6 +11,9 @@ struct MyMatchesView: View {
     @Binding var acceptedMatches: [AcceptedMatchInfo]
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
     var onMatchCancelled: ((UUID?) -> Void)? = nil
+    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(NotificationStore.self) private var notificationStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
@@ -143,14 +146,63 @@ struct MyMatchesView: View {
             }
             Button("確認取消", role: .destructive) {
                 if let match = matchToCancel {
+                    // 距开场剩余小时数 — 用于"临时取消"信用扣分判定(CLAUDE.md 边界 case #3)。
+                    // 解析失败时,保守地视为"距离很远",不扣分。
+                    let scheduleText = "\(match.dateLabel) \(match.timeRange)"
+                    let hoursToStart: Double = {
+                        guard let start = MatchSchedule.startDate(text: scheduleText) else {
+                            return .infinity
+                        }
+                        return start.timeIntervalSince(.now) / 3600
+                    }()
                     withAnimation {
                         if let aid = match.acceptedMatchID {
                             acceptedMatches.removeAll { $0.id == aid }
+                            // 邀请接受类型的预订:slot 是用 aid 登记的,从 store 中移除。
+                            // sourceMatchID 不为 nil 的情形由 onMatchCancelled 在 HomeView 内处理。
+                            bookedSlotStore.remove(id: aid)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
-                    toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
+                    // 临时取消(<6h)扣 5 分,并推一条解释性通知。≥6h 不扣分。
+                    let creditDeducted = creditScoreStore.recordCancellation(
+                        hoursBeforeStart: hoursToStart,
+                        detail: "\(match.title) · \(match.location)"
+                    )
+                    if creditDeducted {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "信譽積分 -5",
+                            body: "距開場不足 6 小時取消,已扣除 5 分信譽積分（當前 \(creditScoreStore.score) 分）",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    }
+                    // 发起者临时取消 → 推一条通知给"所有报名者"(CLAUDE.md 边界 case #1)。
+                    // Mock 阶段:用户兼任发起者/参与者,这里把取消事件加入 NotificationStore,
+                    // NotificationsView 与抽屉通知红点会立即反映。接后端时改为给参与者列表推送。
+                    if match.isOrganizer {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "你的約球已取消",
+                            body: "已通知所有報名者：「\(match.title)」（\(match.dateLabel) \(match.timeRange) · \(match.location)）",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    } else {
+                        notificationStore.push(MatchNotification(
+                            type: .cancelled,
+                            title: "約球取消",
+                            body: "「\(match.title)」（\(match.dateLabel) \(match.timeRange) · \(match.location)）已取消",
+                            time: "剛剛",
+                            isRead: false
+                        ))
+                    }
+                    let toastText = creditDeducted
+                        ? "已取消約球，距開場 < 6 小時，扣 5 分信譽"
+                        : "已取消約球，已通知所有參與者"
+                    toast = .init(kind: creditDeducted ? .warning : .success, text: toastText)
                 }
                 matchToCancel = nil
             }
@@ -176,6 +228,23 @@ struct MyMatchesView: View {
             Button("取消", role: .cancel) {}
         } message: { match in
             Text(match.title)
+        }
+        .task {
+            // 把 mock 中"已确认"的 upcomingMatches 登记到 BookedSlotStore,
+            // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截。
+            // BookedSlotStore.add 按 id 去重,重复 task 触发是安全的。
+            // 自动取消的约球不再登记 — 它实际未进行,不应阻塞后续报名。
+            for item in upcomingMatches where item.status == .confirmed && !item.isAutoCancelled {
+                let scheduleText = "\(item.dateLabel) \(item.timeRange)"
+                guard let range = MatchSchedule.dateRange(text: scheduleText) else { continue }
+                let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
+                bookedSlotStore.add(BookedSlot(
+                    id: item.id,
+                    start: range.start,
+                    end: range.end,
+                    label: label
+                ))
+            }
         }
         .overlay(alignment: .top) {
             if let current = toast {
@@ -343,8 +412,8 @@ private extension MyMatchesView {
                 matchDetailRow(icon: "🕐", text: match.timeRange)
                 matchDetailRow(icon: "👥", text: match.players)
 
-                // Action buttons
-                if match.status != .completed {
+                // Action buttons — 自动取消的约球不再展示操作按钮(已无可继续/聊天/管理的语义)。
+                if match.status != .completed && !match.isAutoCancelled {
                     HStack {
                         Spacer()
                         if match.isOrganizer {
@@ -376,24 +445,29 @@ private extension MyMatchesView {
     }
 
     func dateBanner(_ match: MyMatchItem) -> some View {
-        HStack {
+        // 人员不足 + 已过开始时间 → 自动取消(覆盖 confirmed/pending 状态)。
+        let autoCancelled = match.isAutoCancelled
+        let badgeText = autoCancelled ? "已自動取消" : match.status.rawValue
+        let badgeColor = autoCancelled ? Theme.requiredText : match.status.badgeColor
+        let bannerColor = autoCancelled ? Theme.requiredBg : match.status.bannerColor
+        return HStack {
             Text("🗓️ \(match.dateLabel)")
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(Theme.textPrimary)
 
             Spacer()
 
-            Text(match.status.rawValue)
+            Text(badgeText)
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.white)
                 .padding(.horizontal, Spacing.xs)
                 .frame(height: 20)
-                .background(match.status.badgeColor)
+                .background(badgeColor)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         }
         .padding(.horizontal, Spacing.sm)
         .frame(height: 30)
-        .background(match.status.bannerColor)
+        .background(bannerColor)
     }
 
     func matchDetailRow(icon: String, text: String) -> some View {
@@ -478,15 +552,43 @@ private extension MyMatchesView {
                 }
 
                 Button {
-                    acceptedMatches.append(AcceptedMatchInfo(
+                    let dateString = invitation.details.components(separatedBy: " · ").first ?? ""
+                    let location = invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
+                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                    let scheduleText = "\(dateString) \(invitation.time)"
+                    if let range = MatchSchedule.dateRange(
+                        text: scheduleText,
+                        defaultDurationHours: invitation.durationHours
+                    ),
+                       let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                        toast = .init(
+                            kind: .warning,
+                            text: "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                        )
+                        return
+                    }
+                    let accepted = AcceptedMatchInfo(
                         organizerName: invitation.inviterName,
                         matchType: invitation.matchType,
-                        dateString: invitation.details.components(separatedBy: " · ").first ?? "",
+                        dateString: dateString,
                         time: invitation.time,
-                        location: invitation.details.components(separatedBy: " · ").dropFirst().first ?? "",
+                        location: location,
                         sourceMatchID: nil,
                         durationHours: invitation.durationHours
-                    ))
+                    )
+                    acceptedMatches.append(accepted)
+                    if let range = MatchSchedule.dateRange(
+                        text: scheduleText,
+                        defaultDurationHours: invitation.durationHours
+                    ) {
+                        let label = "\(invitation.inviterName) \(scheduleText)"
+                        bookedSlotStore.add(BookedSlot(
+                            id: accepted.id,
+                            start: range.start,
+                            end: range.end,
+                            label: label
+                        ))
+                    }
                     acceptedInvitation = invitation
                     showAcceptSuccess = true
                 } label: {
@@ -549,6 +651,25 @@ private struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+
+    /// Parses `"2/4 · NTRP 3.0-4.0"` → (current: 2, max: 4). Falls back to (0, 0)
+    /// when the players string lacks two leading numeric tokens.
+    var playerCounts: (current: Int, max: Int) {
+        let digits = players.split { !$0.isNumber }.map(String.init)
+        guard digits.count >= 2,
+              let current = Int(digits[0]),
+              let mx = Int(digits[1]) else { return (0, 0) }
+        return (current, mx)
+    }
+
+    /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
+    /// `sortDate == .distantFuture` 表示无法解析日期,此时保守返回 false。
+    var isAutoCancelled: Bool {
+        let counts = playerCounts
+        guard counts.max > 0, counts.current < counts.max else { return false }
+        guard sortDate != .distantFuture else { return false }
+        return sortDate < .now
+    }
 
     /// Parsed date used for chronological sorting. Pulls MM/dd from `dateLabel`
     /// and combines it with the start hour of `timeRange` so same-day items

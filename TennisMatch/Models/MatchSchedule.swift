@@ -78,4 +78,49 @@ enum MatchSchedule {
         }
         return start < now
     }
+
+    /// 解析 `text` 的起止时间窗口。规则:
+    /// - `start` 由首个 `HH:mm` 定;若 `text` 不含 `HH:mm`,使用 `hourFallback`(默认 0)。
+    /// - `end` 由第二个 `HH:mm` 定(如 `"10:00 - 12:00"` 中的 `"12:00"`);
+    ///   若不存在,回退到 `start + defaultDurationHours` 小时。
+    /// 解析失败返回 `nil`。
+    static func dateRange(
+        text: String,
+        defaultDurationHours: Int = 2,
+        hourFallback: Int? = nil,
+        calendar: Calendar = .current,
+        now: Date = .now
+    ) -> (start: Date, end: Date)? {
+        guard let start = startDate(
+            text: text,
+            hourFallback: hourFallback,
+            calendar: calendar,
+            now: now
+        ) else { return nil }
+
+        // 收集所有 HH:mm 出现位置,取第二个作为 end。
+        var times: [(hour: Int, minute: Int)] = []
+        var cursor = text.startIndex
+        while cursor < text.endIndex,
+              let r = text.range(of: #"(\d{1,2}):(\d{2})"#, options: .regularExpression, range: cursor..<text.endIndex) {
+            let parts = text[r].split(separator: ":")
+            if parts.count == 2,
+               let h = Int(parts[0]),
+               let m = Int(parts[1]) {
+                times.append((h, m))
+            }
+            cursor = r.upperBound
+        }
+
+        let fallback = start.addingTimeInterval(TimeInterval(defaultDurationHours) * 3600)
+        guard times.count >= 2 else { return (start, fallback) }
+
+        let endTime = times[1]
+        var endComps = calendar.dateComponents([.year, .month, .day], from: start)
+        endComps.hour = endTime.hour
+        endComps.minute = endTime.minute
+        let end = calendar.date(from: endComps) ?? fallback
+        // 若 end <= start(罕见的解析异常),用 fallback 兜底,避免空区间被误判为不冲突。
+        return (start, end > start ? end : fallback)
+    }
 }

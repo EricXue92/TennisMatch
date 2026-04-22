@@ -10,6 +10,7 @@ import SwiftUI
 struct ProfileView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var showTournaments = false
@@ -46,8 +47,8 @@ struct ProfileView: View {
         }
         .sheet(isPresented: $showCreditHistory) {
             CreditScoreHistoryView(
-                currentScore: 85,
-                entries: CreditScoreHistoryView.mockEntries
+                currentScore: creditScoreStore.score,
+                entries: creditScoreStore.entries
             )
         }
     }
@@ -151,7 +152,7 @@ struct ProfileView: View {
                 Button {
                     showCreditHistory = true
                 } label: {
-                    statCard(value: "85", label: "信譽積分")
+                    statCard(value: "\(creditScoreStore.score)", label: "信譽積分")
                 }
                 .buttonStyle(.plain)
                 statCard(value: "92%", label: "出席率")
