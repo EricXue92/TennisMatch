@@ -1097,55 +1097,6 @@ private extension HomeView {
 
 // MARK: - Sign Up Confirmation
 
-struct SignUpMatchInfo: Identifiable {
-    let id = UUID()
-    let organizerName: String
-    let organizerGender: Gender
-    let dateTime: String
-    let location: String
-    let matchType: String
-    let ntrpRange: String
-    let fee: String
-    let notes: String
-    let players: String
-    let isFull: Bool
-    /// 独立的日期字段（来自 MatchDetailData），用于日历解析
-    var date: String? = nil
-    /// 独立的时间范围字段（来自 MatchDetailData），用于日历解析
-    var timeRange: String? = nil
-
-    /// 从 MatchDetailData 构造，便于 MatchDetailView 复用共享报名组件
-    init(from detail: MatchDetailData) {
-        self.organizerName = detail.name
-        self.organizerGender = detail.gender
-        self.dateTime = "\(detail.date) \(detail.timeRange)"
-        self.location = detail.location
-        self.matchType = detail.matchType
-        self.ntrpRange = detail.ntrpRange
-        self.fee = detail.fee
-        self.notes = detail.notes
-        self.players = detail.players
-        self.isFull = detail.isFull
-        self.date = detail.date
-        self.timeRange = detail.timeRange
-    }
-
-    init(organizerName: String, organizerGender: Gender, dateTime: String,
-         location: String, matchType: String, ntrpRange: String,
-         fee: String, notes: String, players: String, isFull: Bool) {
-        self.organizerName = organizerName
-        self.organizerGender = organizerGender
-        self.dateTime = dateTime
-        self.location = location
-        self.matchType = matchType
-        self.ntrpRange = ntrpRange
-        self.fee = fee
-        self.notes = notes
-        self.players = players
-        self.isFull = isFull
-    }
-}
-
 struct SignUpConfirmSheet: View {
     let match: SignUpMatchInfo
     var showNotes: Bool = true
