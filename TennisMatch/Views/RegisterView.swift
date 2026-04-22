@@ -516,6 +516,8 @@ struct RegisterView: View {
             }
 
             Button {
+                showValidationError = false
+                validationMessage = ""
                 if name.trimmingCharacters(in: .whitespaces).isEmpty {
                     validationMessage = "請輸入用戶名"
                 } else if UserStore.reservedNames.contains(name.trimmingCharacters(in: .whitespaces)) {
@@ -528,9 +530,10 @@ struct RegisterView: View {
                     validationMessage = "NTRP 需在 1.0 – 7.0 之間"
                 } else {
                     // 保存到 UserStore
+                    guard let gender = selectedGender, let ntrp = ntrpValue else { return }
                     userStore.displayName = name.trimmingCharacters(in: .whitespaces)
-                    userStore.gender = selectedGender!
-                    userStore.ntrpLevel = ntrpValue!
+                    userStore.gender = gender
+                    userStore.ntrpLevel = ntrp
                     if !bio.trimmingCharacters(in: .whitespaces).isEmpty {
                         userStore.bio = bio.trimmingCharacters(in: .whitespaces)
                     }
