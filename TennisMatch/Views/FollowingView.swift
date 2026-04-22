@@ -77,56 +77,18 @@ struct FollowingView: View {
     }
 
     private func playerRow(_ player: FollowPlayer) -> some View {
-        HStack(spacing: Spacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(Theme.avatarPlaceholder)
-                    .frame(width: 48, height: 48)
-                Text(String(player.name.prefix(1)))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text(player.name)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Theme.textPrimary)
-                        .lineLimit(1)
-                    Text(player.gender.symbol)
-                        .font(Typography.fieldValue)
-                        .foregroundColor(player.gender == .female ? Theme.genderFemale : Theme.genderMale)
-                }
-                Text("NTRP \(player.ntrp) · \(player.latestActivity)")
-                    .font(Typography.small)
-                    .foregroundColor(Theme.textSecondary)
-            }
-
-            Spacer()
-
-            Button {
+        FollowPlayerRow(
+            player: player,
+            buttonLabel: "已關注",
+            isOutlineStyle: true,
+            onButtonTap: {
                 playerToUnfollow = player
                 showUnfollowAlert = true
-            } label: {
-                Text("已關注")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Theme.textBody)
-                    .padding(.horizontal, Spacing.sm)
-                    .frame(height: 30)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Theme.inputBorder, lineWidth: 1)
-                    }
-                    .frame(minWidth: 44, minHeight: 44)
+            },
+            onRowTap: {
+                selectedPlayer = mockPublicPlayerData(name: player.name, gender: player.gender, ntrp: player.ntrp)
             }
-        }
-        .padding(Spacing.md)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            selectedPlayer = mockPublicPlayerData(name: player.name, gender: player.gender, ntrp: player.ntrp)
-        }
+        )
     }
 }
 

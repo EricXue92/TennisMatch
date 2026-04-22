@@ -73,64 +73,22 @@ struct FollowerListView: View {
     private func followerRow(_ follower: FollowPlayer) -> some View {
         let isMutual = followStore.isFollowing(follower.name)
 
-        return HStack(spacing: Spacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(Theme.avatarPlaceholder)
-                    .frame(width: 48, height: 48)
-                Text(String(follower.name.prefix(1)))
-                    .font(.system(size: 18, weight: .bold))
-                    .foregroundColor(.white)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 4) {
-                    Text(follower.name)
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(Theme.textPrimary)
-                        .lineLimit(1)
-                    Text(follower.gender.symbol)
-                        .font(Typography.fieldValue)
-                        .foregroundColor(follower.gender == .female ? Theme.genderFemale : Theme.genderMale)
-                }
-                Text("NTRP \(follower.ntrp) · \(follower.latestActivity)")
-                    .font(Typography.small)
-                    .foregroundColor(Theme.textSecondary)
-            }
-
-            Spacer()
-
-            Button {
+        return FollowPlayerRow(
+            player: follower,
+            buttonLabel: isMutual ? "互相關注" : "關注",
+            isOutlineStyle: isMutual,
+            onButtonTap: {
                 if isMutual {
                     playerToUnfollow = follower
                     showUnfollowAlert = true
                 } else {
                     withAnimation { followStore.toggle(follower.name) }
                 }
-            } label: {
-                Text(isMutual ? "互相關注" : "關注")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(isMutual ? Theme.textBody : .white)
-                    .padding(.horizontal, Spacing.sm)
-                    .frame(height: 30)
-                    .background(isMutual ? .clear : Theme.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .overlay {
-                        if isMutual {
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Theme.inputBorder, lineWidth: 1)
-                        }
-                    }
-                    .frame(minWidth: 44, minHeight: 44)
+            },
+            onRowTap: {
+                selectedPlayer = mockPublicPlayerData(name: follower.name, gender: follower.gender, ntrp: follower.ntrp)
             }
-        }
-        .padding(Spacing.md)
-        .background(.white)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .contentShape(Rectangle())
-        .onTapGesture {
-            selectedPlayer = mockPublicPlayerData(name: follower.name, gender: follower.gender, ntrp: follower.ntrp)
-        }
+        )
     }
 }
 
