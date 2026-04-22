@@ -14,7 +14,7 @@ struct FollowerListView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            if mockFollowers.isEmpty {
+            if mockAllFollowers.isEmpty {
                 ContentUnavailableView(
                     "還沒有粉絲",
                     systemImage: "person.2.slash",
@@ -24,7 +24,7 @@ struct FollowerListView: View {
             } else {
                 ScrollView {
                     VStack(spacing: Spacing.sm) {
-                        ForEach(mockFollowers) { follower in
+                        ForEach(mockAllFollowers) { follower in
                             followerRow(follower)
                         }
                     }
@@ -55,7 +55,7 @@ struct FollowerListView: View {
         }
     }
 
-    private func followerRow(_ follower: FollowerPlayer) -> some View {
+    private func followerRow(_ follower: FollowPlayer) -> some View {
         let isMutual = followStore.isFollowing(follower.name)
 
         return HStack(spacing: Spacing.sm) {
@@ -128,38 +128,6 @@ struct FollowerListView: View {
         }
     }
 }
-
-// MARK: - Data
-
-private struct FollowerPlayer: Identifiable {
-    let id = UUID()
-    let name: String
-    let gender: Gender
-    let ntrp: String
-    let latestActivity: String
-}
-
-/// 18 位粉絲:前 12 位同時出現在 seedFollowing(互相關注),後 6 位為單向粉絲。
-private let mockFollowers: [FollowerPlayer] = [
-    FollowerPlayer(name: "莎莎", gender: .female, ntrp: "3.5", latestActivity: "剛發布了一場單打約球"),
-    FollowerPlayer(name: "王強", gender: .male, ntrp: "4.0", latestActivity: "報名了春季公開賽"),
-    FollowerPlayer(name: "小美", gender: .female, ntrp: "3.0", latestActivity: "3 天前活躍"),
-    FollowerPlayer(name: "志明", gender: .male, ntrp: "4.5", latestActivity: "1 週前活躍"),
-    FollowerPlayer(name: "大衛", gender: .male, ntrp: "4.0", latestActivity: "剛完成了一場雙打"),
-    FollowerPlayer(name: "嘉欣", gender: .female, ntrp: "3.5", latestActivity: "發布了九龍區雙打約球"),
-    FollowerPlayer(name: "陳教練", gender: .male, ntrp: "5.5", latestActivity: "分享了一篇訓練心得"),
-    FollowerPlayer(name: "艾美", gender: .female, ntrp: "3.0", latestActivity: "報名了階梯挑戰賽"),
-    FollowerPlayer(name: "Michael", gender: .male, ntrp: "5.0", latestActivity: "2 天前活躍"),
-    FollowerPlayer(name: "思慧", gender: .female, ntrp: "4.0", latestActivity: "獲得了「守時達人」成就"),
-    FollowerPlayer(name: "俊傑", gender: .male, ntrp: "4.0", latestActivity: "5 天前活躍"),
-    FollowerPlayer(name: "曉彤", gender: .female, ntrp: "2.5", latestActivity: "剛加入了平台"),
-    FollowerPlayer(name: "阿豪", gender: .male, ntrp: "3.5", latestActivity: "報名了雙打約球"),
-    FollowerPlayer(name: "麗莎", gender: .female, ntrp: "3.0", latestActivity: "1 天前活躍"),
-    FollowerPlayer(name: "張偉", gender: .male, ntrp: "4.5", latestActivity: "3 天前活躍"),
-    FollowerPlayer(name: "小琳", gender: .female, ntrp: "3.0", latestActivity: "剛發布了一場約球"),
-    FollowerPlayer(name: "阿杰", gender: .male, ntrp: "3.5", latestActivity: "報名了九龍區友誼賽"),
-    FollowerPlayer(name: "雅婷", gender: .female, ntrp: "4.0", latestActivity: "2 天前活躍"),
-]
 
 // MARK: - Preview
 

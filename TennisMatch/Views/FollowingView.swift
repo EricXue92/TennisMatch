@@ -10,12 +10,12 @@ import SwiftUI
 struct FollowingView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
-    @State private var playerToUnfollow: FollowedPlayer?
+    @State private var playerToUnfollow: FollowPlayer?
     @State private var showUnfollowAlert = false
     @State private var selectedPlayer: PublicPlayerData?
 
-    private var followedPlayers: [FollowedPlayer] {
-        mockFollowedPlayers.filter { followStore.isFollowing($0.name) }
+    private var followedPlayers: [FollowPlayer] {
+        mockMutualFollowPlayers.filter { followStore.isFollowing($0.name) }
     }
 
     var body: some View {
@@ -76,7 +76,7 @@ struct FollowingView: View {
         }
     }
 
-    private func playerRow(_ player: FollowedPlayer) -> some View {
+    private func playerRow(_ player: FollowPlayer) -> some View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
@@ -144,31 +144,6 @@ struct FollowingView: View {
         }
     }
 }
-
-// MARK: - Data
-
-private struct FollowedPlayer: Identifiable {
-    let id = UUID()
-    let name: String
-    let gender: Gender
-    let ntrp: String
-    let latestActivity: String
-}
-
-private let mockFollowedPlayers: [FollowedPlayer] = [
-    FollowedPlayer(name: "莎莎", gender: .female, ntrp: "3.5", latestActivity: "剛發布了一場單打約球"),
-    FollowedPlayer(name: "王強", gender: .male, ntrp: "4.0", latestActivity: "報名了春季公開賽"),
-    FollowedPlayer(name: "小美", gender: .female, ntrp: "3.0", latestActivity: "3 天前活躍"),
-    FollowedPlayer(name: "志明", gender: .male, ntrp: "4.5", latestActivity: "1 週前活躍"),
-    FollowedPlayer(name: "大衛", gender: .male, ntrp: "4.0", latestActivity: "剛完成了一場雙打"),
-    FollowedPlayer(name: "嘉欣", gender: .female, ntrp: "3.5", latestActivity: "發布了九龍區雙打約球"),
-    FollowedPlayer(name: "陳教練", gender: .male, ntrp: "5.5", latestActivity: "分享了一篇訓練心得"),
-    FollowedPlayer(name: "艾美", gender: .female, ntrp: "3.0", latestActivity: "報名了階梯挑戰賽"),
-    FollowedPlayer(name: "Michael", gender: .male, ntrp: "5.0", latestActivity: "2 天前活躍"),
-    FollowedPlayer(name: "思慧", gender: .female, ntrp: "4.0", latestActivity: "獲得了「守時達人」成就"),
-    FollowedPlayer(name: "俊傑", gender: .male, ntrp: "4.0", latestActivity: "5 天前活躍"),
-    FollowedPlayer(name: "曉彤", gender: .female, ntrp: "2.5", latestActivity: "剛加入了平台"),
-]
 
 // MARK: - Preview
 

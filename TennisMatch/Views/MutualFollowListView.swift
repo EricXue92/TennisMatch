@@ -10,13 +10,13 @@ import SwiftUI
 struct MutualFollowListView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
-    @State private var playerToUnfollow: MutualPlayer?
+    @State private var playerToUnfollow: FollowPlayer?
     @State private var showUnfollowAlert = false
     @State private var selectedPlayer: PublicPlayerData?
 
     /// 只顯示仍在 followStore.following 中的互關球友。
-    private var activeMutuals: [MutualPlayer] {
-        mockMutualPlayers.filter { followStore.isFollowing($0.name) }
+    private var activeMutuals: [FollowPlayer] {
+        mockMutualFollowPlayers.filter { followStore.isFollowing($0.name) }
     }
 
     var body: some View {
@@ -77,7 +77,7 @@ struct MutualFollowListView: View {
         }
     }
 
-    private func mutualRow(_ player: MutualPlayer) -> some View {
+    private func mutualRow(_ player: FollowPlayer) -> some View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
@@ -145,32 +145,6 @@ struct MutualFollowListView: View {
         }
     }
 }
-
-// MARK: - Data
-
-private struct MutualPlayer: Identifiable {
-    let id = UUID()
-    let name: String
-    let gender: Gender
-    let ntrp: String
-    let latestActivity: String
-}
-
-/// 12 位互相關注球友,與 FollowStore.seedFollowing 對齊。
-private let mockMutualPlayers: [MutualPlayer] = [
-    MutualPlayer(name: "莎莎", gender: .female, ntrp: "3.5", latestActivity: "剛發布了一場單打約球"),
-    MutualPlayer(name: "王強", gender: .male, ntrp: "4.0", latestActivity: "報名了春季公開賽"),
-    MutualPlayer(name: "小美", gender: .female, ntrp: "3.0", latestActivity: "3 天前活躍"),
-    MutualPlayer(name: "志明", gender: .male, ntrp: "4.5", latestActivity: "1 週前活躍"),
-    MutualPlayer(name: "大衛", gender: .male, ntrp: "4.0", latestActivity: "剛完成了一場雙打"),
-    MutualPlayer(name: "嘉欣", gender: .female, ntrp: "3.5", latestActivity: "發布了九龍區雙打約球"),
-    MutualPlayer(name: "陳教練", gender: .male, ntrp: "5.5", latestActivity: "分享了一篇訓練心得"),
-    MutualPlayer(name: "艾美", gender: .female, ntrp: "3.0", latestActivity: "報名了階梯挑戰賽"),
-    MutualPlayer(name: "Michael", gender: .male, ntrp: "5.0", latestActivity: "2 天前活躍"),
-    MutualPlayer(name: "思慧", gender: .female, ntrp: "4.0", latestActivity: "獲得了「守時達人」成就"),
-    MutualPlayer(name: "俊傑", gender: .male, ntrp: "4.0", latestActivity: "5 天前活躍"),
-    MutualPlayer(name: "曉彤", gender: .female, ntrp: "2.5", latestActivity: "剛加入了平台"),
-]
 
 // MARK: - Preview
 
