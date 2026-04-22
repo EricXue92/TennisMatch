@@ -9,6 +9,7 @@ import SwiftUI
 
 struct AchievementsView: View {
     @Environment(\.dismiss) private var dismiss
+    @State private var selectedBadge: Achievement?
 
     private let columns = [
         GridItem(.flexible()),
@@ -26,6 +27,7 @@ struct AchievementsView: View {
                 LazyVGrid(columns: columns, spacing: Spacing.md) {
                     ForEach(mockAchievements) { badge in
                         achievementBadge(badge)
+                            .onTapGesture { selectedBadge = badge }
                     }
                 }
             }
@@ -33,6 +35,10 @@ struct AchievementsView: View {
             .padding(.vertical, Spacing.md)
         }
         .background(Theme.background)
+        .sheet(item: $selectedBadge) { badge in
+            badgeDetailSheet(badge)
+                .presentationDetents([.medium])
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -80,12 +86,79 @@ struct AchievementsView: View {
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(badge.unlocked ? 0.06 : 0.02), radius: 4, y: 1)
     }
+
+    // MARK: - Badge Detail Sheet
+
+    private func badgeDetailSheet(_ badge: Achievement) -> some View {
+        VStack(spacing: Spacing.md) {
+            Spacer().frame(height: Spacing.md)
+
+            // 大圖示
+            ZStack {
+                Circle()
+                    .fill(badge.unlocked ? Theme.primaryLight : Theme.surfaceMuted)
+                    .frame(width: 96, height: 96)
+                Text(badge.icon)
+                    .font(.system(size: 48))
+                    .opacity(badge.unlocked ? 1 : 0.4)
+            }
+
+            // 名稱
+            Text(badge.name)
+                .font(.system(size: 20, weight: .bold))
+                .foregroundColor(Theme.textPrimary)
+
+            // 說明
+            Text(badge.description)
+                .font(Typography.fieldValue)
+                .foregroundColor(Theme.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, Spacing.lg)
+
+            // 狀態標籤
+            Text(badge.unlocked ? "已解鎖" : "未解鎖")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(badge.unlocked ? Theme.primary : Theme.textSecondary)
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.xs)
+                .background(
+                    RoundedRectangle(cornerRadius: 8, style: .continuous)
+                        .fill(badge.unlocked ? Theme.primaryLight : Theme.surfaceMuted)
+                )
+
+            Spacer()
+
+            // 關閉按鈕
+            Button {
+                selectedBadge = nil
+            } label: {
+                Text("關閉")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 48)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            }
+            .padding(.horizontal, Spacing.lg)
+            .padding(.bottom, Spacing.lg)
+        }
+    }
 }
 
 // MARK: - Data
 
-private struct Achievement: Identifiable {
+private struct Achievement: Identifiable, Hashable {
     let id = UUID()
+
+    // Hashable 基於內容而非 UUID，確保同一 badge 可正確比對
+    static func == (lhs: Achievement, rhs: Achievement) -> Bool {
+        lhs.icon == rhs.icon && lhs.name == rhs.name
+    }
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(icon)
+        hasher.combine(name)
+    }
     let icon: String
     let name: String
     let description: String
