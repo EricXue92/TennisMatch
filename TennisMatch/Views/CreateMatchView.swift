@@ -201,7 +201,7 @@ struct CreateMatchView: View {
                     .datePickerStyle(.graphical)
                     .tint(Theme.primary)
                     .onChange(of: selectedDate) { _, _ in
-                        _dateWasEdited = true
+                        dateWasEdited = true
                         showDatePicker = false
                     }
             }
@@ -270,17 +270,17 @@ struct CreateMatchView: View {
                 .pickerStyle(.wheel)
                 .labelsHidden()
                 .onChange(of: selectedStartTime) { _, newValue in
-                    _startTimeEdited = true
+                    startTimeEdited = true
                     if selectedEndTime <= newValue {
                         if let idx = timeSlots.firstIndex(of: newValue), idx + 1 < timeSlots.count {
                             selectedEndTime = timeSlots[idx + 1]
-                            _endTimeEdited = true
+                            endTimeEdited = true
                         }
                     }
                     let dismissId = UUID()
-                    _startTimeDismissId = dismissId
+                    startTimeDismissId = dismissId
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if _startTimeDismissId == dismissId {
+                        if startTimeDismissId == dismissId {
                             showStartTimePicker = false
                         }
                     }
@@ -296,11 +296,11 @@ struct CreateMatchView: View {
                 .pickerStyle(.wheel)
                 .labelsHidden()
                 .onChange(of: selectedEndTime) { _, _ in
-                    _endTimeEdited = true
+                    endTimeEdited = true
                     let dismissId = UUID()
-                    _endTimeDismissId = dismissId
+                    endTimeDismissId = dismissId
                     DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                        if _endTimeDismissId == dismissId {
+                        if endTimeDismissId == dismissId {
                             showEndTimePicker = false
                         }
                     }
@@ -309,18 +309,14 @@ struct CreateMatchView: View {
         }
     }
 
-    @State private var _dateWasEdited = false
-    @State private var _startTimeEdited = false
-    @State private var _endTimeEdited = false
-    @State private var _startTimeDismissId = UUID()
-    @State private var _endTimeDismissId = UUID()
-
-    private var dateWasEdited: Bool { _dateWasEdited }
-    private var startTimeEdited: Bool { _startTimeEdited }
-    private var endTimeEdited: Bool { _endTimeEdited }
+    @State private var dateWasEdited = false
+    @State private var startTimeEdited = false
+    @State private var endTimeEdited = false
+    @State private var startTimeDismissId = UUID()
+    @State private var endTimeDismissId = UUID()
 
     private var dateFormatted: String {
-        if !_dateWasEdited { return "選擇日期" }
+        if !dateWasEdited { return "選擇日期" }
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd"
         return formatter.string(from: selectedDate)
@@ -651,9 +647,9 @@ struct CreateMatchView: View {
     private var confirmDateText: String {
         let formatter = DateFormatter()
         formatter.dateFormat = "MM/dd"
-        let dateStr = _dateWasEdited ? formatter.string(from: selectedDate) : "未選擇"
-        let startStr = _startTimeEdited ? selectedStartTime : "--:--"
-        let endStr = _endTimeEdited ? selectedEndTime : "--:--"
+        let dateStr = dateWasEdited ? formatter.string(from: selectedDate) : "未選擇"
+        let startStr = startTimeEdited ? selectedStartTime : "--:--"
+        let endStr = endTimeEdited ? selectedEndTime : "--:--"
         return "\(dateStr)  \(startStr) ~ \(endStr)"
     }
 
