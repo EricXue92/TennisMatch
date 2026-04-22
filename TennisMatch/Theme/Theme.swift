@@ -33,6 +33,7 @@ enum Theme {
     // MARK: - Badge
     static let requiredBg    = Color(hex: 0xFFEDED)
     static let requiredText  = Color(hex: 0xE34545)
+    static let badge         = requiredText          // 通知小红点
     static let optionalBg    = Color(hex: 0xF0F5F7)
 
     // MARK: - Tag

@@ -246,7 +246,7 @@ struct HomeView: View {
                             .font(.system(size: 11, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 16, height: 16)
-                            .background(Color.red)
+                            .background(Theme.badge)
                             .clipShape(Circle())
                             .offset(x: 8, y: -4)
                     }
@@ -408,7 +408,7 @@ private extension HomeView {
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.white)
                         .frame(width: 20, height: 20)
-                        .background(Color.red)
+                        .background(Theme.badge)
                         .clipShape(Circle())
                 }
             }
@@ -443,7 +443,7 @@ private extension HomeView {
                         .frame(width: 44, height: 44)
                         .overlay(alignment: .topTrailing) {
                             Circle()
-                                .fill(Color.red)
+                                .fill(Theme.badge)
                                 .frame(width: 8, height: 8)
                                 .offset(x: 2, y: 6)
                         }
@@ -665,7 +665,7 @@ private extension HomeView {
                             .font(.system(size: 10, weight: .bold))
                             .foregroundColor(.white)
                             .frame(width: 16, height: 16)
-                            .background(Color.red)
+                            .background(Theme.badge)
                             .clipShape(Circle())
                     }
                 }
