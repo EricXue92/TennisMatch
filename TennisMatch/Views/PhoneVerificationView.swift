@@ -189,6 +189,7 @@ struct PhoneVerificationView: View {
     private var actionSection: some View {
         VStack(spacing: Spacing.md) {
             Button {
+                guard code.count == codeLength else { return }
                 showRegister = true
             } label: {
                 Text("驗證並登入")
@@ -196,9 +197,10 @@ struct PhoneVerificationView: View {
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(Theme.primary)
+                    .background(code.count == codeLength ? Theme.primary : Theme.chipUnselectedBg)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .disabled(code.count != codeLength)
 
             HStack(spacing: 0) {
                 Text("沒有收到驗證碼？")
