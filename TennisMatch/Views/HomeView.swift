@@ -100,6 +100,7 @@ struct HomeView: View {
             NavigationStack {
                 CreateMatchView(onPublish: { info in
                     addPublishedMatch(info)
+                    conflictToast = "約球已成功發布 🎾"
                 })
             }
         }
