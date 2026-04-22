@@ -7,6 +7,17 @@
 
 import SwiftUI
 
+// MARK: - Login Navigation Destination
+
+/// 統一的導航目標，避免多個 isPresented 布爾狀態引發的 NavigationStack 衝突。
+private enum LoginDestination: Hashable {
+    case phoneInput
+    case helpView
+    case register
+    case terms
+    case privacy
+}
+
 // MARK: - Login View
 
 struct LoginView: View {
@@ -14,12 +25,9 @@ struct LoginView: View {
     @State private var appeared = false
     @State private var ballFloat = false
     @State private var glowPulse = false
-    @State private var showPhoneInput = false
-    @State private var showHelpView = false
     @State private var toastMessage: String?
-    @State private var showRegister = false
-    @State private var showTerms = false
-    @State private var showPrivacy = false
+    /// 當前激活的導航目標；nil 表示不跳轉。
+    @State private var activeDestination: LoginDestination?
 
     // MARK: Theme
     private let bgTop      = Theme.loginBgTop
@@ -58,20 +66,16 @@ struct LoginView: View {
         .onAppear(perform: startAnimations)
         .toolbar(.hidden, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
-        .navigationDestination(isPresented: $showPhoneInput) {
-            PhoneInputView()
-        }
-        .navigationDestination(isPresented: $showHelpView) {
-            HelpView()
-        }
-        .navigationDestination(isPresented: $showRegister) {
-            EmailRegisterView()
-        }
-        .navigationDestination(isPresented: $showTerms) {
-            TermsView()
-        }
-        .navigationDestination(isPresented: $showPrivacy) {
-            PrivacyPolicyView()
+        // 單一 navigationDestination 取代原先 5 個 isPresented 布爾值，
+        // 避免 NavigationStack 同時存在多個 destination 修飾符導致的競態問題。
+        .navigationDestination(item: $activeDestination) { destination in
+            switch destination {
+            case .phoneInput: PhoneInputView()
+            case .helpView:   HelpView()
+            case .register:   EmailRegisterView()
+            case .terms:      TermsView()
+            case .privacy:    PrivacyPolicyView()
+            }
         }
         .overlay(alignment: .top) {
             if let msg = toastMessage {
@@ -165,7 +169,7 @@ struct LoginView: View {
                 bg: chartreuse,
                 fg: bgTop,
                 delay: 0.50,
-                action: { showPhoneInput = true }
+                action: { activeDestination = .phoneInput }
             )
 
             // WeChat
@@ -233,14 +237,14 @@ struct LoginView: View {
             HStack(spacing: 0) {
                 Text("登入即表示您同意 ")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: { showTerms = true }) {
+                Button(action: { activeDestination = .terms }) {
                     Text("服務條款")
                         .foregroundColor(sage)
                         .underline()
                 }
                 Text(" 和 ")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: { showPrivacy = true }) {
+                Button(action: { activeDestination = .privacy }) {
                     Text("隱私政策")
                         .foregroundColor(sage)
                         .underline()
@@ -251,7 +255,7 @@ struct LoginView: View {
             HStack(spacing: 3) {
                 Text("還沒有帳號？")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: { showRegister = true }) {
+                Button(action: { activeDestination = .register }) {
                     Text("立即註冊")
                         .foregroundColor(chartreuse)
                         .underline()
@@ -262,7 +266,7 @@ struct LoginView: View {
             HStack(spacing: 3) {
                 Text("需要幫助？")
                     .foregroundColor(sage.opacity(0.55))
-                Button(action: { showHelpView = true }) {
+                Button(action: { activeDestination = .helpView }) {
                     Text("聯繫客服")
                         .foregroundColor(chartreuse.opacity(0.6))
                 }
