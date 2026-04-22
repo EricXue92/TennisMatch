@@ -231,11 +231,11 @@ struct HomeView: View {
 
     private var customTabBar: some View {
         HStack(spacing: 0) {
-            tabBarItem(icon: "🎯", label: "首頁", tag: 0)
-            tabBarItem(icon: "🗓", label: "我的約球", tag: 1)
+            tabBarItem(icon: "house.fill", label: "首頁", tag: 0)
+            tabBarItem(icon: "calendar", label: "我的約球", tag: 1)
             centerTabButton
-            tabBarItem(icon: "💬", label: "聊天", tag: 3, badgeCount: chatUnreadCount)
-            tabBarItem(icon: "👤", label: "我的", tag: 4)
+            tabBarItem(icon: "message.fill", label: "聊天", tag: 3, badgeCount: chatUnreadCount)
+            tabBarItem(icon: "person.fill", label: "我的", tag: 4)
         }
         .padding(.top, Spacing.sm)
         .padding(.bottom, Spacing.xl)
@@ -253,7 +253,7 @@ struct HomeView: View {
         } label: {
             VStack(spacing: 4) {
                 ZStack(alignment: .topTrailing) {
-                    Text(icon)
+                    Image(systemName: icon)
                         .font(.system(size: 20))
                     if badgeCount > 0 {
                         Text("\(badgeCount)")
