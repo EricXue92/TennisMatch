@@ -305,7 +305,7 @@ private enum TagStyle { case gray, colored }
 struct TournamentDetailView: View {
     let tournament: MockTournament
     @Environment(\.dismiss) private var dismiss
-    @State private var isFollowing = false
+    @Environment(FollowStore.self) private var followStore
     @State private var isSignedUp = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
@@ -510,14 +510,14 @@ private extension TournamentDetailView {
                 Spacer()
 
                 Button {
-                    withAnimation { isFollowing.toggle() }
+                    withAnimation { followStore.toggle(tournament.organizer) }
                 } label: {
-                    Text(isFollowing ? "已關注" : "關注")
+                    Text(followStore.isFollowing(tournament.organizer) ? "已關注" : "關注")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(isFollowing ? .white : Theme.textDark)
+                        .foregroundColor(followStore.isFollowing(tournament.organizer) ? .white : Theme.textDark)
                         .padding(.horizontal, 14)
                         .frame(height: 44)
-                        .background(isFollowing ? Theme.primary : Theme.chipBg)
+                        .background(followStore.isFollowing(tournament.organizer) ? Theme.primary : Theme.chipBg)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
@@ -1012,9 +1012,11 @@ let mockTournaments: [MockTournament] = [
 #Preview("iPhone SE") {
     TournamentView()
         .environment(UserStore())
+        .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     TournamentView()
         .environment(UserStore())
+        .environment(FollowStore())
 }
