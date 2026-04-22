@@ -9,6 +9,8 @@ import SwiftUI
 
 struct ReviewsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(RatingFeedbackStore.self) private var ratingFeedbackStore
+    @Environment(UserStore.self) private var userStore
     @State private var selectedTab = "收到的評價"
     @State private var pendingReviews: [PendingReview] = mockPendingReviews
     @State private var reviewTarget: PendingReview?
@@ -78,6 +80,22 @@ struct ReviewsView: View {
                     rating: $reviewRating,
                     text: $reviewText,
                     onSubmit: {
+                        // 模擬對手回評：根據用戶給的星級推算對手對自己 NTRP 的估計
+                        let ntrpEstimate: Double = {
+                            let base = userStore.ntrpLevel
+                            switch reviewRating {
+                            case 5: return base + 0.5
+                            case 4: return base
+                            case 3: return base - 0.5
+                            case 2: return base - 1.0
+                            default: return base - 1.5
+                            }
+                        }()
+                        ratingFeedbackStore.recordPeerRating(
+                            reviewer: target.name,
+                            ntrpEstimate: min(max(ntrpEstimate, 1.0), 7.0)
+                        )
+
                         withAnimation {
                             pendingReviews.removeAll { $0.id == target.id }
                         }
@@ -319,10 +337,14 @@ private let mockPendingReviews: [PendingReview] = [
     NavigationStack {
         ReviewsView()
     }
+    .environment(RatingFeedbackStore())
+    .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         ReviewsView()
     }
+    .environment(RatingFeedbackStore())
+    .environment(UserStore())
 }
