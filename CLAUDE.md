@@ -1,65 +1,55 @@
 # CLAUDE.md
 
-## 项目
+## 项目概述
 
-Let's Tennis — iOS 网球约球 App。SwiftUI，iOS 26+
+**项目名称**:Let'stennis(网球约球App)
+**平台**:iOS(原生)
+**技术栈**: Swift / SwiftUI
+**当前阶段**:前端UI完成,正在进行功能实现与逻辑测试
+**开发者**:个人项目
 
-## 构建 & 运行
+## 产品定位
 
-- 用 Xcode 打开 `TennisMatch.xcodeproj`
-- Scheme: `TennisMatch`，模拟器运行即可
-- 入口: `TennisMatchApp.swift` → 当前加载 `HomeView`
+一款面向业余网球爱好者的约球社交App,核心解决"找不到水平匹配的球友"这一痛点。
 
-## 目录结构
+**目标用户**:
+- NTRP 2.5–4.5 水平的业余玩家
+- 有固定球场资源或愿意寻找球场的用户
+- 需要匹配同水平球友的社交需求
+
+**核心价值**:快速匹配 + 水平可信 + 场地可约
+
+## 核心功能模块
+
+1. **用户系统**:注册/登录、个人资料、NTRP自评与认证
+2. **发布约球**:时间、地点、人数、水平要求
+3. **匹配系统**:按水平/地点/时间匹配球友
+4. **社交互动**:球友列表、战绩记录、消息聊天
+5. **评级体系**:赛后互评、水平进阶
 
 ```
-TennisMatch/
-├── TennisMatchApp.swift   # App 入口
-├── Theme/                 # 设计 token
-│   ├── Theme.swift        # 颜色
-│   ├── Typography.swift   # 字体
-│   └── Spacing.swift      # 间距
-├── Views/                 # 所有页面（每页一个文件）
-├── Components/            # 可复用组件（待填充）
-├── Models/                # 数据模型（待填充）
-└── Assets.xcassets        # 图片资源
-```
 
-## 核心规则
+## 开发规范
 
-1. **响应式布局**，适配 iPhone SE → 17 Pro Max
-   - 宽度用 `.frame(maxWidth: .infinity)`，不写死 393
-   - 内间距/圆角/字号保留 pt 值
+- **SwiftUI 优先**:新页面默认 SwiftUI,除非有强需求才用 UIKit
+- **状态管理**:优先 `@Observable`(iOS 17+)/ `@State` / `@Binding`,复杂状态抽 ViewModel
+- **异步**:统一用 `async/await`,避免 completion handler
+- **命名**:类型 PascalCase,变量/函数 camelCase
+- **避免强解包**:禁止 `try!` 和 `!` 强解包,除非有明确理由
+- **中文注释**:业务逻辑用中文注释,API/技术细节可用英文
 
-2. **禁止硬编码设计值**
-   - 颜色 → `Theme.swift`
-   - 字体 → `Typography.swift`
-   - 间距 → `Spacing.swift`（8 的倍数）
+### 常见协作模式
 
-3. **iOS HIG**
-   - 最小点击区 44pt
-   - 图标优先 SF Symbols
-   - 导航用 `NavigationStack`，滚动用 `ScrollView`
+- **UX测试**:扮演不同用户(新手/老手/误操作)走流程,找卡点
+- **逻辑review**:重点看业务逻辑漏洞、边界case
+- **实现功能**:先给方案 + 关键代码,我确认后再完整实现
+- **修bug**:先定位原因,说清楚再改
 
-4. **每个 View 必须**
-   - 提供至少 2 个机型的 `#Preview`（iPhone SE + iPhone 15 Pro）
-   - 使用 mock 数据，不接网络
+### 关键边界 case(实现时务必覆盖)
+- [ ] 发布者临时取消:通知所有报名者
+- [ ] 人数不足开场时间:默认自动取消 or 发起者决定
+- [ ] 用户连续爽约:降低信用分,影响匹配优先级
+- [ ] 场地冲突:同一时间不能重复报名
+- [ ] 评级偏差:自评与实际差距大时触发校准提示
+- [ ] 时间已过期的约球:不能再报名/修改
 
-5. **组件复用**
-   - 多处复用 → 抽到 `Components/`
-   - 单页面内子视图 → 同文件 `private struct`
-
-## 禁止
-
-- ❌ 一次做 3 个以上页面
-- ❌ 硬编码颜色/字体/间距
-- ❌ 改 `.xcodeproj` 文件
-- ❌ 加第三方依赖
-- ❌ 删除/重命名现有文件
-
-## SwiftUI 避坑（iOS 26+）
-
-- ❌ `Text("A") + Text("B")` → ✅ `Text("A\(Text("B").bold())")`
-- ❌ `.onChange(of: x) { newValue in }` → ✅ `.onChange(of: x) { oldValue, newValue in }`
-- ❌ `#Preview { ... .previewDevice("iPhone 15 Pro") }` → ✅ 直接用 Canvas 设备选择器
-- ❌ `.preferredColorScheme(.dark)` 在子视图（会污染整个窗口）→ ✅ `.toolbarColorScheme(.dark, for: .navigationBar)` 只控制导航栏

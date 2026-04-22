@@ -16,17 +16,12 @@ struct BlockListView: View {
     var body: some View {
         VStack(spacing: 0) {
             if blockedUsers.isEmpty {
-                VStack(spacing: Spacing.sm) {
-                    Spacer()
-                    Image(systemName: "person.crop.circle.badge.checkmark")
-                        .font(.system(size: 40))
-                        .foregroundColor(Theme.textSecondary)
-                    Text("沒有封鎖的用戶")
-                        .font(.system(size: 15))
-                        .foregroundColor(Theme.textSecondary)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
+                ContentUnavailableView(
+                    "沒有封鎖的用戶",
+                    systemImage: "person.crop.circle.badge.checkmark",
+                    description: Text("被你封鎖的用戶會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 List {
                     ForEach(blockedUsers) { user in

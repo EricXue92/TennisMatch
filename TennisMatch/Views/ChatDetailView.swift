@@ -22,6 +22,13 @@ struct ChatDetailView: View {
     @State private var selectedPhotoData: Data?
     @State private var showChatMenu = false
     @State private var didSeedInitialMessage = false
+    /// Lets the user clear the sign-up-success context card. Once dismissed
+    /// for this session, the card does not re-appear on re-entry to the chat.
+    @State private var matchContextDismissed = false
+    @State private var isMuted = false
+    @State private var chatMenuToast: String?
+    @State private var showBlockAlert = false
+    @State private var selectedPlayer: PublicPlayerData?
 
     private var chatTitle: String {
         switch chat.type {
@@ -33,6 +40,16 @@ struct ChatDetailView: View {
     private var organizerName: String {
         switch chat.type {
         case .match(let title, _):
+            // Match titles come in two shapes:
+            //   A) "{organizerName} 發起的{matchType}"  (created via MyMatchesView)
+            //   B) "{location} {matchType}"            (mock chats in MessagesView,
+            //      no organizer encoded — fall through)
+            // Using " 發起的" as the splitter tolerates organizer names that
+            // themselves contain spaces (e.g. "小 明"), which breaks a naive
+            // first-whitespace split.
+            if let range = title.range(of: " 發起的") {
+                return String(title[..<range.lowerBound])
+            }
             return title.components(separatedBy: " ").first ?? title
         case .personal(let name, _, _):
             return name
@@ -60,8 +77,13 @@ struct ChatDetailView: View {
     private var allMessages: [ChatBubble] {
         var messages: [ChatBubble] = []
         if let context = matchContext {
-            // From sign-up success → show match info as context, no generic mock messages
-            messages.append(ChatBubble(.systemMessage(context)))
+            // From sign-up success → show match info as context, no generic mock messages.
+            // Dismissing hides the banner but keeps the empty-chat-above-input feel
+            // (we intentionally do NOT fall through to mock messages on dismiss, otherwise
+            // pre-existing mock chat would suddenly appear).
+            if !matchContextDismissed {
+                messages.append(ChatBubble(.systemMessage(context)))
+            }
         } else {
             for msg in mockMessages {
                 messages.append(msg)
@@ -150,26 +172,36 @@ struct ChatDetailView: View {
             switch chat.type {
             case .match:
                 Button("查看約球詳情") {
-                    // TODO: navigate to MatchDetailView
+                    chatMenuToast = "約球詳情 即將推出"
                 }
                 Button("查看群成員") {
-                    // TODO: show members
+                    chatMenuToast = "群成員列表 即將推出"
                 }
-                Button("靜音通知") {
-                    // TODO: toggle mute
+                Button(isMuted ? "取消靜音" : "靜音通知") {
+                    isMuted.toggle()
+                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
                 }
                 Button("退出群聊", role: .destructive) {
                     dismiss()
                 }
             case .personal(let name, _, _):
                 Button("查看 \(name) 的資料") {
-                    // TODO: navigate to PublicProfileView
+                    selectedPlayer = PublicPlayerData(
+                        name: name,
+                        gender: .male,
+                        ntrp: "3.5",
+                        reputation: 88,
+                        matchCount: 20,
+                        bio: "熱愛網球",
+                        recentMatches: []
+                    )
                 }
-                Button("靜音通知") {
-                    // TODO: toggle mute
+                Button(isMuted ? "取消靜音" : "靜音通知") {
+                    isMuted.toggle()
+                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
                 }
                 Button("封鎖對方", role: .destructive) {
-                    // TODO: block
+                    showBlockAlert = true
                 }
                 Button("刪除聊天", role: .destructive) {
                     dismiss()
@@ -177,6 +209,43 @@ struct ChatDetailView: View {
             }
             Button("取消", role: .cancel) {}
         }
+        .alert("封鎖用戶", isPresented: $showBlockAlert) {
+            Button("取消", role: .cancel) {}
+            Button("確認封鎖", role: .destructive) {
+                dismiss()
+            }
+        } message: {
+            if case .personal(let name, _, _) = chat.type {
+                Text("封鎖「\(name)」後，對方將無法查看你的資料和約球，也無法向你發送私信。")
+            } else {
+                Text("封鎖後對方將無法再聯絡你。")
+            }
+        }
+        .navigationDestination(item: $selectedPlayer) { player in
+            PublicProfileView(player: player)
+        }
+        .overlay(alignment: .top) {
+            if let text = chatMenuToast {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "info.circle.fill").foregroundColor(.white)
+                    Text(text)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.white)
+                }
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Capsule().fill(Theme.textBody))
+                .transition(.move(edge: .top).combined(with: .opacity))
+                .padding(.top, Spacing.lg)
+                .task(id: text) {
+                    try? await Task.sleep(nanoseconds: 2_200_000_000)
+                    if chatMenuToast == text {
+                        withAnimation { chatMenuToast = nil }
+                    }
+                }
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: chatMenuToast)
     }
 
     // MARK: - Message Routing
@@ -278,26 +347,43 @@ struct ChatDetailView: View {
 
     private func systemMessageBubble(_ text: String) -> some View {
         let isMatchContext = text.contains("約球已確認") || text.contains("賽事報名確認") || text.contains("已接受約球邀請")
+        // Only the sign-up-success context card (passed via `matchContext`) is
+        // dismissible — the auto-generated "約球已確認" inline banners are not.
+        let isDismissible = isMatchContext && matchContext != nil && text == matchContext
         return HStack {
             Spacer()
             if isMatchContext {
-                VStack(alignment: .leading, spacing: 6) {
-                    ForEach(text.components(separatedBy: "\n"), id: \.self) { line in
-                        Text(line)
-                            .font(.system(size: 13, weight: line == text.components(separatedBy: "\n").first ? .bold : .regular))
-                            .foregroundColor(Theme.textDark)
+                ZStack(alignment: .topTrailing) {
+                    VStack(alignment: .leading, spacing: 6) {
+                        ForEach(text.components(separatedBy: "\n"), id: \.self) { line in
+                            Text(line)
+                                .font(.system(size: 13, weight: line == text.components(separatedBy: "\n").first ? .bold : .regular))
+                                .foregroundColor(Theme.textDark)
+                        }
+                    }
+                    .padding(Spacing.md)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Theme.confirmedBg)
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(Theme.primary.opacity(0.3), lineWidth: 1)
+                    )
+
+                    if isDismissible {
+                        Button {
+                            withAnimation { matchContextDismissed = true }
+                        } label: {
+                            Image(systemName: "xmark")
+                                .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(Theme.textHint)
+                                .frame(width: 28, height: 28)
+                        }
+                        .accessibilityLabel("關閉")
                     }
                 }
-                .padding(Spacing.md)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .fill(Theme.confirmedBg)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12, style: .continuous)
-                        .stroke(Theme.primary.opacity(0.3), lineWidth: 1)
-                )
             } else {
                 Text(text)
                     .font(.system(size: 12, weight: .medium))

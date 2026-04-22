@@ -21,17 +21,12 @@ struct FollowingView: View {
     var body: some View {
         VStack(spacing: 0) {
             if followedPlayers.isEmpty {
-                VStack(spacing: Spacing.sm) {
-                    Spacer()
-                    Image(systemName: "person.2.slash")
-                        .font(.system(size: 40))
-                        .foregroundColor(Theme.textSecondary)
-                    Text("還沒有關注的球友")
-                        .font(.system(size: 15))
-                        .foregroundColor(Theme.textSecondary)
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
+                ContentUnavailableView(
+                    "還沒有關注的球友",
+                    systemImage: "person.2.slash",
+                    description: Text("關注喜歡的球友後，會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     VStack(spacing: Spacing.sm) {
