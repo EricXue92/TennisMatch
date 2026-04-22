@@ -147,16 +147,17 @@ private extension MatchDetailView {
                     withAnimation { followStore.toggle(match.name) }
                 } label: {
                     let following = followStore.isFollowing(match.name)
+                    // 未關注 → 綠色實心(與 HomeView 推薦卡片一致);已關注 → 透明邊框
                     Text(following ? "已關注" : "關注")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(following ? .white : Theme.textDark)
+                        .foregroundColor(following ? Theme.primary : .white)
                         .frame(width: 60, height: 44)
-                        .background(following ? Theme.primary : .clear)
+                        .background(following ? .clear : Theme.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
-                            if !following {
+                            if following {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Theme.borderMuted, lineWidth: 1)
+                                    .stroke(Theme.primary, lineWidth: 1)
                             }
                         }
                 }
