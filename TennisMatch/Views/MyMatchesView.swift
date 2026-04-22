@@ -15,11 +15,11 @@ struct MyMatchesView: View {
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
     @State private var showCancelAlert = false
-    @State private var showCancelledToast = false
     @State private var showManageSheet = false
     @State private var matchToManage: MyMatchItem?
-    @State private var showRejectToast = false
-    @State private var comingSoonMessage: String?
+    /// Single-slot toast so cancel / reject / coming-soon can't visually stack.
+    /// New toasts replace the current one instead of queueing on top.
+    @State private var toast: ToastMessage?
     /// Stable content keys (inviter|type|details|time) of rejected invitations,
     /// JSON-encoded and persisted via @AppStorage so rejections survive app
     /// restarts. UUIDs change each launch with mock data, so we key by content.
@@ -150,7 +150,7 @@ struct MyMatchesView: View {
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
-                    showCancelledToast = true
+                    toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
                 }
                 matchToCancel = nil
             }
@@ -161,13 +161,13 @@ struct MyMatchesView: View {
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
             Button("編輯約球") {
-                comingSoonMessage = "編輯約球功能即將推出"
+                toast = .init(kind: .info, text: "編輯約球功能即將推出")
             }
             Button("查看報名者") {
-                comingSoonMessage = "查看報名者功能即將推出"
+                toast = .init(kind: .info, text: "查看報名者功能即將推出")
             }
             Button("關閉報名") {
-                comingSoonMessage = "關閉報名功能即將推出"
+                toast = .init(kind: .info, text: "關閉報名功能即將推出")
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
@@ -178,34 +178,11 @@ struct MyMatchesView: View {
             Text(match.title)
         }
         .overlay(alignment: .top) {
-            if showCancelledToast {
+            if let current = toast {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: current.kind.icon)
                         .foregroundColor(.white)
-                    Text("已取消約球，已通知所有參與者")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(
-                    Capsule().fill(Theme.textBody)
-                )
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        withAnimation { showCancelledToast = false }
-                    }
-                }
-            }
-        }
-        .overlay(alignment: .top) {
-            if showRejectToast {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.white)
-                    Text("已拒絕邀請")
+                    Text(current.text)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white)
                 }
@@ -214,34 +191,17 @@ struct MyMatchesView: View {
                 .background(Capsule().fill(Theme.textBody))
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { showRejectToast = false }
+                .task(id: current.id) {
+                    try? await Task.sleep(nanoseconds: 2_200_000_000)
+                    // Only clear if this is still the active toast — a newer
+                    // toast with a different id will have its own task.
+                    if toast?.id == current.id {
+                        withAnimation { toast = nil }
                     }
                 }
             }
         }
-        .overlay(alignment: .top) {
-            if let message = comingSoonMessage {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "hourglass")
-                        .foregroundColor(.white)
-                    Text(message)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(Capsule().fill(Theme.textBody))
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { comingSoonMessage = nil }
-                    }
-                }
-            }
-        }
+        .animation(.easeInOut(duration: 0.2), value: toast?.id)
         .fullScreenCover(isPresented: $showAcceptSuccess, onDismiss: {
             if let inv = pendingDMContact {
                 dmChat = MockChat(
@@ -504,7 +464,7 @@ private extension MyMatchesView {
                     withAnimation {
                         persistRejection(invitation)
                     }
-                    showRejectToast = true
+                    toast = .init(kind: .warning, text: "已拒絕邀請")
                 } label: {
                     Text("拒絕")
                         .font(.system(size: 11, weight: .medium))
@@ -916,6 +876,26 @@ private struct InvitationAcceptSuccessView: View {
             )
         }
     }
+}
+
+// MARK: - Toast Model
+
+/// One-slot toast payload. `id` lets SwiftUI's `.task(id:)` cancel the
+/// auto-dismiss of a previous toast when a new one replaces it.
+private struct ToastMessage: Equatable, Identifiable {
+    enum Kind {
+        case success, warning, info
+        var icon: String {
+            switch self {
+            case .success: return "checkmark.circle.fill"
+            case .warning: return "xmark.circle.fill"
+            case .info:    return "hourglass"
+            }
+        }
+    }
+    let id = UUID()
+    let kind: Kind
+    let text: String
 }
 
 // MARK: - Preview
