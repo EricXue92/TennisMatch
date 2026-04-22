@@ -87,8 +87,8 @@ private extension TournamentView {
             Button {
                 dismiss()
             } label: {
-                Text("←")
-                    .font(.system(size: 22))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundColor(Theme.textPrimary)
                     .frame(width: 44, height: 44)
             }
@@ -334,8 +334,8 @@ struct TournamentDetailView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("←")
-                        .font(.system(size: 22))
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                 }
             }

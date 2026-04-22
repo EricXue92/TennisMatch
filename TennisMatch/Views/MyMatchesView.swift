@@ -20,7 +20,10 @@ struct MyMatchesView: View {
     @State private var matchToManage: MyMatchItem?
     @State private var showRejectToast = false
     @State private var comingSoonMessage: String?
-    @State private var rejectedInvitations: Set<UUID> = []
+    /// Stable content keys (inviter|type|details|time) of rejected invitations,
+    /// JSON-encoded and persisted via @AppStorage so rejections survive app
+    /// restarts. UUIDs change each launch with mock data, so we key by content.
+    @AppStorage("rejectedInvitationKeys") private var rejectedInvitationKeysJSON: String = "[]"
     @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
@@ -36,8 +39,30 @@ struct MyMatchesView: View {
         mockCompletedMatches.sorted { $0.sortDate > $1.sortDate }
     }
 
+    private var rejectedInvitationKeys: Set<String> {
+        guard let data = rejectedInvitationKeysJSON.data(using: .utf8),
+              let arr = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return Set(arr)
+    }
+
+    private func rejectKey(for inv: MyMatchInvitation) -> String {
+        "\(inv.inviterName)|\(inv.matchType)|\(inv.details)|\(inv.time)"
+    }
+
+    private func persistRejection(_ inv: MyMatchInvitation) {
+        var keys = rejectedInvitationKeys
+        keys.insert(rejectKey(for: inv))
+        if let data = try? JSONEncoder().encode(Array(keys)),
+           let json = String(data: data, encoding: .utf8) {
+            rejectedInvitationKeysJSON = json
+        }
+    }
+
     private var visibleInvitations: [MyMatchInvitation] {
-        mockInvitations.filter { !rejectedInvitations.contains($0.id) }
+        let rejected = rejectedInvitationKeys
+        return mockInvitations.filter { !rejected.contains(rejectKey(for: $0)) }
     }
 
     private var acceptedMatchItems: [MyMatchItem] {
@@ -66,9 +91,10 @@ struct MyMatchesView: View {
         VStack(spacing: 0) {
             headerBar
             filterTabs
+            let rejectedKeys = rejectedInvitationKeys
             let upcomingEmpty = acceptedMatchItems.isEmpty
                 && upcomingMatches.isEmpty
-                && mockInvitations.allSatisfy { rejectedInvitations.contains($0.id) }
+                && mockInvitations.allSatisfy { rejectedKeys.contains(rejectKey(for: $0)) }
             let completedEmpty = mockCompletedMatches.isEmpty
 
             if selectedFilter == "即將到來" && upcomingEmpty {
@@ -476,7 +502,7 @@ private extension MyMatchesView {
 
                 Button {
                     withAnimation {
-                        rejectedInvitations.insert(invitation.id)
+                        persistRejection(invitation)
                     }
                     showRejectToast = true
                 } label: {
