@@ -238,78 +238,7 @@ private extension MatchFilterPanelView {
                     .foregroundColor(Theme.primary)
             }
 
-            HStack(spacing: Spacing.sm) {
-                Text(String(format: "%.1f", ntrpLow))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Theme.textBody)
-                    .frame(width: 28)
-
-                GeometryReader { geo in
-                    let width = geo.size.width
-                    let range = 6.0 // 7.0 - 1.0
-                    let lowX = (ntrpLow - 1.0) / range * width
-                    let highX = (ntrpHigh - 1.0) / range * width
-
-                    ZStack(alignment: .leading) {
-                        // Track background
-                        Capsule()
-                            .fill(Theme.inputBg)
-                            .frame(height: 4)
-
-                        // Active range
-                        Capsule()
-                            .fill(Theme.primary)
-                            .frame(width: max(0, highX - lowX), height: 4)
-                            .offset(x: lowX)
-
-                        // Low thumb
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 24, height: 24)
-                            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-                            .overlay {
-                                Circle()
-                                    .fill(Theme.primary)
-                                    .frame(width: 10, height: 10)
-                            }
-                            .position(x: lowX, y: geo.size.height / 2)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        let raw = value.location.x / width * range + 1.0
-                                        let snapped = (raw * 2).rounded() / 2 // snap to 0.5
-                                        ntrpLow = min(max(snapped, 1.0), ntrpHigh)
-                                    }
-                            )
-
-                        // High thumb
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 24, height: 24)
-                            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-                            .overlay {
-                                Circle()
-                                    .fill(Theme.primary)
-                                    .frame(width: 10, height: 10)
-                            }
-                            .position(x: highX, y: geo.size.height / 2)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        let raw = value.location.x / width * range + 1.0
-                                        let snapped = (raw * 2).rounded() / 2
-                                        ntrpHigh = max(min(snapped, 7.0), ntrpLow)
-                                    }
-                            )
-                    }
-                }
-                .frame(height: 28)
-
-                Text(String(format: "%.1f", ntrpHigh))
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Theme.textBody)
-                    .frame(width: 28)
-            }
+            NTRPRangeSlider(low: $ntrpLow, high: $ntrpHigh)
         }
     }
 

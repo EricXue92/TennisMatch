@@ -371,78 +371,7 @@ struct CreateMatchView: View {
                     .foregroundColor(Theme.primary)
             }
 
-            HStack(spacing: Spacing.sm) {
-                Text(String(format: "%.1f", ntrpMin))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Theme.textSecondary)
-                    .frame(width: 28)
-
-                GeometryReader { geo in
-                    let width = geo.size.width
-                    let range = ntrpMax - ntrpMin
-                    let lowX = (ntrpLow - ntrpMin) / range * width
-                    let highX = (ntrpHigh - ntrpMin) / range * width
-
-                    ZStack(alignment: .leading) {
-                        // Track background
-                        Capsule()
-                            .fill(Theme.inputBorder)
-                            .frame(height: 4)
-
-                        // Active range
-                        Capsule()
-                            .fill(Theme.primary)
-                            .frame(width: max(0, highX - lowX), height: 4)
-                            .offset(x: lowX)
-
-                        // Low thumb
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 24, height: 24)
-                            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-                            .overlay {
-                                Circle()
-                                    .fill(Theme.primary)
-                                    .frame(width: 10, height: 10)
-                            }
-                            .position(x: lowX, y: geo.size.height / 2)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        let raw = value.location.x / width * range + ntrpMin
-                                        let snapped = (raw * 2).rounded() / 2
-                                        ntrpLow = min(max(snapped, ntrpMin), ntrpHigh)
-                                    }
-                            )
-
-                        // High thumb
-                        Circle()
-                            .fill(.white)
-                            .frame(width: 24, height: 24)
-                            .shadow(color: .black.opacity(0.15), radius: 2, y: 1)
-                            .overlay {
-                                Circle()
-                                    .fill(Theme.primary)
-                                    .frame(width: 10, height: 10)
-                            }
-                            .position(x: highX, y: geo.size.height / 2)
-                            .gesture(
-                                DragGesture()
-                                    .onChanged { value in
-                                        let raw = value.location.x / width * range + ntrpMin
-                                        let snapped = (raw * 2).rounded() / 2
-                                        ntrpHigh = max(min(snapped, ntrpMax), ntrpLow)
-                                    }
-                            )
-                    }
-                }
-                .frame(height: 28)
-
-                Text(String(format: "%.1f", ntrpMax))
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Theme.textSecondary)
-                    .frame(width: 28)
-            }
+            NTRPRangeSlider(low: $ntrpLow, high: $ntrpHigh, range: ntrpMin...ntrpMax)
         }
     }
 
