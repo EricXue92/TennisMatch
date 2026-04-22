@@ -24,6 +24,8 @@ struct ChatDetailView: View {
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedPhotoData: Data?
+    /// 待發送的圖片暫存，讓用戶在發送前先預覽
+    @State private var pendingPhotoData: Data?
     @State private var showChatMenu = false
     @State private var didSeedInitialMessage = false
     /// Lets the user clear the sign-up-success context card. Once dismissed
@@ -561,14 +563,51 @@ struct ChatDetailView: View {
                     guard let newItem else { return }
                     Task {
                         if let data = try? await newItem.loadTransferable(type: Data.self) {
-                            selectedPhotoData = data
-                            let now = Date()
-                            let formatter = DateFormatter()
-                            formatter.dateFormat = "HH:mm"
-                            let ts = formatter.string(from: now)
-                            sentMessages.append(ChatBubble(.outgoingImage(data), timestamp: ts))
+                            // 先暫存圖片，顯示預覽讓用戶確認後再發送
+                            pendingPhotoData = data
                         }
                         selectedPhotoItem = nil
+                    }
+                }
+                // 圖片發送前預覽浮層
+                .sheet(isPresented: Binding(
+                    get: { pendingPhotoData != nil },
+                    set: { if !$0 { pendingPhotoData = nil } }
+                )) {
+                    if let data = pendingPhotoData, let uiImage = UIImage(data: data) {
+                        NavigationStack {
+                            VStack(spacing: Spacing.lg) {
+                                Spacer()
+                                Image(uiImage: uiImage)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .cornerRadius(12)
+                                    .padding(.horizontal, Spacing.md)
+                                Spacer()
+                            }
+                            .navigationTitle("發送圖片")
+                            .navigationBarTitleDisplayMode(.inline)
+                            .toolbar {
+                                ToolbarItem(placement: .cancellationAction) {
+                                    Button("取消") {
+                                        // 取消：清除暫存圖片
+                                        pendingPhotoData = nil
+                                    }
+                                }
+                                ToolbarItem(placement: .confirmationAction) {
+                                    Button("發送") {
+                                        // 確認發送：加入訊息列表
+                                        let formatter = DateFormatter()
+                                        formatter.dateFormat = "HH:mm"
+                                        let ts = formatter.string(from: Date())
+                                        sentMessages.append(ChatBubble(.outgoingImage(data), timestamp: ts))
+                                        selectedPhotoData = data
+                                        pendingPhotoData = nil
+                                    }
+                                    .fontWeight(.bold)
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -627,7 +666,17 @@ private struct ChatBubble: Identifiable {
     }
 }
 
-private let mockMessages: [ChatBubble] = []
+// 模擬聊天訊息，含系統通知、對方發言、自己發言
+private let mockMessages: [ChatBubble] = [
+    ChatBubble(.systemMessage("你已加入約球群組"), timestamp: nil),
+    ChatBubble(.incoming("大家好！明天見 🎾"), timestamp: "09:30"),
+    ChatBubble(.outgoing("收到，我會準時到！"), timestamp: "09:31"),
+    ChatBubble(.incoming("場地已確認，記得帶水"), timestamp: "09:32"),
+    ChatBubble(.outgoing("好的，謝謝提醒"), timestamp: "09:33"),
+    ChatBubble(.incoming("球場旁邊有停車場，很方便"), timestamp: "09:35"),
+    ChatBubble(.outgoing("太好了，我開車去"), timestamp: "09:36"),
+    ChatBubble(.systemMessage("約球將於明天 10:00 開始"), timestamp: nil),
+]
 
 // MARK: - Preview
 

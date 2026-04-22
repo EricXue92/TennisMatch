@@ -33,25 +33,9 @@ struct MessagesView: View {
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
+            // 統一所有聊天項使用相同的行樣式，移除第一項的特殊卡片外觀
             List {
-                // First item as highlighted card
-                if let first = chats.first {
-                    chatCard(first)
-                        .listRowInsets(EdgeInsets(top: Spacing.xs, leading: Spacing.xs, bottom: 0, trailing: Spacing.xs))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.white)
-                        .swipeActions(edge: .trailing) {
-                            Button(role: .destructive) {
-                                chatToDelete = first
-                                showDeleteAlert = true
-                            } label: {
-                                Label("刪除", systemImage: "trash")
-                            }
-                        }
-                }
-
-                // Remaining items as regular rows
-                ForEach(Array(chats.dropFirst())) { chat in
+                ForEach(chats) { chat in
                     chatRowContent(chat)
                         .listRowInsets(EdgeInsets())
                         .listRowSeparator(.hidden)
@@ -294,7 +278,33 @@ struct AcceptedMatchInfo: Identifiable {
     var ntrpRange: String = "3.0-4.0"
 }
 
-let mockChatsInitial: [MockChat] = []
+// 模擬初始聊天列表，提供預設資料讓介面不顯示空白
+let mockChatsInitial: [MockChat] = [
+    MockChat(
+        type: .match(title: "天母網球場 單打", dateTime: "今天 10:00"),
+        lastMessage: "場地已確認，記得帶水",
+        time: "09:32",
+        unreadCount: 2
+    ),
+    MockChat(
+        type: .personal(name: "王小明", symbol: "♂", symbolColor: Theme.genderMale),
+        lastMessage: "謝謝你上次的比賽，打得很開心！",
+        time: "昨天",
+        unreadCount: 1
+    ),
+    MockChat(
+        type: .match(title: "大安森林公園 雙打", dateTime: "明天 14:00"),
+        lastMessage: "已有3人報名，還差1人",
+        time: "週一",
+        unreadCount: 0
+    ),
+    MockChat(
+        type: .personal(name: "陳小芳", symbol: "♀", symbolColor: Theme.genderFemale),
+        lastMessage: "下次再約！",
+        time: "週日",
+        unreadCount: 0
+    ),
+]
 
 // MARK: - Preview
 
