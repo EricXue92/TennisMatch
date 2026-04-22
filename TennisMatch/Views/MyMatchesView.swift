@@ -54,7 +54,9 @@ struct MyMatchesView: View {
     }
 
     private func rejectKey(for inv: MyMatchInvitation) -> String {
-        "\(inv.inviterName)|\(inv.matchType)|\(inv.details)|\(inv.time)"
+        let parts = [inv.inviterName, inv.matchType, inv.details, inv.time]
+        return (try? JSONEncoder().encode(parts)).flatMap { String(data: $0, encoding: .utf8) }
+            ?? "\(inv.inviterName)|\(inv.matchType)|\(inv.details)|\(inv.time)"
     }
 
     private func persistRejection(_ inv: MyMatchInvitation) {
