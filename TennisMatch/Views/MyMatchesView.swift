@@ -236,14 +236,8 @@ struct MyMatchesView: View {
             }
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
-            Button("編輯約球") {
-                toast = .init(kind: .info, text: "編輯約球功能即將推出")
-            }
             Button("查看報名者") {
                 registrantMatch = match
-            }
-            Button("關閉報名") {
-                toast = .init(kind: .info, text: "關閉報名功能即將推出")
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
