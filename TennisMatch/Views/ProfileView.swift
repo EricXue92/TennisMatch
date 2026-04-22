@@ -257,6 +257,7 @@ struct ProfileView: View {
                     statCard(value: "\(creditScoreStore.score)", label: "信譽積分")
                 }
                 .buttonStyle(.plain)
+                // TODO: 接入统计模块后替换 mock 数据
                 statCard(value: "92%", label: "出席率")
             }
             .padding(.horizontal, Spacing.md)
@@ -316,9 +317,10 @@ struct ProfileView: View {
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(Theme.textPrimary)
 
+            // TODO: 接入统计模块后替换 mock 数据
             recordRow(label: "總場次", value: "28")
             recordRow(label: "本月場次", value: "5")
-            recordRow(label: "常去球場", value: "維多利亞公園")
+            recordRow(label: "常去球場", value: userStore.selectedCourt?.name ?? "未設定")
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
