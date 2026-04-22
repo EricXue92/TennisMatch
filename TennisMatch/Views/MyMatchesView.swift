@@ -15,18 +15,55 @@ struct MyMatchesView: View {
     @State private var selectedChat: MockChat?
     @State private var matchToCancel: MyMatchItem?
     @State private var showCancelAlert = false
-    @State private var showCancelledToast = false
     @State private var showManageSheet = false
     @State private var matchToManage: MyMatchItem?
-    @State private var showRejectToast = false
-    @State private var comingSoonMessage: String?
-    @State private var rejectedInvitations: Set<UUID> = []
+    /// Single-slot toast so cancel / reject / coming-soon can't visually stack.
+    /// New toasts replace the current one instead of queueing on top.
+    @State private var toast: ToastMessage?
+    /// Stable content keys (inviter|type|details|time) of rejected invitations,
+    /// JSON-encoded and persisted via @AppStorage so rejections survive app
+    /// restarts. UUIDs change each launch with mock data, so we key by content.
+    @AppStorage("rejectedInvitationKeys") private var rejectedInvitationKeysJSON: String = "[]"
     @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
     @State private var pendingDMContact: MyMatchInvitation?
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
+
+    private var sortedUpcoming: [MyMatchItem] {
+        (acceptedMatchItems + upcomingMatches).sorted { $0.sortDate < $1.sortDate }
+    }
+
+    private var sortedCompleted: [MyMatchItem] {
+        mockCompletedMatches.sorted { $0.sortDate > $1.sortDate }
+    }
+
+    private var rejectedInvitationKeys: Set<String> {
+        guard let data = rejectedInvitationKeysJSON.data(using: .utf8),
+              let arr = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return Set(arr)
+    }
+
+    private func rejectKey(for inv: MyMatchInvitation) -> String {
+        "\(inv.inviterName)|\(inv.matchType)|\(inv.details)|\(inv.time)"
+    }
+
+    private func persistRejection(_ inv: MyMatchInvitation) {
+        var keys = rejectedInvitationKeys
+        keys.insert(rejectKey(for: inv))
+        if let data = try? JSONEncoder().encode(Array(keys)),
+           let json = String(data: data, encoding: .utf8) {
+            rejectedInvitationKeysJSON = json
+        }
+    }
+
+    private var visibleInvitations: [MyMatchInvitation] {
+        let rejected = rejectedInvitationKeys
+        return mockInvitations.filter { !rejected.contains(rejectKey(for: $0)) }
+    }
 
     private var acceptedMatchItems: [MyMatchItem] {
         acceptedMatches.map { info in
@@ -54,27 +91,46 @@ struct MyMatchesView: View {
         VStack(spacing: 0) {
             headerBar
             filterTabs
-            ScrollView {
-                VStack(spacing: Spacing.md) {
-                    if selectedFilter == "即將到來" {
-                        ForEach(acceptedMatchItems) { match in
-                            myMatchCard(match)
-                        }
-                        ForEach(upcomingMatches) { match in
-                            myMatchCard(match)
-                        }
-                        ForEach(mockInvitations.filter { !rejectedInvitations.contains($0.id) }) { invitation in
-                            invitationCard(invitation)
-                        }
-                    } else {
-                        ForEach(mockCompletedMatches) { match in
-                            myMatchCard(match)
+            let rejectedKeys = rejectedInvitationKeys
+            let upcomingEmpty = acceptedMatchItems.isEmpty
+                && upcomingMatches.isEmpty
+                && mockInvitations.allSatisfy { rejectedKeys.contains(rejectKey(for: $0)) }
+            let completedEmpty = mockCompletedMatches.isEmpty
+
+            if selectedFilter == "即將到來" && upcomingEmpty {
+                ContentUnavailableView(
+                    "還沒有即將到來的約球",
+                    systemImage: "figure.tennis",
+                    description: Text("去首頁找一場約球，或發起新的約球")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedFilter == "已完成" && completedEmpty {
+                ContentUnavailableView(
+                    "暫無已完成的約球",
+                    systemImage: "checkmark.circle",
+                    description: Text("完成的約球會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: Spacing.md) {
+                        if selectedFilter == "即將到來" {
+                            ForEach(sortedUpcoming) { match in
+                                myMatchCard(match)
+                            }
+                            ForEach(visibleInvitations) { invitation in
+                                invitationCard(invitation)
+                            }
+                        } else {
+                            ForEach(sortedCompleted) { match in
+                                myMatchCard(match)
+                            }
                         }
                     }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, 100)
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, 100)
             }
         }
         .background(Theme.inputBg)
@@ -94,7 +150,7 @@ struct MyMatchesView: View {
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
                     onMatchCancelled?(match.sourceMatchID)
-                    showCancelledToast = true
+                    toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
                 }
                 matchToCancel = nil
             }
@@ -105,13 +161,13 @@ struct MyMatchesView: View {
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
             Button("編輯約球") {
-                comingSoonMessage = "編輯約球功能即將推出"
+                toast = .init(kind: .info, text: "編輯約球功能即將推出")
             }
             Button("查看報名者") {
-                comingSoonMessage = "查看報名者功能即將推出"
+                toast = .init(kind: .info, text: "查看報名者功能即將推出")
             }
             Button("關閉報名") {
-                comingSoonMessage = "關閉報名功能即將推出"
+                toast = .init(kind: .info, text: "關閉報名功能即將推出")
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
@@ -122,34 +178,11 @@ struct MyMatchesView: View {
             Text(match.title)
         }
         .overlay(alignment: .top) {
-            if showCancelledToast {
+            if let current = toast {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: current.kind.icon)
                         .foregroundColor(.white)
-                    Text("已取消約球，已通知所有參與者")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(
-                    Capsule().fill(Theme.textBody)
-                )
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        withAnimation { showCancelledToast = false }
-                    }
-                }
-            }
-        }
-        .overlay(alignment: .top) {
-            if showRejectToast {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.white)
-                    Text("已拒絕邀請")
+                    Text(current.text)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.white)
                 }
@@ -158,34 +191,17 @@ struct MyMatchesView: View {
                 .background(Capsule().fill(Theme.textBody))
                 .transition(.move(edge: .top).combined(with: .opacity))
                 .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { showRejectToast = false }
+                .task(id: current.id) {
+                    try? await Task.sleep(nanoseconds: 2_200_000_000)
+                    // Only clear if this is still the active toast — a newer
+                    // toast with a different id will have its own task.
+                    if toast?.id == current.id {
+                        withAnimation { toast = nil }
                     }
                 }
             }
         }
-        .overlay(alignment: .top) {
-            if let message = comingSoonMessage {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "hourglass")
-                        .foregroundColor(.white)
-                    Text(message)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(Capsule().fill(Theme.textBody))
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .onAppear {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                        withAnimation { comingSoonMessage = nil }
-                    }
-                }
-            }
-        }
+        .animation(.easeInOut(duration: 0.2), value: toast?.id)
         .fullScreenCover(isPresented: $showAcceptSuccess, onDismiss: {
             if let inv = pendingDMContact {
                 dmChat = MockChat(
@@ -296,7 +312,7 @@ private extension MyMatchesView {
                 // Avatar + title + weather
                 HStack(spacing: Spacing.sm) {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 36, height: 36)
 
                     HStack(spacing: 4) {
@@ -430,7 +446,7 @@ private extension MyMatchesView {
             // Content
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 32, height: 32)
 
                 VStack(alignment: .leading, spacing: 2) {
@@ -446,9 +462,9 @@ private extension MyMatchesView {
 
                 Button {
                     withAnimation {
-                        rejectedInvitations.insert(invitation.id)
+                        persistRejection(invitation)
                     }
-                    showRejectToast = true
+                    toast = .init(kind: .warning, text: "已拒絕邀請")
                 } label: {
                     Text("拒絕")
                         .font(.system(size: 11, weight: .medium))
@@ -533,6 +549,29 @@ private struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+
+    /// Parsed date used for chronological sorting. Pulls MM/dd from `dateLabel`
+    /// and combines it with the start hour of `timeRange` so same-day items
+    /// order by time. Items without a parseable date sort to the end.
+    var sortDate: Date {
+        let cal = Calendar.current
+        let year = cal.component(.year, from: Date())
+        var month = 0
+        var day = 0
+        if let match = dateLabel.range(of: #"(\d{1,2})/(\d{1,2})"#, options: .regularExpression) {
+            let parts = dateLabel[match].split(separator: "/")
+            month = Int(parts[0]) ?? 0
+            day = Int(parts.count > 1 ? parts[1] : "0") ?? 0
+        }
+        guard month > 0, day > 0 else { return .distantFuture }
+        let hour = Int(timeRange.prefix(2)) ?? 0
+        var components = DateComponents()
+        components.year = year
+        components.month = month
+        components.day = day
+        components.hour = hour
+        return cal.date(from: components) ?? .distantFuture
+    }
 }
 
 private struct MyMatchInvitation: Identifiable {
@@ -683,6 +722,7 @@ private struct InvitationAcceptSuccessView: View {
     let invitation: MyMatchInvitation
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     private var detailParts: [String] {
         invitation.details.components(separatedBy: " · ")
@@ -753,7 +793,7 @@ private struct InvitationAcceptSuccessView: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveInvitationToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -772,7 +812,37 @@ private struct InvitationAcceptSuccessView: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveInvitationToCalendar() {
+        guard let monthDay = detailParts.first,
+              let range = CalendarService.parseShortMatch(
+                monthDay: monthDay,
+                startTime: invitation.time,
+                durationHours: invitation.durationHours
+              ) else {
+            calendarToast = "無法解析約球時間"
+            return
+        }
+        let location = detailParts.count > 1 ? detailParts[1] : ""
+        let title = "\(invitation.inviterName) 的\(invitation.matchType)"
+        let notes = "\(invitation.matchType) · \(invitation.details)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: location,
+                    notes: notes
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {
@@ -806,6 +876,26 @@ private struct InvitationAcceptSuccessView: View {
             )
         }
     }
+}
+
+// MARK: - Toast Model
+
+/// One-slot toast payload. `id` lets SwiftUI's `.task(id:)` cancel the
+/// auto-dismiss of a previous toast when a new one replaces it.
+private struct ToastMessage: Equatable, Identifiable {
+    enum Kind {
+        case success, warning, info
+        var icon: String {
+            switch self {
+            case .success: return "checkmark.circle.fill"
+            case .warning: return "xmark.circle.fill"
+            case .info:    return "hourglass"
+            }
+        }
+    }
+    let id = UUID()
+    let kind: Kind
+    let text: String
 }
 
 // MARK: - Preview

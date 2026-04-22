@@ -9,19 +9,24 @@ import SwiftUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UserStore.self) private var userStore
 
     // MARK: - Form State
+    //
+    // Edits happen on a local draft, so closing without saving doesn't mutate
+    // the shared store. `onAppear` seeds the draft from the store,
+    // `saveButton` pushes it back.
 
-    @State private var name = "小李"
+    @State private var name: String = ""
     @State private var selectedGender: Gender = .male
-    @State private var bio = "熱愛網球，週末經常打球"
+    @State private var bio: String = ""
     @State private var ntrpLevel: Double = 3.5
     @State private var selectedCourt: TennisCourt? = allCourts.first { $0.id == "vp" }
     @State private var showCourtPicker = false
     @State private var courtPickerSelection: Set<TennisCourt> = []
     @State private var partnerLevelLow: Double = 3.0
     @State private var partnerLevelHigh: Double = 4.5
-    @State private var region = "香港"
+    @State private var region: String = "香港"
     @State private var preferredSlots: [PreferredTimeSlot] = [
         PreferredTimeSlot(day: .tue, startTime: "19:30", endTime: "21:30"),
         PreferredTimeSlot(day: .sun, startTime: "09:00", endTime: "10:00"),
@@ -49,6 +54,17 @@ struct EditProfileView: View {
         }
         .background(Theme.background)
         .navigationBarHidden(true)
+        .onAppear {
+            // Seed draft from store (only first appear — avoids overwriting
+            // an in-progress edit if the view re-appears).
+            if name.isEmpty {
+                name = userStore.displayName
+                selectedGender = userStore.gender
+                bio = userStore.bio
+                ntrpLevel = userStore.ntrpLevel
+                region = userStore.region
+            }
+        }
         .sheet(isPresented: $showCourtPicker) {
             CourtPickerView(selected: $courtPickerSelection)
                 .onDisappear {
@@ -95,7 +111,7 @@ struct EditProfileView: View {
                     Circle()
                         .fill(Theme.primaryLight)
                         .frame(width: 80, height: 80)
-                    Text("李")
+                    Text(name.isEmpty ? userStore.avatarInitial : String(name.suffix(1)))
                         .font(.system(size: 32, weight: .bold))
                         .foregroundColor(.white)
                 }
@@ -266,6 +282,11 @@ struct EditProfileView: View {
 
     private var saveButton: some View {
         Button {
+            userStore.displayName = name
+            userStore.gender = selectedGender
+            userStore.bio = bio
+            userStore.ntrpLevel = ntrpLevel
+            userStore.region = region
             dismiss()
         } label: {
             Text("儲存修改")
@@ -652,10 +673,12 @@ private struct AddPreferredSlotSheet: View {
     NavigationStack {
         EditProfileView()
     }
+    .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         EditProfileView()
     }
+    .environment(UserStore())
 }

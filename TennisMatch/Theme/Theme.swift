@@ -70,6 +70,52 @@ enum Theme {
     // MARK: - Tournament Create
     static let tournamentBg    = Color(hex: 0xFFF0F0, alpha: 0.3)
     static let selectedCardBg  = Color(hex: 0xECFDF5)
+
+    // MARK: - Neutrals (added for B2-11 theme refactor)
+    static let avatarPlaceholder = Color(hex: 0xE0E0E0)
+    static let borderMuted       = Color(hex: 0xCCCCCC)
+    static let pillBg            = Color(hex: 0xEBEBEB)
+    static let chipBg            = Color(hex: 0xF2F2F2)
+    static let surfaceMuted      = Color(hex: 0xF3F4F6)
+    static let textMuted         = Color(hex: 0x666666)
+    static let textFaint         = Color(hex: 0x808080)
+    static let textMid           = Color(hex: 0x737373)
+    static let textDeep          = Color(hex: 0x4D4D4D)
+    static let textDeeper        = Color(hex: 0x262626)
+    static let textInk           = Color(hex: 0x1A1A1A)
+    static let textSubtle        = Color(hex: 0x8C8C8C)
+
+    // MARK: - Accents
+    static let accentBlue        = Color(hex: 0x2674DD)
+    static let accentBlueAlt     = Color(hex: 0x2673DE)
+    static let starYellow        = Color(hex: 0xFACC15)
+    static let goldText          = Color(hex: 0xCA8A04)
+    static let goldBg            = Color(hex: 0xFEF9C3)
+    static let primaryEmerald    = Color(hex: 0x26AD61)
+
+    // MARK: - Login Screen
+    static let loginBgTop     = Color(red: 0.02, green: 0.04, blue: 0.02)
+    static let loginBgMid     = Color(red: 0.04, green: 0.12, blue: 0.06)
+    static let loginBgBot     = Color(red: 0.03, green: 0.08, blue: 0.04)
+    static let loginChartreuse = Color(red: 0.784, green: 0.902, blue: 0.271)
+    static let loginAccentDeep = Color(red: 0.58,  green: 0.70,  blue: 0.16)
+    static let loginWechat    = Color(red: 0.07,  green: 0.76,  blue: 0.38)
+    static let loginSage      = Color(red: 0.55,  green: 0.67,  blue: 0.56)
+
+    // MARK: - Tournament Card Gradients
+    static let gradGreenLight    = Color(hex: 0x34D399)
+    static let gradGreenDeep     = Color(hex: 0x059669)
+    static let gradGoldLight     = Color(hex: 0xFFF299)
+    static let gradGoldDeep      = Color(hex: 0xFFBF4D)
+    static let gradAmberLight    = Color(hex: 0xFACC2E)
+    static let gradAmberDeep     = Color(hex: 0xF28C1A)
+    static let gradSkyLight      = Color(hex: 0x66B2FF)
+    static let gradPurpleLight   = Color(hex: 0xA78BFA)
+    static let gradPurpleDeep    = Color(hex: 0x7C3AED)
+    static let gradGrayLight     = Color(hex: 0x9CA3AF)
+    static let gradGrayDeep      = Color(hex: 0x6B7280)
+    static let gradPinkLight     = Color(hex: 0xF472B6)
+    static let gradPinkDeep      = Color(hex: 0xDB2777)
 }
 
 // MARK: - Hex Initializer

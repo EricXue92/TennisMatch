@@ -9,6 +9,7 @@ import SwiftUI
 
 struct ProfileView: View {
     @Environment(FollowStore.self) private var followStore
+    @Environment(UserStore.self) private var userStore
     @State private var showEditProfile = false
     @State private var showSettings = false
     @State private var showTournaments = false
@@ -30,7 +31,6 @@ struct ProfileView: View {
             }
         }
         .background(Theme.background)
-        .ignoresSafeArea(edges: .top)
         .navigationDestination(isPresented: $showSettings) {
             SettingsView()
         }
@@ -49,7 +49,9 @@ struct ProfileView: View {
 
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Spacer().frame(height: 60)
+            // Safe-area inset handles status-bar offset; keep a small
+            // breathing pad so the avatar doesn't hug the status bar.
+            Spacer().frame(height: 12)
 
             // Top row: avatar + info + settings
             HStack(alignment: .top, spacing: Spacing.sm) {
@@ -58,7 +60,7 @@ struct ProfileView: View {
                     Circle()
                         .fill(.white)
                         .frame(width: 64, height: 64)
-                    Text("李")
+                    Text(userStore.avatarInitial)
                         .font(.system(size: 24, weight: .bold))
                         .foregroundColor(Theme.primary)
                 }
@@ -66,27 +68,27 @@ struct ProfileView: View {
                 // Name + tags + bio
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 4) {
-                        Text("小李")
+                        Text(userStore.displayName)
                             .font(.system(size: 20, weight: .bold))
                             .foregroundColor(.white)
-                        Text("♂")
+                        Text(userStore.genderSymbol)
                             .font(.system(size: 18))
-                            .foregroundColor(Theme.genderMale)
+                            .foregroundColor(userStore.gender == .male ? Theme.genderMale : Theme.genderFemale)
                     }
 
                     HStack(spacing: 6) {
-                        headerPill("男")
-                        headerPill("香港")
+                        headerPill(userStore.gender.displayName)
+                        headerPill(userStore.region)
                         Text("理想球友")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: 0xCA8A04))
+                            .foregroundColor(Theme.goldText)
                             .padding(.horizontal, Spacing.xs)
                             .frame(height: 20)
-                            .background(Color(hex: 0xFEF9C3))
+                            .background(Theme.goldBg)
                             .clipShape(Capsule())
                     }
 
-                    Text("熱愛網球，週末經常打球")
+                    Text(userStore.bio)
                         .font(.system(size: 13))
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -138,7 +140,7 @@ struct ProfileView: View {
 
             // Stat cards
             HStack(spacing: Spacing.xs) {
-                statCard(value: "3.5", label: "NTRP")
+                statCard(value: userStore.ntrpText, label: "NTRP")
                 statCard(value: "85", label: "信譽積分")
                 statCard(value: "92%", label: "出席率")
             }
@@ -146,7 +148,13 @@ struct ProfileView: View {
             .padding(.top, Spacing.sm)
             .padding(.bottom, Spacing.md)
         }
-        .background(Theme.primary)
+        .background(
+            // Only the header's green backing bleeds into the safe area,
+            // so the status bar sits over brand color but the scroll
+            // content stays within safe area.
+            Theme.primary
+                .ignoresSafeArea(edges: .top)
+        )
     }
 
     private func headerPill(_ text: String) -> some View {
@@ -257,10 +265,10 @@ struct ProfileView: View {
                 Spacer()
                 Text(record.round)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(record.isChampion ? Color(hex: 0xCA8A04) : Theme.primary)
+                    .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
                     .padding(.horizontal, Spacing.xs)
                     .frame(height: 22)
-                    .background(record.isChampion ? Color(hex: 0xFEF9C3) : Theme.primaryLight)
+                    .background(record.isChampion ? Theme.goldBg : Theme.primaryLight)
                     .clipShape(Capsule())
             }
 
@@ -339,7 +347,7 @@ struct ProfileView: View {
         VStack(spacing: 6) {
             ZStack {
                 Circle()
-                    .fill(unlocked ? Theme.primaryLight : Color(hex: 0xF3F4F6))
+                    .fill(unlocked ? Theme.primaryLight : Theme.surfaceMuted)
                     .frame(width: 44, height: 44)
                 Text(icon)
                     .font(.system(size: 20))
@@ -436,9 +444,11 @@ private let mockTournamentRecords: [TournamentRecord] = [
 #Preview("iPhone SE") {
     ProfileView()
         .environment(FollowStore())
+        .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     ProfileView()
         .environment(FollowStore())
+        .environment(UserStore())
 }

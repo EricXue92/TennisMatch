@@ -11,6 +11,7 @@ import SwiftUI
 
 struct TournamentView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(UserStore.self) private var userStore
     @State private var selectedFilter = "全部"
     @State private var selectedTournament: MockTournament?
     @State private var showCreateTournament = false
@@ -68,8 +69,8 @@ struct TournamentView: View {
             location: info.courtName.isEmpty ? "待定" : info.courtName,
             participants: "0/\(info.participantCount.isEmpty ? "16" : info.participantCount)",
             fee: info.fee.isEmpty ? "免費" : "\(info.fee) 港幣",
-            organizer: "小李",
-            gradientColors: [Color(hex: 0x34D399), Color(hex: 0x16A34A)],
+            organizer: userStore.displayName,
+            gradientColors: [Theme.gradGreenLight, Theme.primary],
             rules: info.rules.isEmpty ? [] : [info.rules],
             playerList: [],
             isOwnTournament: true
@@ -86,8 +87,8 @@ private extension TournamentView {
             Button {
                 dismiss()
             } label: {
-                Text("←")
-                    .font(.system(size: 22))
+                Image(systemName: "chevron.left")
+                    .font(.system(size: 17, weight: .medium))
                     .foregroundColor(Theme.textPrimary)
                     .frame(width: 44, height: 44)
             }
@@ -203,7 +204,7 @@ private extension TournamentView {
             HStack {
                 HStack(spacing: 6) {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 20, height: 20)
                     Text("發起人: \(t.organizer)")
                         .font(.system(size: 11))
@@ -290,10 +291,10 @@ private extension TournamentView {
 
 private func statusColor(_ status: String) -> Color {
     switch status {
-    case "報名中": return Color(hex: 0x16A34A)
-    case "進行中": return Color(hex: 0x2674DD)
-    case "已完成": return Color(hex: 0x9CA3AF)
-    default: return Color(hex: 0x16A34A)
+    case "報名中": return Theme.primary
+    case "進行中": return Theme.accentBlue
+    case "已完成": return Theme.gradGrayLight
+    default: return Theme.primary
     }
 }
 
@@ -333,8 +334,8 @@ struct TournamentDetailView: View {
                 Button {
                     dismiss()
                 } label: {
-                    Text("←")
-                        .font(.system(size: 22))
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 17, weight: .medium))
                         .foregroundColor(Theme.textPrimary)
                 }
             }
@@ -383,7 +384,7 @@ private extension TournamentDetailView {
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
                     .fill(
                         LinearGradient(
-                            colors: [Color(hex: 0xFFF299), Color(hex: 0xFFBF4D)],
+                            colors: [Theme.gradGoldLight, Theme.gradGoldDeep],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -407,7 +408,7 @@ private extension TournamentDetailView {
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.xs)
                         .padding(.vertical, 3)
-                        .background(Color(hex: 0x26AD61))
+                        .background(Theme.primaryEmerald)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
@@ -439,7 +440,7 @@ private extension TournamentDetailView {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("賽事資訊")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(hex: 0x1A1A1A))
+                .foregroundColor(Theme.textInk)
 
             detailInfoRow(icon: "📅", label: "比賽日期", value: tournament.dateRange)
             detailInfoRow(icon: "📍", label: "比賽場地", value: tournament.location)
@@ -447,18 +448,18 @@ private extension TournamentDetailView {
             detailInfoRow(icon: "💰", label: "報名費用", value: tournament.fee)
 
             Rectangle()
-                .fill(Color(hex: 0xEBEBEB))
+                .fill(Theme.pillBg)
                 .frame(height: 1)
 
             Text("賽事規則")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(Color(hex: 0x1A1A1A))
+                .foregroundColor(Theme.textInk)
 
             VStack(alignment: .leading, spacing: 2) {
                 ForEach(tournament.rules, id: \.self) { rule in
                     Text("• \(rule)")
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: 0x666666))
+                        .foregroundColor(Theme.textMuted)
                         .lineSpacing(4)
                 }
             }
@@ -475,11 +476,11 @@ private extension TournamentDetailView {
                 .font(.system(size: 16))
             Text(label)
                 .font(.system(size: 13))
-                .foregroundColor(Color(hex: 0x737373))
+                .foregroundColor(Theme.textMid)
                 .frame(width: 70, alignment: .leading)
             Text(value)
                 .font(.system(size: 13, weight: .medium))
-                .foregroundColor(Color(hex: 0x262626))
+                .foregroundColor(Theme.textDeeper)
         }
     }
 
@@ -488,20 +489,20 @@ private extension TournamentDetailView {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("主辦方")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(Color(hex: 0x1A1A1A))
+                .foregroundColor(Theme.textInk)
 
             HStack(spacing: Spacing.sm) {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(tournament.organizer)
                         .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Color(hex: 0x1A1A1A))
+                        .foregroundColor(Theme.textInk)
                     Text("NTRP 4.0 · 賽事組織者")
                         .font(.system(size: 11))
-                        .foregroundColor(Color(hex: 0x8C8C8C))
+                        .foregroundColor(Theme.textSubtle)
                 }
 
                 Spacer()
@@ -511,10 +512,10 @@ private extension TournamentDetailView {
                 } label: {
                     Text(isFollowing ? "已關注" : "關注")
                         .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(isFollowing ? .white : Color(hex: 0x333333))
+                        .foregroundColor(isFollowing ? .white : Theme.textDark)
                         .padding(.horizontal, 14)
                         .frame(height: 44)
-                        .background(isFollowing ? Theme.primary : Color(hex: 0xF2F2F2))
+                        .background(isFollowing ? Theme.primary : Theme.chipBg)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
@@ -533,11 +534,11 @@ private extension TournamentDetailView {
             HStack {
                 Text(isCompleted ? "比賽成績" : "已報名選手")
                     .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color(hex: 0x1A1A1A))
+                    .foregroundColor(Theme.textInk)
                 Spacer()
                 Text(tournament.participants)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(Color(hex: 0x8C8C8C))
+                    .foregroundColor(Theme.textSubtle)
             }
 
             ForEach(Array(tournament.playerList.enumerated()), id: \.offset) { index, player in
@@ -549,23 +550,23 @@ private extension TournamentDetailView {
                     } else {
                         Text("\(index + 1)")
                             .font(.system(size: 11, weight: .medium))
-                            .foregroundColor(Color(hex: 0x737373))
+                            .foregroundColor(Theme.textMid)
                             .frame(width: 22, height: 22)
-                            .background(Color(hex: 0xF2F2F2))
+                            .background(Theme.chipBg)
                             .clipShape(Circle())
                     }
 
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 32, height: 32)
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(player.name)
                             .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(Color(hex: 0x262626))
+                            .foregroundColor(Theme.textDeeper)
                         Text("NTRP \(player.ntrp)")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: 0x8C8C8C))
+                            .foregroundColor(Theme.textSubtle)
                     }
 
                     Spacer()
@@ -592,7 +593,7 @@ private extension TournamentDetailView {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 14)
-                        .background(Color(hex: 0x26AD61))
+                        .background(Theme.primaryEmerald)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                 }
             }
@@ -666,6 +667,7 @@ private struct TournamentSignUpSuccessView: View {
     let tournament: MockTournament
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -728,7 +730,7 @@ private struct TournamentSignUpSuccessView: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveTournamentToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -747,7 +749,32 @@ private struct TournamentSignUpSuccessView: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveTournamentToCalendar() {
+        guard let range = CalendarService.parseTournamentRange(tournament.dateRange) else {
+            calendarToast = "無法解析賽事日期"
+            return
+        }
+        let title = tournament.name
+        let notes = "\(tournament.format) · \(tournament.matchType) · NTRP \(tournament.ntrpRange)\n費用：\(tournament.fee)\n發起人：\(tournament.organizer)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: tournament.location,
+                    notes: notes,
+                    isAllDay: true
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {
@@ -820,7 +847,7 @@ let mockTournaments: [MockTournament] = [
         participants: "4/16",
         fee: "300 港幣",
         organizer: "莎拉",
-        gradientColors: [Color(hex: 0xFACC2E), Color(hex: 0xF28C1A)],
+        gradientColors: [Theme.gradAmberLight, Theme.gradAmberDeep],
         rules: [
             "單淘汰制，一局定勝負",
             "每場比賽採用三盤兩勝制",
@@ -843,7 +870,7 @@ let mockTournaments: [MockTournament] = [
         participants: "3/30",
         fee: "200 港幣",
         organizer: "王強",
-        gradientColors: [Color(hex: 0x66B2FF), Color(hex: 0x2673DE)],
+        gradientColors: [Theme.gradSkyLight, Theme.accentBlueAlt],
         rules: [
             "階梯積分制，可隨時挑戰排名更高的選手",
             "每場比賽採用兩盤一勝制",
@@ -865,7 +892,7 @@ let mockTournaments: [MockTournament] = [
         participants: "6/16",
         fee: "250 港幣",
         organizer: "美琪",
-        gradientColors: [Color(hex: 0xA78BFA), Color(hex: 0x7C3AED)],
+        gradientColors: [Theme.gradPurpleLight, Theme.gradPurpleDeep],
         rules: [
             "小組循環賽 + 淘汰賽",
             "每場比賽採用一盤定勝負（搶七）",
@@ -890,7 +917,7 @@ let mockTournaments: [MockTournament] = [
         participants: "16/16",
         fee: "350 港幣",
         organizer: "陳教練",
-        gradientColors: [Color(hex: 0x9CA3AF), Color(hex: 0x6B7280)],
+        gradientColors: [Theme.gradGrayLight, Theme.gradGrayDeep],
         rules: [
             "單淘汰制",
             "每場比賽採用三盤兩勝制",
@@ -925,7 +952,7 @@ let mockTournaments: [MockTournament] = [
         participants: "7/16",
         fee: "180 港幣",
         organizer: "艾美",
-        gradientColors: [Color(hex: 0x34D399), Color(hex: 0x059669)],
+        gradientColors: [Theme.gradGreenLight, Theme.gradGreenDeep],
         rules: [
             "單淘汰制，一盤定勝負（搶七）",
             "每場比賽限時 45 分鐘",
@@ -951,7 +978,7 @@ let mockTournaments: [MockTournament] = [
         participants: "12/16",
         fee: "400 港幣",
         organizer: "老張",
-        gradientColors: [Color(hex: 0xF472B6), Color(hex: 0xDB2777)],
+        gradientColors: [Theme.gradPinkLight, Theme.gradPinkDeep],
         rules: [
             "混雙循環賽，每組需一男一女",
             "每場比賽採用超級搶十",
@@ -979,8 +1006,10 @@ let mockTournaments: [MockTournament] = [
 
 #Preview("iPhone SE") {
     TournamentView()
+        .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     TournamentView()
+        .environment(UserStore())
 }

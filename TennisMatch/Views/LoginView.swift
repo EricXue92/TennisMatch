@@ -18,12 +18,12 @@ struct LoginView: View {
     @State private var showHelpView = false
 
     // MARK: Theme
-    private let bgTop    = Color(red: 0.02, green: 0.04, blue: 0.02)
-    private let bgMid    = Color(red: 0.04, green: 0.12, blue: 0.06)
-    private let bgBot    = Color(red: 0.03, green: 0.08, blue: 0.04)
-    private let chartreuse = Color(red: 0.784, green: 0.902, blue: 0.271)   // #C8E645
-    private let wechat   = Color(red: 0.07,  green: 0.76,  blue: 0.38)     // #12C261
-    private let sage     = Color(red: 0.55,  green: 0.67,  blue: 0.56)
+    private let bgTop      = Theme.loginBgTop
+    private let bgMid      = Theme.loginBgMid
+    private let bgBot      = Theme.loginBgBot
+    private let chartreuse = Theme.loginChartreuse
+    private let wechat     = Theme.loginWechat
+    private let sage       = Theme.loginSage
 
     var body: some View {
         GeometryReader { geo in
@@ -265,7 +265,7 @@ struct TennisBallGraphic: View {
                         colors: [
                             accent,
                             accent.opacity(0.82),
-                            Color(red: 0.58, green: 0.70, blue: 0.16),
+                            Theme.loginAccentDeep,
                         ],
                         center: .init(x: 0.35, y: 0.30),
                         startRadius: 4,

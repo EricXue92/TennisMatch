@@ -12,12 +12,16 @@ struct ChatDetailView: View {
     let chat: MockChat
     @Binding var acceptedMatches: [AcceptedMatchInfo]
     var matchContext: String? = nil
+    /// Seed message from the sign-up "給發起人留言" field. Sent as an
+    /// outgoing bubble on first appear so the organizer sees it at the top.
+    var initialMessage: String? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var selectedPhotoData: Data?
     @State private var showChatMenu = false
+    @State private var didSeedInitialMessage = false
 
     private var chatTitle: String {
         switch chat.type {
@@ -104,6 +108,19 @@ struct ChatDetailView: View {
             inputBar
         }
         .background(Theme.inputBg)
+        .onAppear {
+            // Seed the sign-up message once; guarded so re-appears don't
+            // duplicate the bubble.
+            guard !didSeedInitialMessage else { return }
+            didSeedInitialMessage = true
+            if let seed = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
+               !seed.isEmpty {
+                let formatter = DateFormatter()
+                formatter.dateFormat = "HH:mm"
+                let ts = formatter.string(from: Date())
+                sentMessages.append(ChatBubble(.outgoing(seed), timestamp: ts))
+            }
+        }
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {

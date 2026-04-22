@@ -85,7 +85,7 @@ struct FollowingView: View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 48, height: 48)
                 Text(String(player.name.prefix(1)))
                     .font(.system(size: 18, weight: .bold))

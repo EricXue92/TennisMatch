@@ -10,13 +10,48 @@ import SwiftUI
 struct MatchDetailView: View {
     let match: MatchDetailData
     @Binding var acceptedMatches: [AcceptedMatchInfo]
+    /// IDs of matches the user has signed up for. Bound to HomeView so
+    /// signing up here keeps the card and the detail in sync.
+    @Binding var signedUpMatchIDs: Set<UUID>
+    /// Called when the user confirms sign-up, so the caller can bump the
+    /// underlying match's `currentPlayers`. Receives the match id.
+    var onSignUp: (UUID) -> Void = { _ in }
+
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
+    @Environment(UserStore.self) private var userStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
     @State private var navigateToChat = false
     @State private var pendingContactOrganizer = false
+
+    /// Live participant list (seeded from `match.participantList` on appear,
+    /// the current user is appended on sign-up confirm).
+    @State private var participants: [MatchParticipant] = []
+    /// Live count override — nil means "use the original `match.players`".
+    /// Incremented locally on sign-up so the 👥 row reflects the new state.
+    @State private var localPlayerCurrent: Int? = nil
+    /// Sign-up留言 — carried into the organizer chat as the first outgoing bubble.
+    @State private var signUpMessage: String = ""
+
+    private var hasSignedUp: Bool {
+        guard let mid = match.matchId else { return false }
+        return signedUpMatchIDs.contains(mid)
+    }
+
+    private var playersDisplay: String {
+        let counts = match.playerCounts
+        guard counts.max > 0 else { return match.players }
+        let current = localPlayerCurrent ?? counts.current
+        return "\(current)/\(counts.max) 人"
+    }
+
+    private var displayIsFull: Bool {
+        let counts = match.playerCounts
+        let current = localPlayerCurrent ?? counts.current
+        return counts.max > 0 && current >= counts.max
+    }
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -32,6 +67,11 @@ struct MatchDetailView: View {
             .background(Theme.inputBg)
 
             bottomBar
+        }
+        .onAppear {
+            if participants.isEmpty {
+                participants = match.participantList
+            }
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {
@@ -61,7 +101,7 @@ private extension MatchDetailView {
             HStack(spacing: Spacing.sm) {
                 ZStack {
                     Circle()
-                        .fill(Color(hex: 0xE0E0E0))
+                        .fill(Theme.avatarPlaceholder)
                         .frame(width: 56, height: 56)
                     Text(String(match.name.prefix(1)))
                         .font(.system(size: 22, weight: .bold))
@@ -79,7 +119,7 @@ private extension MatchDetailView {
                     }
                     Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
                         .font(.system(size: 13))
-                        .foregroundColor(Color(hex: 0x666666))
+                        .foregroundColor(Theme.textMuted)
                 }
 
                 Spacer()
@@ -90,14 +130,14 @@ private extension MatchDetailView {
                     let following = followStore.isFollowing(match.name)
                     Text(following ? "已關注" : "關注")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(following ? .white : Color(hex: 0x333333))
+                        .foregroundColor(following ? .white : Theme.textDark)
                         .frame(width: 60, height: 44)
                         .background(following ? Theme.primary : .clear)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay {
                             if !following {
                                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                    .stroke(Theme.borderMuted, lineWidth: 1)
                             }
                         }
                 }
@@ -106,7 +146,7 @@ private extension MatchDetailView {
 
             // Divider
             Rectangle()
-                .fill(Color(hex: 0xEBEBEB))
+                .fill(Theme.pillBg)
                 .frame(height: 1)
                 .padding(.horizontal, Spacing.md)
 
@@ -117,12 +157,12 @@ private extension MatchDetailView {
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
-                    .background(Color(hex: 0x218C21))
+                    .background(Theme.primaryDark)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Text(match.isOwnMatch ? "我發起的" : "招募中")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(match.isOwnMatch ? .white : Color(hex: 0x4D4D4D))
+                    .foregroundColor(match.isOwnMatch ? .white : Theme.textDeep)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
                     .background(match.isOwnMatch ? Theme.accentGreen : .clear)
@@ -130,7 +170,7 @@ private extension MatchDetailView {
                     .overlay {
                         if !match.isOwnMatch {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                .stroke(Theme.borderMuted, lineWidth: 1)
                         }
                     }
             }
@@ -141,14 +181,14 @@ private extension MatchDetailView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 detailRow(icon: "📅", title: match.date, subtitle: match.timeRange)
                 detailRow(icon: "📍", title: match.location, subtitle: match.district)
-                detailRow(icon: "👥", title: match.players, subtitle: "水平範圍: \(match.ntrpRange)")
+                detailRow(icon: "👥", title: playersDisplay, subtitle: "水平範圍: \(match.ntrpRange)")
                 detailRow(icon: "💰", title: match.fee, subtitle: nil)
             }
             .padding(Spacing.md)
 
             // Divider
             Rectangle()
-                .fill(Color(hex: 0xEBEBEB))
+                .fill(Theme.pillBg)
                 .frame(height: 1)
                 .padding(.horizontal, Spacing.md)
 
@@ -159,7 +199,7 @@ private extension MatchDetailView {
                     .foregroundColor(Theme.textPrimary)
                 Text(match.notes)
                     .font(.system(size: 13))
-                    .foregroundColor(Color(hex: 0x666666))
+                    .foregroundColor(Theme.textMuted)
             }
             .padding(Spacing.md)
         }
@@ -180,7 +220,7 @@ private extension MatchDetailView {
                 if let subtitle {
                     Text(subtitle)
                         .font(.system(size: 12))
-                        .foregroundColor(Color(hex: 0x666666))
+                        .foregroundColor(Theme.textMuted)
                 }
             }
         }
@@ -216,7 +256,7 @@ private extension MatchDetailView {
             if let label {
                 Text(label)
                     .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x808080))
+                    .foregroundColor(Theme.textFaint)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -232,11 +272,11 @@ private extension MatchDetailView {
                 .font(.system(size: 14, weight: .medium))
                 .foregroundColor(Theme.textPrimary)
 
-            ForEach(match.participantList, id: \.name) { p in
+            ForEach(participants, id: \.name) { p in
                 HStack(spacing: Spacing.sm) {
                     ZStack {
                         Circle()
-                            .fill(Color(hex: 0xE0E0E0))
+                            .fill(Theme.avatarPlaceholder)
                             .frame(width: 36, height: 36)
                         Text(String(p.name.prefix(1)))
                             .font(.system(size: 14, weight: .bold))
@@ -254,7 +294,7 @@ private extension MatchDetailView {
                         }
                         Text("NTRP \(p.ntrp)")
                             .font(.system(size: 12))
-                            .foregroundColor(Color(hex: 0x808080))
+                            .foregroundColor(Theme.textFaint)
                     }
 
                     Spacer()
@@ -262,12 +302,12 @@ private extension MatchDetailView {
                     if p.isOrganizer {
                         Text("發起人")
                             .font(.system(size: 11))
-                            .foregroundColor(Color(hex: 0x666666))
+                            .foregroundColor(Theme.textMuted)
                             .padding(.horizontal, Spacing.sm)
                             .frame(height: 22)
                             .overlay {
                                 RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                    .stroke(Color(hex: 0xCCCCCC), lineWidth: 1)
+                                    .stroke(Theme.borderMuted, lineWidth: 1)
                             }
                     }
                 }
@@ -293,7 +333,7 @@ private extension MatchDetailView {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(Color(hex: 0x218C21))
+                        .background(Theme.primaryDark)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
             } else {
@@ -302,26 +342,34 @@ private extension MatchDetailView {
                 } label: {
                     Text("💬 私信")
                         .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(Color(hex: 0x218C21))
+                        .foregroundColor(Theme.primaryDark)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
                         .overlay {
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                .stroke(Color(hex: 0x218C21), lineWidth: 1.5)
+                                .stroke(Theme.primaryDark, lineWidth: 1.5)
                         }
                 }
+
+                // Precedence: 已報名 > 已額滿 > 報名.
+                // Already-signed-up takes priority because the slot has
+                // genuinely been booked from this user's perspective.
+                let full = displayIsFull && !hasSignedUp
+                let disabled = hasSignedUp || full
+                let label = hasSignedUp ? "已報名" : (full ? "已額滿" : "報名")
 
                 Button {
                     showSignUpConfirm = true
                 } label: {
-                    Text("報名")
+                    Text(label)
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
+                        .foregroundColor(disabled ? Theme.textSecondary : .white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(Color(hex: 0x218C21))
+                        .background(disabled ? Theme.chipUnselectedBg : Theme.primaryDark)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                 }
+                .disabled(disabled)
             }
         }
         .padding(.horizontal, Spacing.md)
@@ -338,7 +386,24 @@ private extension MatchDetailView {
                 .presentationDetents([.medium, .large])
         }
         .sheet(isPresented: $showSignUpConfirm) {
-            SignUpConfirmSheetForDetail(match: match) {
+            SignUpConfirmSheetForDetail(match: match) { message in
+                signUpMessage = message
+                // Local: append current user + bump count.
+                let counts = match.playerCounts
+                localPlayerCurrent = (localPlayerCurrent ?? counts.current) + 1
+                participants.append(
+                    MatchParticipant(
+                        name: userStore.displayName,
+                        gender: userStore.gender,
+                        ntrp: userStore.ntrpText,
+                        isOrganizer: false
+                    )
+                )
+                // Parent: mark signed up + bump underlying match.
+                if let mid = match.matchId {
+                    signedUpMatchIDs.insert(mid)
+                    onSignUp(mid)
+                }
                 showSignUpSuccess = true
             }
             .presentationDetents([.medium])
@@ -363,7 +428,8 @@ private extension MatchDetailView {
                     unreadCount: 0
                 ),
                 acceptedMatches: $acceptedMatches,
-                matchContext: "🎾 約球已確認\n📅 \(match.date) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType) · NTRP \(match.ntrpRange)\n💰 \(match.fee)"
+                matchContext: "🎾 約球已確認\n📅 \(match.date) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType) · NTRP \(match.ntrpRange)\n💰 \(match.fee)",
+                initialMessage: signUpMessage.isEmpty ? nil : signUpMessage
             )
         }
     }
@@ -373,6 +439,10 @@ private extension MatchDetailView {
 
 struct MatchDetailData: Identifiable, Hashable {
     let id = UUID()
+    /// The originating match's id (HomeView's `MockMatch.id`).
+    /// Used to coordinate sign-up state with the caller.
+    /// Nil for standalone previews / flows without a source match.
+    var matchId: UUID? = nil
     let name: String
     let gender: Gender
     let ntrp: String
@@ -389,6 +459,22 @@ struct MatchDetailData: Identifiable, Hashable {
     let weather: MatchWeather
     let participantList: [MatchParticipant]
     var isOwnMatch: Bool = false
+
+    /// Parses `"1/2 人"` → (current: 1, max: 2). Falls back to (0, 0).
+    var playerCounts: (current: Int, max: Int) {
+        let digits = players.split { !$0.isNumber }.map(String.init)
+        guard digits.count >= 2,
+              let current = Int(digits[0]),
+              let max = Int(digits[1]) else {
+            return (0, 0)
+        }
+        return (current, max)
+    }
+
+    var isFull: Bool {
+        let c = playerCounts
+        return c.max > 0 && c.current >= c.max
+    }
 }
 
 struct MatchWeather: Hashable {
@@ -428,7 +514,7 @@ private struct InviteContactsSheet: View {
                             HStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
-                                        .fill(Color(hex: 0xE0E0E0))
+                                        .fill(Theme.avatarPlaceholder)
                                         .frame(width: 40, height: 40)
                                     Text(String(contact.name.prefix(1)))
                                         .font(.system(size: 16, weight: .bold))
@@ -513,7 +599,7 @@ private let inviteContacts: [InviteContact] = [
 
 private struct SignUpConfirmSheetForDetail: View {
     let match: MatchDetailData
-    var onConfirm: () -> Void
+    var onConfirm: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var message = ""
 
@@ -552,7 +638,7 @@ private struct SignUpConfirmSheetForDetail: View {
 
             Button {
                 dismiss()
-                onConfirm()
+                onConfirm(message)
             } label: {
                 Text("確認報名")
                     .font(.system(size: 16, weight: .semibold))
@@ -585,6 +671,7 @@ private struct SignUpSuccessViewForDetail: View {
     let match: MatchDetailData
     var onContactOrganizer: (() -> Void)?
     @Environment(\.dismiss) private var dismiss
+    @State private var calendarToast: String?
 
     var body: some View {
         VStack(spacing: 0) {
@@ -646,7 +733,7 @@ private struct SignUpSuccessViewForDetail: View {
                     onContactOrganizer?()
                 }
                 outlineButton(icon: "calendar.badge.plus", label: "加入日曆") {
-                    // TODO: add to calendar
+                    saveMatchToCalendar()
                 }
             }
             .padding(.horizontal, Spacing.md)
@@ -665,7 +752,31 @@ private struct SignUpSuccessViewForDetail: View {
             .padding(.horizontal, Spacing.md)
             .padding(.bottom, Spacing.lg)
         }
-        .background(Color(hex: 0xFFF0F0).opacity(0.3))
+        .background(Theme.tournamentBg)
+        .overlay(alignment: .top) { calendarToastBanner($calendarToast) }
+    }
+
+    private func saveMatchToCalendar() {
+        guard let range = CalendarService.parseDateTimeRange(date: match.date, timeRange: match.timeRange) else {
+            calendarToast = "無法解析約球時間"
+            return
+        }
+        let title = "\(match.name) · \(match.matchType)"
+        let notes = "\(match.matchType) · NTRP \(match.ntrpRange)\n費用：\(match.fee)"
+        Task {
+            do {
+                try await CalendarService.addEvent(
+                    title: title,
+                    startDate: range.start,
+                    endDate: range.end,
+                    location: match.location,
+                    notes: notes
+                )
+                calendarToast = "已加入日曆"
+            } catch {
+                calendarToast = (error as? CalendarService.AddError)?.errorDescription ?? "無法加入日曆"
+            }
+        }
     }
 
     private func summaryRow(icon: String, text: String) -> some View {
@@ -705,16 +816,26 @@ private struct SignUpSuccessViewForDetail: View {
 
 #Preview("iPhone SE") {
     NavigationStack {
-        MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
+        MatchDetailView(
+            match: previewMatchDetail,
+            acceptedMatches: .constant([]),
+            signedUpMatchIDs: .constant([])
+        )
     }
     .environment(FollowStore())
+    .environment(UserStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
-        MatchDetailView(match: previewMatchDetail, acceptedMatches: .constant([]))
+        MatchDetailView(
+            match: previewMatchDetail,
+            acceptedMatches: .constant([]),
+            signedUpMatchIDs: .constant([])
+        )
     }
     .environment(FollowStore())
+    .environment(UserStore())
 }
 
 private let previewMatchDetail = MatchDetailData(

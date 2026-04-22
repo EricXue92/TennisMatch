@@ -21,21 +21,37 @@ struct ReviewsView: View {
         VStack(spacing: 0) {
             filterTabs
 
-            ScrollView {
-                VStack(spacing: Spacing.sm) {
-                    if selectedTab == "收到的評價" {
-                        ForEach(mockReceivedReviews) { review in
-                            receivedReviewCard(review)
-                        }
-                    } else {
-                        ForEach(pendingReviews) { review in
-                            pendingReviewCard(review)
+            if selectedTab == "收到的評價" && mockReceivedReviews.isEmpty {
+                ContentUnavailableView(
+                    "暫無評價",
+                    systemImage: "star.bubble",
+                    description: Text("完成約球後收到的評價會顯示在這裡")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedTab == "待評價" && pendingReviews.isEmpty {
+                ContentUnavailableView(
+                    "沒有待評價的約球",
+                    systemImage: "checkmark.seal",
+                    description: Text("完成約球後，可在這裡給對手留下評價")
+                )
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else {
+                ScrollView {
+                    VStack(spacing: Spacing.sm) {
+                        if selectedTab == "收到的評價" {
+                            ForEach(mockReceivedReviews) { review in
+                                receivedReviewCard(review)
+                            }
+                        } else {
+                            ForEach(pendingReviews) { review in
+                                pendingReviewCard(review)
+                            }
                         }
                     }
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, Spacing.xl)
                 }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.md)
-                .padding(.bottom, Spacing.xl)
             }
         }
         .background(Theme.background)
@@ -130,7 +146,7 @@ struct ReviewsView: View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
                     .font(.system(size: 16, weight: .bold))
@@ -152,7 +168,7 @@ struct ReviewsView: View {
                     ForEach(0..<5, id: \.self) { i in
                         Image(systemName: i < review.rating ? "star.fill" : "star")
                             .font(.system(size: 12))
-                            .foregroundColor(i < review.rating ? Color(hex: 0xFACC15) : Theme.textSecondary)
+                            .foregroundColor(i < review.rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
 
@@ -170,7 +186,7 @@ struct ReviewsView: View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
-                    .fill(Color(hex: 0xE0E0E0))
+                    .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
                 Text(String(review.name.prefix(1)))
                     .font(.system(size: 16, weight: .bold))
@@ -229,7 +245,7 @@ private struct ReviewFormSheet: View {
                     } label: {
                         Image(systemName: i <= rating ? "star.fill" : "star")
                             .font(.system(size: 28))
-                            .foregroundColor(i <= rating ? Color(hex: 0xFACC15) : Theme.textSecondary)
+                            .foregroundColor(i <= rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
             }

@@ -273,7 +273,7 @@ struct RegisterView: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("詳細時段")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color(hex: 0x888888))
+                    .foregroundColor(Theme.textHint)
 
                 FlowLayout(spacing: 6) {
                     ForEach(detailedSlots) { slot in
@@ -439,7 +439,7 @@ struct RegisterView: View {
             Button(action: onRemove) {
                 Text("×")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Color(hex: 0x888888))
+                    .foregroundColor(Theme.textHint)
             }
         }
         .padding(.horizontal, 10)
