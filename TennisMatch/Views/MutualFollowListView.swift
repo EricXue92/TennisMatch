@@ -133,7 +133,14 @@ struct MutualFollowListView: View {
                 reputation: 88,
                 matchCount: 20,
                 bio: "熱愛網球",
-                recentMatches: ["04/19 單打 · 維多利亞公園"]
+                recentMatches: [
+                    "04/24 10:00 - 12:00 單打 · 維多利亞公園",
+                    "04/27 14:00 - 16:00 雙打 · 沙田公園",
+                ],
+                preferredCourts: ["維多利亞公園", "沙田公園"],
+                preferredTimes: ["週末下午", "工作日晚間"],
+                matchTypes: ["單打", "雙打"],
+                ageRange: "20-35"
             )
         }
     }

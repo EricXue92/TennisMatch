@@ -20,6 +20,7 @@ struct PublicProfileView: View {
             ScrollView {
                 VStack(spacing: Spacing.sm) {
                     statsCard
+                    playerInfoCard
                     matchHistoryCard
                 }
                 .padding(.horizontal, Spacing.md)
@@ -158,6 +159,97 @@ struct PublicProfileView: View {
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
 
+    // MARK: - Player Info
+
+    private var playerInfoCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Text("📋 球友資料")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Theme.textPrimary)
+
+            if !player.matchTypes.isEmpty {
+                infoRow(icon: "figure.tennis", label: "比賽類型", value: player.matchTypes.joined(separator: " / "))
+            }
+
+            if !player.ageRange.isEmpty {
+                infoRow(icon: "person.fill", label: "年齡段", value: player.ageRange)
+            }
+
+            if !player.preferredCourts.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "mappin.and.ellipse")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.primary)
+                            .frame(width: 18)
+                        Text("常去球場")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                    FlowLayoutPublic(spacing: 6) {
+                        ForEach(player.preferredCourts, id: \.self) { court in
+                            Text("📍 \(court)")
+                                .font(.system(size: 12))
+                                .foregroundColor(Theme.textBody)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Theme.chipUnselectedBg)
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        }
+                    }
+                    .padding(.leading, 24)
+                }
+            }
+
+            if !player.preferredTimes.isEmpty {
+                VStack(alignment: .leading, spacing: 6) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "clock")
+                            .font(.system(size: 12))
+                            .foregroundColor(Theme.primary)
+                            .frame(width: 18)
+                        Text("偏好時間")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(Theme.textSecondary)
+                    }
+                    FlowLayoutPublic(spacing: 6) {
+                        ForEach(player.preferredTimes, id: \.self) { time in
+                            Text(time)
+                                .font(.system(size: 12))
+                                .foregroundColor(Theme.textBody)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Theme.chipUnselectedBg)
+                                .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        }
+                    }
+                    .padding(.leading, 24)
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+        .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
+    }
+
+    private func infoRow(icon: String, label: String, value: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+                .font(.system(size: 12))
+                .foregroundColor(Theme.primary)
+                .frame(width: 18)
+            Text(label)
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(Theme.textSecondary)
+            Spacer()
+            Text(value)
+                .font(.system(size: 13))
+                .foregroundColor(Theme.textBody)
+        }
+    }
+
     // MARK: - Match History
 
     private var matchHistoryCard: some View {
@@ -228,6 +320,43 @@ struct PublicPlayerData: Hashable {
     let matchCount: Int
     let bio: String
     let recentMatches: [String]
+    var preferredCourts: [String] = []
+    var preferredTimes: [String] = []
+    var matchTypes: [String] = []
+    var ageRange: String = ""
+}
+
+// MARK: - Flow Layout
+
+private struct FlowLayoutPublic: Layout {
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        arrange(proposal: proposal, subviews: subviews).size
+    }
+
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        let result = arrange(proposal: ProposedViewSize(width: bounds.width, height: bounds.height), subviews: subviews)
+        for (index, position) in result.positions.enumerated() {
+            subviews[index].place(at: CGPoint(x: bounds.minX + position.x, y: bounds.minY + position.y), proposal: .unspecified)
+        }
+    }
+
+    private func arrange(proposal: ProposedViewSize, subviews: Subviews) -> (size: CGSize, positions: [CGPoint]) {
+        let maxWidth = proposal.width ?? .infinity
+        var positions: [CGPoint] = []
+        var x: CGFloat = 0, y: CGFloat = 0, rowHeight: CGFloat = 0
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth && x > 0 {
+                x = 0; y += rowHeight + spacing; rowHeight = 0
+            }
+            positions.append(CGPoint(x: x, y: y))
+            rowHeight = max(rowHeight, size.height)
+            x += size.width + spacing
+        }
+        return (CGSize(width: maxWidth, height: y + rowHeight), positions)
+    }
 }
 
 // MARK: - Preview
@@ -250,8 +379,12 @@ private let previewPlayer = PublicPlayerData(
     name: "莎拉", gender: .female, ntrp: "3.5", reputation: 90, matchCount: 28,
     bio: "週末固定在維多利亞公園打球",
     recentMatches: [
-        "04/19 單打 · 維多利亞公園",
-        "04/15 雙打 · 跑馬地",
-        "04/10 單打 · 九龍仔公園",
-    ]
+        "04/23 10:00 - 12:00 單打 · 維多利亞公園",
+        "04/15 14:00 - 16:00 雙打 · 跑馬地",
+        "04/10 09:00 - 11:00 單打 · 九龍仔公園",
+    ],
+    preferredCourts: ["維多利亞公園", "九龍仔公園"],
+    preferredTimes: ["週末上午", "工作日晚間"],
+    matchTypes: ["單打", "雙打"],
+    ageRange: "26-35"
 )

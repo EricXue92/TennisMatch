@@ -132,7 +132,14 @@ struct FollowingView: View {
                 reputation: 88,
                 matchCount: 20,
                 bio: "熱愛網球",
-                recentMatches: ["04/19 單打 · 維多利亞公園"]
+                recentMatches: [
+                    "04/25 09:00 - 11:00 單打 · 維多利亞公園",
+                    "04/28 15:00 - 17:00 雙打 · 九龍仔公園",
+                ],
+                preferredCourts: ["維多利亞公園", "九龍仔公園"],
+                preferredTimes: ["週末上午", "工作日傍晚"],
+                matchTypes: ["單打", "雙打"],
+                ageRange: "26-35"
             )
         }
     }
