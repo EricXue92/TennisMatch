@@ -373,29 +373,17 @@ struct MyMatchesView: View {
         let hoursToStart = MatchSchedule.startDate(text: scheduleText)
             .map { $0.timeIntervalSince(.now) / 3600 } ?? Double.infinity
 
+        // 根據距開場時間計算扣分說明（簡短版）
         let penaltyLine: String
         if hoursToStart >= 24 {
-            penaltyLine = "距開場超過 24 小時，不扣信譽分"
+            penaltyLine = "距開場超過 24 小時，不扣信譽分。"
         } else if hoursToStart >= 2 {
-            penaltyLine = "距開場不足 24 小時，將扣除 1 分信譽分"
+            penaltyLine = "距開場不足 24 小時，將扣除 1 分信譽分（當前 \(creditScoreStore.score) 分）。"
         } else {
-            penaltyLine = "距開場不足 2 小時，將扣除 2 分信譽分"
+            penaltyLine = "距開場不足 2 小時，將扣除 2 分信譽分（當前 \(creditScoreStore.score) 分）。"
         }
 
-        return """
-        確定要取消「\(match.title)」嗎？取消後將通知所有參與者。
-
-        \(penaltyLine)
-
-        取消規則：
-        · 24 小時前取消：不扣分
-        · 24 小時內取消：扣 1 分
-        · 2 小時內取消：扣 2 分
-        · 信譽分低於 70：凍結帳號 1 個月
-        · 信譽分低於 60：永久封號
-
-        當前信譽分：\(creditScoreStore.score) 分
-        """
+        return "取消約球將通知所有參與者，並可能扣除信譽分。\(penaltyLine)取消次數過多可能導致帳號凍結。"
     }
 
     private func openChat(for match: MyMatchItem) {
