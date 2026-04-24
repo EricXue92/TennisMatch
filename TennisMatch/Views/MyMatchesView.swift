@@ -539,7 +539,6 @@ struct MyMatchesView: View {
         }
     }
 
-    @ViewBuilder
     private func ownedTournamentCard(_ tournament: MockTournament) -> some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack(alignment: .top) {
@@ -588,12 +587,9 @@ struct MyMatchesView: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-        .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Theme.inputBorder, lineWidth: 0.5)
-        }
+        .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }
 }
 
