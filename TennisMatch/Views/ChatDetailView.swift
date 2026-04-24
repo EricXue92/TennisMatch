@@ -347,7 +347,7 @@ struct ChatDetailView: View {
     // MARK: - System Message
 
     private func systemMessageBubble(_ text: String) -> some View {
-        let isMatchContext = text.contains("約球已確認") || text.contains("賽事報名確認") || text.contains("已接受約球邀請")
+        let isMatchContext = text.contains("約球已確認") || text.contains("賽事報名確認") || text.contains("已接受約球邀請") || text.contains("邀請你加入我的約球") || text.contains("邀請你參加我的賽事")
         // Only the sign-up-success context card (passed via `matchContext`) is
         // dismissible — the auto-generated "約球已確認" inline banners are not.
         let isDismissible = isMatchContext && matchContext != nil && text == matchContext

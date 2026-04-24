@@ -30,7 +30,7 @@ struct CustomTabBar: View {
         )
     }
 
-    private func tabBarItem(icon: String, label: String, tag: Int, badgeCount: Int = 0) -> some View {
+    private func tabBarItem(icon: String, label: LocalizedStringKey, tag: Int, badgeCount: Int = 0) -> some View {
         Button {
             selectedTab = tag
         } label: {

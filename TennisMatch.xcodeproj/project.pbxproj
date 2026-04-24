@@ -86,11 +86,13 @@
 				};
 			};
 			buildConfigurationList = 85C094622F93C08E002F2719 /* Build configuration list for PBXProject "TennisMatch" */;
-			developmentRegion = en;
+			developmentRegion = "zh-Hant";
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
+				"zh-Hant",
 			);
 			mainGroup = 85C0945E2F93C08E002F2719;
 			minimizedProjectReferenceProxies = 1;

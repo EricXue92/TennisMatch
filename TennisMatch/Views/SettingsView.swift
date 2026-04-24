@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(LocaleManager.self) private var localeManager
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("maskedPhone") private var maskedPhone = ""
     @AppStorage("matchReminders") private var matchReminders = true
@@ -28,6 +29,7 @@ struct SettingsView: View {
             accountSection
             notificationSection
             privacySection
+            generalSection
             aboutSection
             logoutSection
         }
@@ -142,6 +144,24 @@ struct SettingsView: View {
         }
     }
 
+    private var generalSection: some View {
+        @Bindable var manager = localeManager
+        return Section {
+            Picker(selection: $manager.selectedLanguage) {
+                Text("跟隨系統").tag(LocaleManager.AppLanguage.system)
+                Text("简体中文").tag(LocaleManager.AppLanguage.zhHans)
+                Text("繁體中文").tag(LocaleManager.AppLanguage.zhHant)
+                Text("English").tag(LocaleManager.AppLanguage.en)
+            } label: {
+                Label("語言", systemImage: "globe")
+                    .font(Typography.fieldValue)
+                    .foregroundColor(Theme.textPrimary)
+            }
+        } header: {
+            Text("通用")
+        }
+    }
+
     private var aboutSection: some View {
         Section {
             settingsRow(icon: "info.circle.fill", title: "版本", value: "v0.1.0")
@@ -174,21 +194,21 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    private func settingsRow(icon: String, title: String, value: String? = nil) -> some View {
+    private func settingsRow(icon: String, title: LocalizedStringKey, value: String? = nil) -> some View {
         HStack {
             Label(title, systemImage: icon)
                 .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
             Spacer()
             if let value {
-                Text(value)
+                Text(LocalizedStringKey(value))
                     .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
             }
         }
     }
 
-    private func tappableRow(icon: String, title: String, value: String? = nil, action: @escaping () -> Void) -> some View {
+    private func tappableRow(icon: String, title: LocalizedStringKey, value: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
                 Label(title, systemImage: icon)
@@ -196,7 +216,7 @@ struct SettingsView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 if let value {
-                    Text(value)
+                    Text(LocalizedStringKey(value))
                         .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -249,21 +269,21 @@ private struct ChangePasswordSheet: View {
                     focusedField = nil
                     // 驗證當前密碼
                     guard !currentPassword.isEmpty else {
-                        withAnimation { toastMessage = "請輸入目前的密碼" }
+                        withAnimation { toastMessage = L10n.string("請輸入目前的密碼") }
                         return
                     }
                     // 驗證新密碼長度（Mock 階段：接受任何非空當前密碼）
                     guard newPassword.count >= 6 else {
-                        withAnimation { toastMessage = "新密碼至少需要 6 位" }
+                        withAnimation { toastMessage = L10n.string("新密碼至少需要 6 位") }
                         return
                     }
                     // 驗證兩次新密碼一致
                     guard newPassword == confirmPassword else {
-                        withAnimation { toastMessage = "兩次新密碼不一致" }
+                        withAnimation { toastMessage = L10n.string("兩次新密碼不一致") }
                         return
                     }
                     // 所有驗證通過，顯示成功並關閉
-                    withAnimation { toastMessage = "密碼修改成功" }
+                    withAnimation { toastMessage = L10n.string("密碼修改成功") }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                         dismiss()
                     }
@@ -384,7 +404,7 @@ private struct LinkedAccountsSheet: View {
                 .foregroundColor(iconColor)
                 .frame(width: 36, height: 36)
 
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
 
@@ -393,12 +413,18 @@ private struct LinkedAccountsSheet: View {
             Button {
                 let linkedCount = [wechatLinked, appleLinked, googleLinked].filter { $0 }.count
                 if isLinked.wrappedValue && linkedCount <= 1 {
-                    withAnimation { toastMessage = "至少需要保留一種登錄方式" }
+                    withAnimation { toastMessage = L10n.string("至少需要保留一種登錄方式") }
                     return
                 }
                 withAnimation {
                     isLinked.wrappedValue.toggle()
-                    toastMessage = isLinked.wrappedValue ? "已關聯\(title)" : "已取消關聯\(title)"
+                    let localizedTitle = String(
+                        localized: String.LocalizationValue(title),
+                        locale: LocaleManager.shared.currentLocale
+                    )
+                    toastMessage = isLinked.wrappedValue
+                        ? L10n.string("已關聯 \(localizedTitle)")
+                        : L10n.string("已取消關聯 \(localizedTitle)")
                 }
             } label: {
                 Text(isLinked.wrappedValue ? "已關聯" : "關聯")
@@ -429,10 +455,12 @@ private struct LinkedAccountsSheet: View {
     NavigationStack {
         SettingsView()
     }
+    .environment(LocaleManager.shared)
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         SettingsView()
     }
+    .environment(LocaleManager.shared)
 }

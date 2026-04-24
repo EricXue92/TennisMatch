@@ -403,7 +403,7 @@ struct MyMatchesView: View {
                 notificationStore.push(MatchNotification(
                     type: .cancelled,
                     title: "賽事已取消",
-                    body: "「\(tournament.name)」 已取消",
+                    body: "「\(tournament.name)」已取消",
                     time: "剛剛",
                     isRead: false
                 ))
@@ -412,7 +412,7 @@ struct MyMatchesView: View {
                 tournamentToCancel = nil
             }
         } message: { tournament in
-            Text("確認取消「\(tournament.name)」?已報名的球友將收到通知。")
+            Text("確認取消「\(tournament.name)」？已報名的球友將收到通知。")
         }
         .sheet(item: $tournamentRegistrantSheet) { tournament in
             NavigationStack {

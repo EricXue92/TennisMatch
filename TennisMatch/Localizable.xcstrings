@@ -1,0 +1,1962 @@
+{
+  "sourceLanguage" : "zh-Hant",
+  "strings" : {
+    "" : {
+
+    },
+    " 和 " : {
+
+    },
+    ":" : {
+
+    },
+    "· %@" : {
+
+    },
+    "*" : {
+
+    },
+    "%@  %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@  %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%@ · %@ · NTRP %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@ · NTRP %3$@"
+          }
+        }
+      }
+    },
+    "%@ 邀請你打%@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ 邀請你打%2$@"
+          }
+        }
+      }
+    },
+    "%@%@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@"
+          }
+        }
+      }
+    },
+    "%@%lld" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$lld"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
+    "%lld 秒後可重新發送" : {
+
+    },
+    "%lld%%" : {
+
+    },
+    "%llds" : {
+
+    },
+    "• %@" : {
+
+    },
+    "+ 建立賽事" : {
+
+    },
+    "×" : {
+
+    },
+    "< 60" : {
+
+    },
+    "< 70" : {
+
+    },
+    "~" : {
+
+    },
+    "▾" : {
+
+    },
+    "☀️ 24°C" : {
+
+    },
+    "⛅ 天氣" : {
+
+    },
+    "✅ 已接受" : {
+
+    },
+    "✉️" : {
+
+    },
+    "🎾" : {
+
+    },
+    "🎾 查看 NTRP 技術分級標準 →" : {
+
+    },
+    "🎾 約球記錄" : {
+
+    },
+    "🎾 約球邀請" : {
+
+    },
+    "🎾 網球 NTRP 技術分級標準（精簡版）" : {
+
+    },
+    "🎾 記錄" : {
+
+    },
+    "🏅 成就" : {
+
+    },
+    "🏆" : {
+
+    },
+    "🏆 賽事記錄" : {
+
+    },
+    "💡 根據人數，推薦「%@」" : {
+
+    },
+    "💬 私信" : {
+
+    },
+    "📅" : {
+
+    },
+    "📅 %@" : {
+
+    },
+    "📅 %@  📍 %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "📅 %1$@  📍 %2$@"
+          }
+        }
+      }
+    },
+    "📈 推薦" : {
+
+    },
+    "📋 球友資料" : {
+
+    },
+    "📍" : {
+
+    },
+    "📍 %@" : {
+
+    },
+    "📨 邀請" : {
+
+    },
+    "📩 收到邀請" : {
+
+    },
+    "📱" : {
+
+    },
+    "🗓️ %@" : {
+
+    },
+    "🤖" : {
+
+    },
+    "🥇" : {
+
+    },
+    "🥈" : {
+
+    },
+    "🥉" : {
+
+    },
+    "🙏" : {
+
+    },
+    "00" : {
+
+    },
+    "0.0" : {
+
+    },
+    "30" : {
+
+    },
+    "Apple 登录" : {
+
+    },
+    "English" : {
+      "shouldTranslate" : false
+    },
+    "HK$" : {
+
+    },
+    "Let's Tennis" : {
+
+    },
+    "Let'sTennis 是一個免費的約球App\n你的打賞是我繼續開發的動力" : {
+
+    },
+    "NTRP" : {
+
+    },
+    "NTRP %@" : {
+
+    },
+    "NTRP %@ · %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "NTRP %1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "NTRP %@ · 信譽分 %lld" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "NTRP %1$@ · 信譽分 %2$lld"
+          }
+        }
+      }
+    },
+    "NTRP 4.0 · 賽事組織者" : {
+
+    },
+    "NTRP 技術分級標準" : {
+
+    },
+    "NTRP 水平" : {
+
+    },
+    "NTRP要求" : {
+
+    },
+    "v0.1.0" : {
+      "shouldTranslate" : false
+    },
+    "一句話介紹自己" : {
+
+    },
+    "一鍵約球" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Quick Match"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一键约球"
+          }
+        }
+      }
+    },
+    "主辦方" : {
+
+    },
+    "互相評論" : {
+
+    },
+    "互相關注" : {
+
+    },
+    "互相關注後才能邀請對方" : {
+
+    },
+    "互相關注的球友會顯示在這裡" : {
+
+    },
+    "人" : {
+
+    },
+    "你已加入%@的%@約球" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "你已加入%1$@的%2$@約球"
+          }
+        }
+      }
+    },
+    "你已成功加入%@的約球" : {
+
+    },
+    "你已成功報名「%@」" : {
+
+    },
+    "你有未儲存的修改，確定要放棄嗎？" : {
+
+    },
+    "你有未儲存的內容，確定要放棄嗎？" : {
+
+    },
+    "你的支持讓 Let'sTennis 變得更好\n我們會繼續努力開發更多功能" : {
+
+    },
+    "你的邀請碼" : {
+
+    },
+    "使用郵箱地址建立帳號" : {
+
+    },
+    "例如：單淘汰制，三盤兩勝\n每場比賽採用三盤兩勝制\n選手需提前15分鐘到場" : {
+
+    },
+    "例如：我會準時到！" : {
+
+    },
+    "例如：自帶球、需要教練等" : {
+
+    },
+    "例如：香港春季網球公開賽" : {
+
+    },
+    "信譽積分" : {
+
+    },
+    "修改密碼" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change Password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "修改密码"
+          }
+        }
+      }
+    },
+    "偏好打球時間" : {
+
+    },
+    "偏好時間" : {
+
+    },
+    "偏好球友水平" : {
+
+    },
+    "備註" : {
+
+    },
+    "僅自己" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Only me"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅自己"
+          }
+        }
+      }
+    },
+    "僅關注者" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Followers only"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仅关注者"
+          }
+        }
+      }
+    },
+    "儲存修改" : {
+
+    },
+    "全部" : {
+
+    },
+    "全部已讀" : {
+
+    },
+    "兩次新密碼不一致" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New passwords don't match"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "两次新密码不一致"
+          }
+        }
+      }
+    },
+    "兩次輸入的密碼不一致" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passwords don't match"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "两次输入的密码不一致"
+          }
+        }
+      }
+    },
+    "再想想" : {
+
+    },
+    "最後更新日期：2026 年 4 月 1 日" : {
+
+    },
+    "凍結帳號 1 個月" : {
+
+    },
+    "分享你的邀請碼給朋友，一起加入 Let's Tennis" : {
+
+    },
+    "分享給朋友" : {
+
+    },
+    "刪除" : {
+
+    },
+    "刪除聊天" : {
+
+    },
+    "到" : {
+
+    },
+    "創建約球" : {
+
+    },
+    "創建賽事" : {
+
+    },
+    "匹配度" : {
+
+    },
+    "去發起賽事" : {
+
+    },
+    "去賽事頁發起你的第一場賽事" : {
+
+    },
+    "去首頁找一場約球，或發起新的約球" : {
+
+    },
+    "去首頁看看" : {
+
+    },
+    "參加者" : {
+
+    },
+    "取消" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "取消"
+          }
+        }
+      }
+    },
+    "取消約球" : {
+
+    },
+    "取消賽事" : {
+
+    },
+    "取消關注" : {
+
+    },
+    "取消靜音" : {
+
+    },
+    "可用時間" : {
+
+    },
+    "可稍後完善" : {
+
+    },
+    "城市" : {
+
+    },
+    "報名" : {
+
+    },
+    "報名 %@" : {
+
+    },
+    "報名、確認、改期等通知會顯示在這裡" : {
+
+    },
+    "報名成功！" : {
+
+    },
+    "報名者 (%@)" : {
+
+    },
+    "報名者 (%lld/%lld)" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "報名者 (%1$lld/%2$lld)"
+          }
+        }
+      }
+    },
+    "完成" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完成"
+          }
+        }
+      }
+    },
+    "完成的約球會顯示在這裡" : {
+
+    },
+    "完成約球後，可在這裡給對手留下評價" : {
+
+    },
+    "完成約球後收到的評價會顯示在這裡" : {
+
+    },
+    "完成設定" : {
+
+    },
+    "密碼修改成功" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Password changed successfully"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "密码修改成功"
+          }
+        }
+      }
+    },
+    "寫評論" : {
+
+    },
+    "封鎖「%@」後，對方將無法查看你的資料和約球，也無法向你發送私信。" : {
+
+    },
+    "封鎖名單" : {
+
+    },
+    "封鎖對方" : {
+
+    },
+    "封鎖後對方將無法再聯絡你。" : {
+
+    },
+    "封鎖於 %@" : {
+
+    },
+    "封鎖用戶" : {
+
+    },
+    "尚未設定偏好時間" : {
+
+    },
+    "已取消關聯 %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unlinked %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已取消关联 %@"
+          }
+        }
+      }
+    },
+    "已報名" : {
+
+    },
+    "已報名選手" : {
+
+    },
+    "已婉拒" : {
+
+    },
+    "已接受邀請！" : {
+
+    },
+    "已滿員！已通知所有參加者，比賽確認成功" : {
+
+    },
+    "已解鎖" : {
+
+    },
+    "已解鎖 · %lld/%lld" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "已解鎖 · %1$lld/%2$lld"
+          }
+        }
+      }
+    },
+    "已選 %lld 個" : {
+
+    },
+    "已邀請" : {
+
+    },
+    "已關注" : {
+
+    },
+    "已關聯" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关联"
+          }
+        }
+      }
+    },
+    "已關聯 %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已关联 %@"
+          }
+        }
+      }
+    },
+    "帳號與安全" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Account & Security"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "账号与安全"
+          }
+        }
+      }
+    },
+    "帳號處罰" : {
+
+    },
+    "常去球場" : {
+
+    },
+    "幫助" : {
+
+    },
+    "從" : {
+
+    },
+    "微信" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WeChat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "微信"
+          }
+        }
+      }
+    },
+    "微信、Apple" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WeChat, Apple"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "微信、Apple"
+          }
+        }
+      }
+    },
+    "性別" : {
+
+    },
+    "性別要求" : {
+
+    },
+    "感謝你的打賞！" : {
+
+    },
+    "感謝你的支持！" : {
+
+    },
+    "成就" : {
+
+    },
+    "我們已將 6 位數驗證碼發送至" : {
+
+    },
+    "我發起的" : {
+
+    },
+    "我的" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的"
+          }
+        }
+      }
+    },
+    "我的約球" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "My Matches"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "我的约球"
+          }
+        }
+      }
+    },
+    "我的評論" : {
+
+    },
+    "所有人" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Everyone"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "所有人"
+          }
+        }
+      }
+    },
+    "所有打賞金額將直接用於 App 開發與伺服器維護" : {
+
+    },
+    "手機登入" : {
+
+    },
+    "手機號碼" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Phone Number"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手机号码"
+          }
+        }
+      }
+    },
+    "手機號碼登入" : {
+
+    },
+    "打賞開發者" : {
+
+    },
+    "打賞非必要，你的使用就是最大的支持 ❤️" : {
+
+    },
+    "找 到 你 的 網 球 搭 檔" : {
+
+    },
+    "找不到答案？" : {
+
+    },
+    "技術重點：" : {
+
+    },
+    "拒絕" : {
+
+    },
+    "招募中" : {
+
+    },
+    "接受" : {
+
+    },
+    "推薦" : {
+
+    },
+    "提交評價" : {
+
+    },
+    "搜尋球場" : {
+
+    },
+    "支付方式" : {
+
+    },
+    "放棄" : {
+
+    },
+    "放棄修改？" : {
+
+    },
+    "放棄編輯？" : {
+
+    },
+    "新增" : {
+
+    },
+    "新增偏好時段" : {
+
+    },
+    "新增時段" : {
+
+    },
+    "新密碼（至少 6 位）" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Password (min 6 characters)"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密码（至少 6 位）"
+          }
+        }
+      }
+    },
+    "新密碼至少需要 6 位" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New password must be at least 6 characters"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新密码至少需要 6 位"
+          }
+        }
+      }
+    },
+    "日期與時間" : {
+
+    },
+    "星期" : {
+
+    },
+    "時間" : {
+
+    },
+    "暫無互關好友" : {
+
+    },
+    "暫無已完成的約球" : {
+
+    },
+    "暫無聊天" : {
+
+    },
+    "暫無評價" : {
+
+    },
+    "暫無評論" : {
+
+    },
+    "暫無變動記錄" : {
+
+    },
+    "暫無通知" : {
+
+    },
+    "更換照片" : {
+
+    },
+    "服務條款" : {
+
+    },
+    "未綁定" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not linked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未绑定"
+          }
+        }
+      }
+    },
+    "未解鎖" : {
+
+    },
+    "查看" : {
+
+    },
+    "查看 %@ 的資料" : {
+
+    },
+    "查看報名者" : {
+
+    },
+    "查看約球詳情" : {
+
+    },
+    "查看群成員" : {
+
+    },
+    "查看評論" : {
+
+    },
+    "根據你的 NTRP %@、常去球場和空閒時間為你推薦" : {
+
+    },
+    "根據您的實際水平選擇對應的 NTRP 等級" : {
+
+    },
+    "比賽成績" : {
+
+    },
+    "比賽類型" : {
+
+    },
+    "永久封號" : {
+
+    },
+    "沒有封鎖的用戶" : {
+
+    },
+    "沒有待評價的約球" : {
+
+    },
+    "沒有收到驗證碼？" : {
+
+    },
+    "沒有符合條件的約球" : {
+
+    },
+    "清除篩選" : {
+
+    },
+    "港幣" : {
+
+    },
+    "為你推薦" : {
+
+    },
+    "版本" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "版本"
+          }
+        }
+      }
+    },
+    "獲取驗證碼" : {
+
+    },
+    "球場" : {
+
+    },
+    "理想球友" : {
+
+    },
+    "用戶協議" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Terms of Service"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用户协议"
+          }
+        }
+      }
+    },
+    "當前密碼" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Current Password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当前密码"
+          }
+        }
+      }
+    },
+    "當前積分" : {
+
+    },
+    "登入即表示您同意 " : {
+
+    },
+    "發布約球" : {
+
+    },
+    "發布賽事" : {
+
+    },
+    "發起人" : {
+
+    },
+    "發起人: %@" : {
+
+    },
+    "發起約球" : {
+
+    },
+    "發送" : {
+
+    },
+    "發送圖片" : {
+
+    },
+    "發送驗證碼" : {
+
+    },
+    "確定要刪除此聊天記錄嗎？刪除後無法恢復。" : {
+
+    },
+    "確定要取消關注「%@」嗎？" : {
+
+    },
+    "確定要取消關注「%@」嗎？取消後將從互相關注中移除。" : {
+
+    },
+    "確定要解除對「%@」的封鎖嗎？" : {
+
+    },
+    "確定要退出登錄嗎？" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Are you sure you want to log out?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确定要退出登录吗？"
+          }
+        }
+      }
+    },
+    "確認" : {
+
+    },
+    "確認修改" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认修改"
+          }
+        }
+      }
+    },
+    "確認取消" : {
+
+    },
+    "確認取消「%@」？已報名的球友將收到通知。" : {
+
+    },
+    "確認報名" : {
+
+    },
+    "確認密碼" : {
+
+    },
+    "確認封鎖" : {
+
+    },
+    "確認新密碼" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Confirm New Password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认新密码"
+          }
+        }
+      }
+    },
+    "確認發布" : {
+
+    },
+    "確認約球資訊" : {
+
+    },
+    "確認解除" : {
+
+    },
+    "確認賽事資訊" : {
+
+    },
+    "確認退出" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log Out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "确认退出"
+          }
+        }
+      }
+    },
+    "私信" : {
+
+    },
+    "私信邀請球友" : {
+
+    },
+    "積分規則" : {
+
+    },
+    "立即報名 · %@" : {
+
+    },
+    "立即註冊" : {
+
+    },
+    "简体中文" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Simplified Chinese"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "简体中文"
+          }
+        }
+      }
+    },
+    "管理" : {
+
+    },
+    "管理第三方登錄方式" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage third-party sign-in methods"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "管理第三方登录方式"
+          }
+        }
+      }
+    },
+    "管理約球" : {
+
+    },
+    "管理賽事" : {
+
+    },
+    "篩選" : {
+
+    },
+    "粉絲" : {
+
+    },
+    "約球助理" : {
+
+    },
+    "約球提醒" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match Reminders"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "约球提醒"
+          }
+        }
+      }
+    },
+    "約球評論" : {
+
+    },
+    "約球詳情" : {
+
+    },
+    "結束" : {
+
+    },
+    "結束時間" : {
+
+    },
+    "給發起人留言（選填）" : {
+
+    },
+    "編輯約球" : {
+
+    },
+    "編輯資料" : {
+
+    },
+    "編輯賽事" : {
+
+    },
+    "繁體中文" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Traditional Chinese"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "繁体中文"
+          }
+        }
+      }
+    },
+    "繼續編輯" : {
+
+    },
+    "聊天" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天"
+          }
+        }
+      }
+    },
+    "聊天消息" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chat Messages"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聊天消息"
+          }
+        }
+      }
+    },
+    "聯繫客服" : {
+
+    },
+    "自定義金額" : {
+
+    },
+    "至少需要保留一種登錄方式" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You must keep at least one sign-in method"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "至少需要保留一种登录方式"
+          }
+        }
+      }
+    },
+    "被你封鎖的用戶會顯示在這裡" : {
+
+    },
+    "複製邀請碼" : {
+
+    },
+    "解除封鎖" : {
+
+    },
+    "設定" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置"
+          }
+        }
+      }
+    },
+    "設定個人資料" : {
+
+    },
+    "設定密碼" : {
+
+    },
+    "設定頭像" : {
+
+    },
+    "註冊" : {
+
+    },
+    "評價" : {
+
+    },
+    "評價 %@" : {
+
+    },
+    "評價對手" : {
+
+    },
+    "評價提交成功" : {
+
+    },
+    "試試調整篩選條件，或發起一場新的約球" : {
+
+    },
+    "詳細時段" : {
+
+    },
+    "語言" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "說說你的打球體驗..." : {
+
+    },
+    "誰能看到我的資料" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who can see my profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "谁能看到我的资料"
+          }
+        }
+      }
+    },
+    "誰能私信我" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Who can message me"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "谁能私信我"
+          }
+        }
+      }
+    },
+    "請先選擇評分" : {
+
+    },
+    "請再次輸入密碼" : {
+
+    },
+    "請輸入 %@ 數字的手機號碼" : {
+
+    },
+    "請輸入 6 位驗證碼" : {
+
+    },
+    "請輸入密碼（至少 6 位）" : {
+
+    },
+    "請輸入您的手機號碼，我們將發送驗證碼" : {
+
+    },
+    "請輸入手機號碼" : {
+
+    },
+    "請輸入用戶名" : {
+
+    },
+    "請輸入當前密碼並設定新密碼" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter your current password and set a new one"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入当前密码并设置新密码"
+          }
+        }
+      }
+    },
+    "請輸入目前的密碼" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Please enter your current password"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入当前密码"
+          }
+        }
+      }
+    },
+    "請輸入郵箱" : {
+
+    },
+    "變動記錄" : {
+
+    },
+    "費用分攤" : {
+
+    },
+    "費用金額 (港幣)" : {
+
+    },
+    "賽事" : {
+
+    },
+    "賽事更新" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tournament Updates"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "赛事更新"
+          }
+        }
+      }
+    },
+    "賽事規則" : {
+
+    },
+    "賽事詳情" : {
+
+    },
+    "賽事資訊" : {
+
+    },
+    "賽事開始報名後,報名球友會顯示在這裡" : {
+
+    },
+    "跟隨系統" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "System"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跟随系统"
+          }
+        }
+      }
+    },
+    "輸入訊息..." : {
+
+    },
+    "輸入驗證碼" : {
+
+    },
+    "返回" : {
+
+    },
+    "返回修改" : {
+
+    },
+    "返回我的約球" : {
+
+    },
+    "返回賽事" : {
+
+    },
+    "退出登錄" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log Out"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "退出登录"
+          }
+        }
+      }
+    },
+    "退出群聊" : {
+
+    },
+    "通用" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "General"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通用"
+          }
+        }
+      }
+    },
+    "通知" : {
+
+    },
+    "通知偏好" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notifications"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "通知偏好"
+          }
+        }
+      }
+    },
+    "選擇常去球場" : {
+
+    },
+    "選擇星期" : {
+
+    },
+    "選擇球場" : {
+
+    },
+    "選擇要邀請的朋友加入%@" : {
+
+    },
+    "選擇金額" : {
+
+    },
+    "邀請" : {
+
+    },
+    "邀請 %lld" : {
+
+    },
+    "邀請好友" : {
+
+    },
+    "邀請好友一起打球" : {
+
+    },
+    "邀請朋友" : {
+
+    },
+    "還沒有互相關注的球友" : {
+
+    },
+    "還沒有即將到來的約球" : {
+
+    },
+    "還沒有帳號？" : {
+
+    },
+    "還沒有球友報名" : {
+
+    },
+    "還沒有發起過賽事" : {
+
+    },
+    "還沒有粉絲" : {
+
+    },
+    "還沒有關注的球友" : {
+
+    },
+    "郵箱地址" : {
+
+    },
+    "郵箱註冊" : {
+
+    },
+    "重新發送" : {
+
+    },
+    "重置" : {
+
+    },
+    "開始" : {
+
+    },
+    "開始時間" : {
+
+    },
+    "開始約球後，與對手的對話會顯示在這裡" : {
+
+    },
+    "關於我們" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于我们"
+          }
+        }
+      }
+    },
+    "關注" : {
+
+    },
+    "關注你的球友會顯示在這裡" : {
+
+    },
+    "關注喜歡的球友後，會顯示在這裡" : {
+
+    },
+    "關聯" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Link"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关联"
+          }
+        }
+      }
+    },
+    "關聯帳號" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Linked Accounts"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关联账号"
+          }
+        }
+      }
+    },
+    "關閉" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Off"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关闭"
+          }
+        }
+      }
+    },
+    "關閉報名" : {
+
+    },
+    "隱私政策" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy Policy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私政策"
+          }
+        }
+      }
+    },
+    "隱私設置" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Privacy"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "隐私设置"
+          }
+        }
+      }
+    },
+    "雙方尚未留下評論" : {
+
+    },
+    "需要幫助？" : {
+
+    },
+    "靜音通知" : {
+
+    },
+    "首頁" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Home"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "首页"
+          }
+        }
+      }
+    },
+    "驗證並登入" : {
+
+    },
+    "驗證碼" : {
+
+    },
+    "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。" : {
+
+    }
+  },
+  "version" : "1.0"
+}
