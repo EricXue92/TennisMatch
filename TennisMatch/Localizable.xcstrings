@@ -83,7 +83,22 @@
     "Let's Tennis": {},
     "Let'sTennis 是一個免費的約球App\n你的打賞是我繼續開發的動力": {},
     "NTRP": {},
-    "NTRP %@": {},
+    "NTRP %@": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NTRP %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NTRP %@"
+          }
+        }
+      }
+    },
     "NTRP %@ · %@": {
       "localizations": {
         "zh-Hant": {
@@ -120,6 +135,22 @@
     "⛅ 天氣": {},
     "✅ 已接受": {},
     "✉️": {},
+    "一": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一"
+          }
+        }
+      }
+    },
     "一句話介紹自己": {},
     "一鍵約球": {
       "localizations": {
@@ -137,11 +168,75 @@
         }
       }
     },
+    "三": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三"
+          }
+        }
+      }
+    },
+    "不限": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Any"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不限"
+          }
+        }
+      }
+    },
     "主辦方": {},
+    "二": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二"
+          }
+        }
+      }
+    },
     "互相評論": {},
     "互相關注": {},
     "互相關注後才能邀請對方": {},
     "互相關注的球友會顯示在這裡": {},
+    "五": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fri"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "五"
+          }
+        }
+      }
+    },
     "人": {},
     "你已加入%@的%@約球": {
       "localizations": {
@@ -282,13 +377,44 @@
         }
       }
     },
+    "六": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "六"
+          }
+        }
+      }
+    },
     "再想想": {},
     "凍結帳號 1 個月": {},
     "分享你的邀請碼給朋友，一起加入 Let's Tennis": {},
     "分享給朋友": {},
     "刪除": {},
     "刪除聊天": {},
-    "到": {},
+    "到": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "到"
+          }
+        }
+      }
+    },
     "創建約球": {},
     "創建賽事": {},
     "匹配度": {},
@@ -331,6 +457,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "单打"
+          }
+        }
+      }
+    },
+    "四": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Thu"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "四"
           }
         }
       }
@@ -382,6 +524,22 @@
         }
       }
     },
+    "女": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Female"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "女"
+          }
+        }
+      }
+    },
     "完成": {
       "localizations": {
         "en": {
@@ -420,7 +578,22 @@
     },
     "寫評論": {},
     "封鎖「%@」後，對方將無法查看你的資料和約球，也無法向你發送私信。": {},
-    "封鎖名單": {},
+    "封鎖名單": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block List"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽名单"
+          }
+        }
+      }
+    },
     "封鎖對方": {},
     "封鎖後對方將無法再聯絡你。": {},
     "封鎖於 %@": {},
@@ -505,9 +678,39 @@
         }
       }
     },
-    "已選 %lld 個": {},
+    "已選 %lld 個": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld selected"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已选 %lld 个"
+          }
+        }
+      }
+    },
     "已邀請": {},
-    "已關注": {},
+    "已關注": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已关注"
+          }
+        }
+      }
+    },
     "已關聯": {
       "localizations": {
         "en": {
@@ -574,8 +777,54 @@
     },
     "帳號處罰": {},
     "常去球場": {},
-    "幫助": {},
-    "從": {},
+    "幫助": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Help"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "帮助"
+          }
+        }
+      }
+    },
+    "年齡": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Age"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "年龄"
+          }
+        }
+      }
+    },
+    "從": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "From"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从"
+          }
+        }
+      }
+    },
     "微信": {
       "extractionState": "stale",
       "localizations": {
@@ -610,7 +859,22 @@
         }
       }
     },
-    "性別": {},
+    "性別": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gender"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "性别"
+          }
+        }
+      }
+    },
     "性別要求": {},
     "感謝你的打賞！": {},
     "感謝你的支持！": {},
@@ -700,7 +964,22 @@
       }
     },
     "手機號碼登入": {},
-    "打賞開發者": {},
+    "打賞開發者": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tip the Developer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打赏开发者"
+          }
+        }
+      }
+    },
     "打賞非必要，你的使用就是最大的支持 ❤️": {},
     "找 到 你 的 網 球 搭 檔": {},
     "找不到答案？": {},
@@ -782,9 +1061,40 @@
         }
       }
     },
+    "日": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sun"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
+        }
+      }
+    },
     "日期與時間": {},
     "星期": {},
-    "時間": {},
+    "時間": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "时间"
+          }
+        }
+      }
+    },
     "暫無互關好友": {},
     "暫無已完成的約球": {},
     "暫無聊天": {},
@@ -878,7 +1188,22 @@
       }
     },
     "獲取驗證碼": {},
-    "球場": {},
+    "球場": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Court"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "球场"
+          }
+        }
+      }
+    },
     "理想球友": {},
     "用戶協議": {
       "localizations": {
@@ -892,6 +1217,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "用户协议"
+          }
+        }
+      }
+    },
+    "男": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Male"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "男"
           }
         }
       }
@@ -958,7 +1299,22 @@
         }
       }
     },
-    "確認": {},
+    "確認": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认"
+          }
+        }
+      }
+    },
     "確認修改": {
       "localizations": {
         "en": {
@@ -1074,7 +1430,22 @@
       }
     },
     "粉絲": {},
-    "約球助理": {},
+    "約球助理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match Assistant"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "约球助理"
+          }
+        }
+      }
+    },
     "約球已成功發布 🎾": {
       "localizations": {
         "en": {
@@ -1110,7 +1481,22 @@
     "約球評論": {},
     "約球詳情": {},
     "結束": {},
-    "結束時間": {},
+    "結束時間": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "End time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束时间"
+          }
+        }
+      }
+    },
     "給發起人留言（選填）": {},
     "編輯約球": {},
     "編輯資料": {},
@@ -1205,7 +1591,22 @@
     "設定密碼": {},
     "設定頭像": {},
     "註冊": {},
-    "評價": {},
+    "評價": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reviews"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "评价"
+          }
+        }
+      }
+    },
     "評價 %@": {},
     "評價對手": {},
     "評價提交成功": {},
@@ -1335,7 +1736,22 @@
     "變動記錄": {},
     "費用分攤": {},
     "費用金額 (港幣)": {},
-    "賽事": {},
+    "賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tournaments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "赛事"
+          }
+        }
+      }
+    },
     "賽事更新": {
       "localizations": {
         "en": {
@@ -1411,7 +1827,22 @@
         }
       }
     },
-    "通知": {},
+    "通知": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通知"
+          }
+        }
+      }
+    },
     "通知偏好": {
       "localizations": {
         "en": {
@@ -1430,12 +1861,42 @@
     },
     "選擇常去球場": {},
     "選擇星期": {},
-    "選擇球場": {},
+    "選擇球場": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Select courts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择球场"
+          }
+        }
+      }
+    },
     "選擇要邀請的朋友加入%@": {},
     "選擇金額": {},
     "邀請": {},
     "邀請 %lld": {},
-    "邀請好友": {},
+    "邀請好友": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite Friends"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请好友"
+          }
+        }
+      }
+    },
     "邀請好友一起打球": {},
     "邀請朋友": {},
     "還沒有互相關注的球友": {},
@@ -1448,9 +1909,39 @@
     "郵箱地址": {},
     "郵箱註冊": {},
     "重新發送": {},
-    "重置": {},
+    "重置": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Reset"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置"
+          }
+        }
+      }
+    },
     "開始": {},
-    "開始時間": {},
+    "開始時間": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始时间"
+          }
+        }
+      }
+    },
     "開始約球後，與對手的對話會顯示在這裡": {},
     "關於我們": {
       "localizations": {
@@ -1468,7 +1959,22 @@
         }
       }
     },
-    "關注": {},
+    "關注": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Follow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关注"
+          }
+        }
+      }
+    },
     "關注你的球友會顯示在這裡": {},
     "關注喜歡的球友後，會顯示在這裡": {},
     "關聯": {
@@ -1613,7 +2119,22 @@
         }
       }
     },
-    "📈 推薦": {},
+    "📈 推薦": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📈 Recommended"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📈 推荐"
+          }
+        }
+      }
+    },
     "📋 球友資料": {},
     "📍": {},
     "📍 %@": {},

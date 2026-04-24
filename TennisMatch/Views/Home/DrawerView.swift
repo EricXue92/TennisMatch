@@ -114,7 +114,7 @@ struct DrawerView: View {
 
     private func drawerMenuItem(
         icon: String,
-        label: String,
+        label: LocalizedStringKey,
         badge: Int = 0,
         isSecondary: Bool = false,
         action: (() -> Void)? = nil
