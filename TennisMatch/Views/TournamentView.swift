@@ -12,10 +12,10 @@ import SwiftUI
 struct TournamentView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(UserStore.self) private var userStore
+    @Environment(TournamentStore.self) private var tournamentStore
     @State private var selectedFilter = "全部"
     @State private var selectedTournament: MockTournament?
     @State private var showCreateTournament = false
-    @State private var tournaments: [MockTournament] = mockTournaments
 
     var body: some View {
         NavigationStack {
@@ -50,33 +50,18 @@ struct TournamentView: View {
     }
 
     private var filteredTournaments: [MockTournament] {
-        let base = selectedFilter == "全部" ? tournaments : tournaments.filter { $0.status == selectedFilter }
+        let base = selectedFilter == "全部"
+            ? tournamentStore.tournaments
+            : tournamentStore.tournaments.filter { $0.status == selectedFilter }
         return base.sorted { $0.isOwnTournament && !$1.isOwnTournament }
     }
 
     private func addPublishedTournament(_ info: PublishedTournamentInfo) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        let dateRange = "\(formatter.string(from: info.startDate)) - \(formatter.string(from: info.endDate))"
-
-        let tournament = MockTournament(
-            name: info.name.isEmpty ? "我的賽事" : info.name,
-            format: info.format,
-            matchType: info.matchType,
-            ntrpRange: info.level,
-            status: "報名中",
-            dateRange: dateRange,
-            location: info.courtName.isEmpty ? "待定" : info.courtName,
-            participants: "0/\(info.participantCount.isEmpty ? "16" : info.participantCount)",
-            fee: info.fee.isEmpty ? "免費" : "\(info.fee) 港幣",
-            organizer: userStore.displayName,
-            organizerGender: userStore.gender,
-            gradientColors: [Theme.gradGreenLight, Theme.primary],
-            rules: info.rules.isEmpty ? [] : [info.rules],
-            playerList: [],
-            isOwnTournament: true
+        tournamentStore.addPublished(
+            info: info,
+            organizerName: userStore.displayName,
+            organizerGender: userStore.gender
         )
-        tournaments.insert(tournament, at: 0)
     }
 }
 
@@ -1052,11 +1037,13 @@ let mockTournaments: [MockTournament] = [
 #Preview("iPhone SE") {
     TournamentView()
         .environment(UserStore())
+        .environment(TournamentStore())
         .environment(FollowStore())
 }
 
 #Preview("iPhone 15 Pro") {
     TournamentView()
         .environment(UserStore())
+        .environment(TournamentStore())
         .environment(FollowStore())
 }
