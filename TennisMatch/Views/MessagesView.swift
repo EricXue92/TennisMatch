@@ -63,7 +63,7 @@ struct MessagesView: View {
                 }
                 recalculateUnread()
             }, onBlockUser: { name in
-                blockToast = "已封鎖「\(name)」"
+                blockToast = L10n.string("已封鎖「\(name)」")
             })
         }
         .onChange(of: selectedChat) { _, newChat in
@@ -208,7 +208,7 @@ struct MessagesView: View {
     private func trailingInfo(_ chat: MockChat) -> some View {
         let unread = effectiveUnread(chat)
         return VStack(alignment: .trailing, spacing: Spacing.xs) {
-            Text(chat.time)
+            Text(LocalizedStringKey(chat.time))
                 .font(Typography.fieldLabel)
                 .foregroundColor(Theme.textSecondary)
             if unread > 0 {
