@@ -20,6 +20,7 @@ struct MyMatchesView: View {
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var selectedChatMatchContext: String?
+    @State private var inviteTarget: InviteTarget?
     @State private var matchToCancel: MyMatchItem?
     @State private var showCancelAlert = false
     @State private var showManageSheet = false
@@ -132,6 +133,34 @@ struct MyMatchesView: View {
         let parts = range.split(separator: "-").compactMap { Double($0) }
         guard parts.count == 2 else { return "3.5" }
         return String(format: "%.1f", (parts[0] + parts[1]) / 2)
+    }
+
+    private func handleInvitePicked(player: FollowPlayer, target: InviteTarget) {
+        // 若已有與此球友的私信,重用現有 chat;否則新建。
+        let existing = sharedChats.first { chat in
+            if case .personal(let name, _, _) = chat.type, name == player.name { return true }
+            return false
+        }
+        let chat: MockChat
+        if let existing {
+            chat = existing
+        } else {
+            let newChat = MockChat(
+                type: .personal(
+                    name: player.name,
+                    symbol: player.gender.symbol,
+                    symbolColor: player.gender == .female ? Theme.genderFemale : Theme.genderMale
+                ),
+                lastMessage: "點擊開始聊天",
+                time: "剛剛",
+                unreadCount: 0
+            )
+            sharedChats.insert(newChat, at: 0)
+            chat = newChat
+        }
+        selectedChatMatchContext = target.chatContext
+        selectedChat = chat
+        toast = .init(kind: .success, text: "已發送邀請給 \(player.name)")
     }
 
     var body: some View {
@@ -282,6 +311,16 @@ struct MyMatchesView: View {
             Button("關閉報名") {
                 toast = .init(kind: .info, text: "關閉報名功能即將推出")
             }
+            Button("私信邀請球友") {
+                inviteTarget = .match(
+                    id: match.id,
+                    title: match.title,
+                    dateLabel: match.dateLabel,
+                    timeRange: match.timeRange,
+                    location: match.location,
+                    players: match.players
+                )
+            }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
                 showCancelAlert = true
@@ -334,6 +373,11 @@ struct MyMatchesView: View {
                         }
                     }
                 }
+            }
+        }
+        .sheet(item: $inviteTarget) { target in
+            InvitePickerSheet(target: target) { player in
+                handleInvitePicked(player: player, target: target)
             }
         }
         .task {
