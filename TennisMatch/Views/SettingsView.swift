@@ -9,6 +9,7 @@ import SwiftUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) private var dismiss
+    @Environment(LocaleManager.self) private var localeManager
     @AppStorage("isLoggedIn") private var isLoggedIn = false
     @AppStorage("maskedPhone") private var maskedPhone = ""
     @AppStorage("matchReminders") private var matchReminders = true
@@ -28,6 +29,7 @@ struct SettingsView: View {
             accountSection
             notificationSection
             privacySection
+            generalSection
             aboutSection
             logoutSection
         }
@@ -139,6 +141,24 @@ struct SettingsView: View {
             }
         } header: {
             Text("隱私設置")
+        }
+    }
+
+    private var generalSection: some View {
+        @Bindable var manager = localeManager
+        return Section {
+            Picker(selection: $manager.selectedLanguage) {
+                Text("跟隨系統").tag(LocaleManager.AppLanguage.system)
+                Text("简体中文").tag(LocaleManager.AppLanguage.zhHans)
+                Text("繁體中文").tag(LocaleManager.AppLanguage.zhHant)
+                Text("English").tag(LocaleManager.AppLanguage.en)
+            } label: {
+                Label("語言", systemImage: "globe")
+                    .font(Typography.fieldValue)
+                    .foregroundColor(Theme.textPrimary)
+            }
+        } header: {
+            Text("通用")
         }
     }
 
@@ -429,10 +449,12 @@ private struct LinkedAccountsSheet: View {
     NavigationStack {
         SettingsView()
     }
+    .environment(LocaleManager.shared)
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
         SettingsView()
     }
+    .environment(LocaleManager.shared)
 }
