@@ -366,6 +366,99 @@ struct MyMatchesView: View {
         } message: { match in
             Text(match.title)
         }
+        .confirmationDialog("管理賽事", isPresented: $showTournamentManage, presenting: tournamentToManage) { tournament in
+            Button("查看報名者") {
+                tournamentRegistrantSheet = tournament
+            }
+            Button("編輯賽事") {
+                toast = .init(kind: .info, text: "編輯賽事功能即將推出")
+            }
+            Button("關閉報名") {
+                toast = .init(kind: .info, text: "關閉報名功能即將推出")
+            }
+            Button("私信邀請球友") {
+                inviteTarget = .tournament(
+                    id: tournament.id,
+                    name: tournament.name,
+                    dateRange: tournament.dateRange,
+                    location: tournament.location,
+                    matchType: tournament.matchType,
+                    format: tournament.format
+                )
+            }
+            Button("取消賽事", role: .destructive) {
+                tournamentToCancel = tournament
+                showCancelTournamentAlert = true
+            }
+            Button("取消", role: .cancel) {}
+        } message: { tournament in
+            Text(tournament.name)
+        }
+        .alert("取消賽事", isPresented: $showCancelTournamentAlert, presenting: tournamentToCancel) { tournament in
+            Button("再想想", role: .cancel) {
+                tournamentToCancel = nil
+            }
+            Button("確認取消", role: .destructive) {
+                tournamentStore.cancel(id: tournament.id)
+                notificationStore.push(MatchNotification(
+                    type: .cancelled,
+                    title: "賽事已取消",
+                    body: "「\(tournament.name)」 已取消",
+                    time: "剛剛",
+                    isRead: false
+                ))
+                toast = .init(kind: .success, text: "已取消賽事")
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                tournamentToCancel = nil
+            }
+        } message: { tournament in
+            Text("確認取消「\(tournament.name)」?已報名的球友將收到通知。")
+        }
+        .sheet(item: $tournamentRegistrantSheet) { tournament in
+            NavigationStack {
+                Group {
+                    if tournament.playerList.isEmpty {
+                        ContentUnavailableView(
+                            "還沒有球友報名",
+                            systemImage: "person.2",
+                            description: Text("賽事開始報名後,報名球友會顯示在這裡")
+                        )
+                    } else {
+                        List {
+                            ForEach(Array(tournament.playerList.enumerated()), id: \.offset) { _, player in
+                                HStack(spacing: Spacing.sm) {
+                                    ZStack {
+                                        Circle()
+                                            .fill(Theme.avatarPlaceholder)
+                                            .frame(width: 36, height: 36)
+                                        Text(String(player.name.suffix(1)))
+                                            .font(Typography.labelSemibold)
+                                            .foregroundColor(.white)
+                                    }
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text(player.name)
+                                            .font(Typography.bodyMedium)
+                                            .foregroundColor(Theme.textPrimary)
+                                        Text("NTRP \(player.ntrp)")
+                                            .font(Typography.small)
+                                            .foregroundColor(Theme.textSecondary)
+                                    }
+                                    Spacer()
+                                }
+                            }
+                        }
+                        .listStyle(.plain)
+                    }
+                }
+                .navigationTitle("報名者 (\(tournament.participants))")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .topBarTrailing) {
+                        Button("完成") { tournamentRegistrantSheet = nil }
+                    }
+                }
+            }
+        }
         .sheet(item: $registrantMatch) { match in
             NavigationStack {
                 List {
