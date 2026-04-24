@@ -12,11 +12,13 @@ struct MyMatchesView: View {
     @Binding var sharedChats: [MockChat]
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
+    var onGoTournaments: (() -> Void)? = nil
     /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
     var onMatchCancelled: ((UUID?) -> Void)? = nil
     @Environment(BookedSlotStore.self) private var bookedSlotStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
+    @Environment(TournamentStore.self) private var tournamentStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var selectedChatMatchContext: String?
@@ -25,6 +27,11 @@ struct MyMatchesView: View {
     @State private var showCancelAlert = false
     @State private var showManageSheet = false
     @State private var matchToManage: MyMatchItem?
+    @State private var tournamentToManage: MockTournament?
+    @State private var showTournamentManage = false
+    @State private var tournamentRegistrantSheet: MockTournament?
+    @State private var tournamentToCancel: MockTournament?
+    @State private var showCancelTournamentAlert = false
     /// Single-slot toast so cancel / reject / coming-soon can't visually stack.
     /// New toasts replace the current one instead of queueing on top.
     @State private var toast: ToastMessage?
@@ -97,6 +104,10 @@ struct MyMatchesView: View {
             let key = rejectKey(for: $0)
             return !rejected.contains(key) && !accepted.contains(key)
         }
+    }
+
+    private var myOwnTournaments: [MockTournament] {
+        tournamentStore.tournaments.filter { $0.isOwnTournament }
     }
 
     private var acceptedMatchItems: [MyMatchItem] {
@@ -202,6 +213,28 @@ struct MyMatchesView: View {
                     description: Text("完成的約球會顯示在這裡")
                 )
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
+            } else if selectedFilter == "我的賽事" && myOwnTournaments.isEmpty {
+                VStack(spacing: Spacing.md) {
+                    ContentUnavailableView(
+                        "還沒有發起過賽事",
+                        systemImage: "trophy",
+                        description: Text("去賽事頁發起你的第一場賽事")
+                    )
+                    if let onGoTournaments {
+                        Button {
+                            onGoTournaments()
+                        } label: {
+                            Text("去發起賽事")
+                                .font(Typography.bodyMedium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, Spacing.lg)
+                                .frame(height: 36)
+                                .background(Theme.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 ScrollView {
                     VStack(spacing: Spacing.md) {
@@ -212,9 +245,13 @@ struct MyMatchesView: View {
                             ForEach(visibleInvitations) { invitation in
                                 invitationCard(invitation)
                             }
-                        } else {
+                        } else if selectedFilter == "已完成" {
                             ForEach(sortedCompleted) { match in
                                 myMatchCard(match)
+                            }
+                        } else {
+                            ForEach(myOwnTournaments) { tournament in
+                                ownedTournamentCard(tournament)
                             }
                         }
                     }
@@ -501,6 +538,63 @@ struct MyMatchesView: View {
             sharedChats.insert(chat, at: 0)
         }
     }
+
+    @ViewBuilder
+    private func ownedTournamentCard(_ tournament: MockTournament) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(tournament.name)
+                        .font(Typography.sectionTitle)
+                        .foregroundColor(Theme.textPrimary)
+                    Text("\(tournament.format) · \(tournament.matchType) · NTRP \(tournament.ntrpRange)")
+                        .font(Typography.small)
+                        .foregroundColor(Theme.textSecondary)
+                }
+                Spacer()
+                Text(tournament.status)
+                    .font(Typography.micro)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.xs)
+                    .frame(height: 22)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            }
+
+            HStack(spacing: Spacing.md) {
+                Label(tournament.dateRange, systemImage: "calendar")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textSecondary)
+                Label(tournament.location, systemImage: "mappin.and.ellipse")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textSecondary)
+            }
+
+            HStack {
+                Label("報名 \(tournament.participants)", systemImage: "person.2.fill")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textSecondary)
+                Spacer()
+                Button("管理") {
+                    tournamentToManage = tournament
+                    showTournamentManage = true
+                }
+                .font(Typography.captionMedium)
+                .foregroundColor(.white)
+                .padding(.horizontal, Spacing.md)
+                .frame(minHeight: 44)
+                .background(Theme.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
+            }
+        }
+        .padding(Spacing.md)
+        .background(.white)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay {
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Theme.inputBorder, lineWidth: 0.5)
+        }
+    }
 }
 
 // MARK: - Header & Filters
@@ -530,7 +624,7 @@ private extension MyMatchesView {
     var filterTabs: some View {
         VStack(spacing: 0) {
             HStack(spacing: 0) {
-                ForEach(["即將到來", "已完成"], id: \.self) { tab in
+                ForEach(["即將到來", "已完成", "我的賽事"], id: \.self) { tab in
                     Button {
                         withAnimation(.easeInOut(duration: 0.2)) {
                             selectedFilter = tab
@@ -1658,10 +1752,12 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
     MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
+        .environment(TournamentStore())
 }
 
 #Preview("iPhone 15 Pro") {
     MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
+        .environment(TournamentStore())
 }
