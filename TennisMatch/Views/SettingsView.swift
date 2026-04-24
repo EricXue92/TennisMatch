@@ -194,21 +194,21 @@ struct SettingsView: View {
 
     // MARK: - Helpers
 
-    private func settingsRow(icon: String, title: String, value: String? = nil) -> some View {
+    private func settingsRow(icon: String, title: LocalizedStringKey, value: String? = nil) -> some View {
         HStack {
             Label(title, systemImage: icon)
                 .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
             Spacer()
             if let value {
-                Text(value)
+                Text(LocalizedStringKey(value))
                     .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
             }
         }
     }
 
-    private func tappableRow(icon: String, title: String, value: String? = nil, action: @escaping () -> Void) -> some View {
+    private func tappableRow(icon: String, title: LocalizedStringKey, value: String? = nil, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack {
                 Label(title, systemImage: icon)
@@ -216,7 +216,7 @@ struct SettingsView: View {
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 if let value {
-                    Text(value)
+                    Text(LocalizedStringKey(value))
                         .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -404,7 +404,7 @@ private struct LinkedAccountsSheet: View {
                 .foregroundColor(iconColor)
                 .frame(width: 36, height: 36)
 
-            Text(title)
+            Text(LocalizedStringKey(title))
                 .font(Typography.fieldValue)
                 .foregroundColor(Theme.textPrimary)
 
@@ -418,9 +418,13 @@ private struct LinkedAccountsSheet: View {
                 }
                 withAnimation {
                     isLinked.wrappedValue.toggle()
+                    let localizedTitle = String(
+                        localized: String.LocalizationValue(title),
+                        locale: LocaleManager.shared.currentLocale
+                    )
                     toastMessage = isLinked.wrappedValue
-                        ? L10n.string("已關聯 \(title)")
-                        : L10n.string("已取消關聯 \(title)")
+                        ? L10n.string("已關聯 \(localizedTitle)")
+                        : L10n.string("已取消關聯 \(localizedTitle)")
                 }
             } label: {
                 Text(isLinked.wrappedValue ? "已關聯" : "關聯")
