@@ -160,7 +160,7 @@ struct MyMatchesView: View {
         }
         selectedChatMatchContext = target.chatContext
         selectedChat = chat
-        toast = .init(kind: .success, text: "已發送邀請給 \(player.name)")
+        toast = .init(kind: .success, text: "已為你開啟與 \(player.name) 的私信")
     }
 
     var body: some View {
