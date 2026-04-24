@@ -93,7 +93,7 @@ private extension MatchFilterPanelView {
                     Button {
                         selectedGender = isSelected ? "" : option
                     } label: {
-                        Text(option)
+                        Text(LocalizedStringKey(option))
                             .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .padding(.horizontal, Spacing.sm)
@@ -124,7 +124,7 @@ private extension MatchFilterPanelView {
                             selectedDays.insert(day)
                         }
                     } label: {
-                        Text(day)
+                        Text(LocalizedStringKey(day))
                             .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .frame(width: 36, height: 36)
@@ -237,7 +237,7 @@ private extension MatchFilterPanelView {
                     .font(Typography.captionMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
-                Text(ntrpRangeLabel)
+                Text(LocalizedStringKey(ntrpRangeLabel))
                     .font(Typography.captionMedium)
                     .foregroundColor(Theme.primary)
             }
@@ -253,7 +253,7 @@ private extension MatchFilterPanelView {
         return String(format: "%.1f - %.1f", ntrpLow, ntrpHigh)
     }
 
-    func filterRow(title: String, options: [String], selection: Binding<Set<String>>) -> some View {
+    func filterRow(title: LocalizedStringKey, options: [String], selection: Binding<Set<String>>) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
                 .font(Typography.captionMedium)
@@ -271,7 +271,7 @@ private extension MatchFilterPanelView {
                             selection.wrappedValue.insert(option)
                         }
                     } label: {
-                        Text(option)
+                        Text(LocalizedStringKey(option))
                             .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .padding(.horizontal, Spacing.sm)

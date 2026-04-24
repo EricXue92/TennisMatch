@@ -66,7 +66,7 @@ struct RecommendedPlayersSection: View {
                 Button {
                     followStore.toggle(name)
                 } label: {
-                    Text(isFollowing ? "已關注" : "關注")
+                    Text(isFollowing ? LocalizedStringKey("已關注") : LocalizedStringKey("關注"))
                         .font(Typography.micro)
                         .foregroundColor(isFollowing ? Theme.primary : .white)
                         .frame(width: 60, height: 24)
