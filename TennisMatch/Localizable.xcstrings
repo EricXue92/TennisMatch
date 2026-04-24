@@ -1,0 +1,342 @@
+{
+  "sourceLanguage" : "zh-Hant",
+  "version" : "1.0",
+  "strings" : {
+    "Apple" : {
+      "shouldTranslate" : false
+    },
+    "English" : {
+      "shouldTranslate" : false
+    },
+    "Google" : {
+      "shouldTranslate" : false
+    },
+    "v0.1.0" : {
+      "shouldTranslate" : false
+    },
+    "微信、Apple" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "WeChat, Apple" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "微信、Apple" } }
+      }
+    },
+    "微信" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "WeChat" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "微信" } }
+      }
+    },
+    "設定" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Settings" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "设置" } }
+      }
+    },
+    "退出登錄" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Log Out" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出登录" } }
+      }
+    },
+    "取消" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
+      }
+    },
+    "確認退出" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Log Out" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确认退出" } }
+      }
+    },
+    "確定要退出登錄嗎？" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Are you sure you want to log out?" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确定要退出登录吗？" } }
+      }
+    },
+    "帳號與安全" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Account & Security" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "账号与安全" } }
+      }
+    },
+    "通知偏好" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Notifications" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通知偏好" } }
+      }
+    },
+    "隱私設置" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私设置" } }
+      }
+    },
+    "關於我們" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "About" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关于我们" } }
+      }
+    },
+    "通用" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "General" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "通用" } }
+      }
+    },
+    "手機號碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Phone Number" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "手机号码" } }
+      }
+    },
+    "未綁定" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Not linked" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未绑定" } }
+      }
+    },
+    "修改密碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Change Password" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "修改密码" } }
+      }
+    },
+    "關聯帳號" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Linked Accounts" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关联账号" } }
+      }
+    },
+    "約球提醒" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Match Reminders" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "约球提醒" } }
+      }
+    },
+    "聊天消息" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Chat Messages" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "聊天消息" } }
+      }
+    },
+    "賽事更新" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tournament Updates" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "赛事更新" } }
+      }
+    },
+    "誰能看到我的資料" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Who can see my profile" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "谁能看到我的资料" } }
+      }
+    },
+    "誰能私信我" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Who can message me" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "谁能私信我" } }
+      }
+    },
+    "所有人" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Everyone" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "所有人" } }
+      }
+    },
+    "僅關注者" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Followers only" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "仅关注者" } }
+      }
+    },
+    "僅自己" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Only me" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "仅自己" } }
+      }
+    },
+    "關閉" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Off" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关闭" } }
+      }
+    },
+    "版本" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Version" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "版本" } }
+      }
+    },
+    "用戶協議" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Terms of Service" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "用户协议" } }
+      }
+    },
+    "隱私政策" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Privacy Policy" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "隐私政策" } }
+      }
+    },
+    "語言" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
+      }
+    },
+    "跟隨系統" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "System" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跟随系统" } }
+      }
+    },
+    "简体中文" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Simplified Chinese" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "简体中文" } }
+      }
+    },
+    "繁體中文" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Traditional Chinese" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "繁体中文" } }
+      }
+    },
+    "請輸入當前密碼並設定新密碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Enter your current password and set a new one" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请输入当前密码并设置新密码" } }
+      }
+    },
+    "當前密碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Current Password" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "当前密码" } }
+      }
+    },
+    "新密碼（至少 6 位）" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New Password (min 6 characters)" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新密码（至少 6 位）" } }
+      }
+    },
+    "確認新密碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm New Password" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确认新密码" } }
+      }
+    },
+    "兩次輸入的密碼不一致" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Passwords don't match" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "两次输入的密码不一致" } }
+      }
+    },
+    "請輸入目前的密碼" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Please enter your current password" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "请输入当前密码" } }
+      }
+    },
+    "新密碼至少需要 6 位" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New password must be at least 6 characters" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "新密码至少需要 6 位" } }
+      }
+    },
+    "兩次新密碼不一致" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "New passwords don't match" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "两次新密码不一致" } }
+      }
+    },
+    "密碼修改成功" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Password changed successfully" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "密码修改成功" } }
+      }
+    },
+    "確認修改" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Confirm" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "确认修改" } }
+      }
+    },
+    "管理第三方登錄方式" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Manage third-party sign-in methods" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "管理第三方登录方式" } }
+      }
+    },
+    "已關聯" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Linked" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已关联" } }
+      }
+    },
+    "關聯" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Link" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "关联" } }
+      }
+    },
+    "至少需要保留一種登錄方式" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You must keep at least one sign-in method" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "至少需要保留一种登录方式" } }
+      }
+    },
+    "已關聯 %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Linked %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已关联 %@" } }
+      }
+    },
+    "已取消關聯 %@" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unlinked %@" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已取消关联 %@" } }
+      }
+    },
+    "完成" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } }
+      }
+    },
+    "首頁" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "首页" } }
+      }
+    },
+    "我的約球" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "My Matches" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我的约球" } }
+      }
+    },
+    "一鍵約球" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Quick Match" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "一键约球" } }
+      }
+    },
+    "聊天" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Chat" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "聊天" } }
+      }
+    },
+    "我的" : {
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我的" } }
+      }
+    }
+  }
+}
