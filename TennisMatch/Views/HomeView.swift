@@ -105,7 +105,7 @@ struct HomeView: View {
             NavigationStack {
                 CreateMatchView(onPublish: { info in
                     addPublishedMatch(info)
-                    conflictToast = "約球已成功發布 🎾"
+                    conflictToast = L10n.string("約球已成功發布 🎾")
                 })
             }
         }
@@ -299,7 +299,7 @@ private extension HomeView {
         .background(Theme.primary)
     }
 
-    func statCard(label: String, value: String) -> some View {
+    func statCard(label: LocalizedStringKey, value: String) -> some View {
         VStack(spacing: 4) {
             Text(label)
                 .font(Typography.fieldLabel)
@@ -341,7 +341,7 @@ private extension HomeView {
                 Button {
                     selectedFilter = option
                 } label: {
-                    Text(option)
+                    Text(LocalizedStringKey(option))
                         .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? .white : Theme.textBody)
                         .padding(.horizontal, Spacing.md)
@@ -568,7 +568,7 @@ private extension HomeView {
                     Button {
                         showSignUp(match)
                     } label: {
-                        Text(label)
+                        Text(LocalizedStringKey(label))
                             .font(Typography.smallMedium)
                             .foregroundColor(disabled ? Theme.textSecondary : .white)
                             .frame(minWidth: 52, idealWidth: 52)
@@ -610,7 +610,7 @@ private extension HomeView {
         // 这里查询的是全局 BookedSlotStore,涵盖其它已报名 + 已接受邀请。
         if let range = matchTimeWindow(for: match),
            let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
-            conflictToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+            conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
             return
         }
 
