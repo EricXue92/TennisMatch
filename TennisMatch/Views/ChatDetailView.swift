@@ -188,14 +188,14 @@ struct ChatDetailView: View {
             switch chat.type {
             case .match:
                 Button("查看約球詳情") {
-                    chatMenuToast = "即將推出"
+                    chatMenuToast = L10n.string("即將推出")
                 }
                 Button("查看群成員") {
-                    chatMenuToast = "即將推出"
+                    chatMenuToast = L10n.string("即將推出")
                 }
-                Button(isMuted ? "取消靜音" : "靜音通知") {
+                Button(LocalizedStringKey(isMuted ? "取消靜音" : "靜音通知")) {
                     isMuted.toggle()
-                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
+                    chatMenuToast = L10n.string(isMuted ? "已靜音通知" : "已取消靜音")
                 }
                 Button("退出群聊", role: .destructive) {
                     onRemoveChat?()
@@ -206,9 +206,9 @@ struct ChatDetailView: View {
                     let gender: Gender = symbol == "♀" ? .female : .male
                     selectedPlayer = mockPublicPlayerData(name: name, gender: gender, ntrp: "3.5")
                 }
-                Button(isMuted ? "取消靜音" : "靜音通知") {
+                Button(LocalizedStringKey(isMuted ? "取消靜音" : "靜音通知")) {
                     isMuted.toggle()
-                    chatMenuToast = isMuted ? "已靜音通知" : "已取消靜音"
+                    chatMenuToast = L10n.string(isMuted ? "已靜音通知" : "已取消靜音")
                 }
                 Button("封鎖對方", role: .destructive) {
                     showBlockAlert = true
@@ -357,7 +357,7 @@ struct ChatDetailView: View {
                 ZStack(alignment: .topTrailing) {
                     VStack(alignment: .leading, spacing: 6) {
                         ForEach(text.components(separatedBy: "\n"), id: \.self) { line in
-                            Text(line)
+                            Text(LocalizedStringKey(line))
                                 .font(.system(size: 13, weight: line == text.components(separatedBy: "\n").first ? .bold : .regular))
                                 .foregroundColor(Theme.textDark)
                         }
@@ -386,7 +386,7 @@ struct ChatDetailView: View {
                     }
                 }
             } else {
-                Text(text)
+                Text(LocalizedStringKey(text))
                     .font(Typography.smallMedium)
                     .foregroundColor(Theme.textCaption)
                     .padding(.horizontal, Spacing.sm)
@@ -436,7 +436,7 @@ struct ChatDetailView: View {
                             let scheduleText = "\(dateStr) \(timeStr)"
                             if let range = MatchSchedule.dateRange(text: scheduleText),
                                let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
-                                chatMenuToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                                chatMenuToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
                                 return
                             }
                             let match = AcceptedMatchInfo(

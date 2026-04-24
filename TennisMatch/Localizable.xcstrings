@@ -133,7 +133,22 @@
     "▾": {},
     "☀️ 24°C": {},
     "⛅ 天氣": {},
-    "✅ 已接受": {},
+    "✅ 已接受": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✅ Accepted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "✅ 已接受"
+          }
+        }
+      }
+    },
     "✉️": {},
     "一": {
       "localizations": {
@@ -275,6 +290,22 @@
           "stringUnit": {
             "state": "new",
             "value": "你已加入%1$@的%2$@約球"
+          }
+        }
+      }
+    },
+    "你已加入約球群組": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You joined the match group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你已加入约球群组"
           }
         }
       }
@@ -507,8 +538,38 @@
     },
     "分享你的邀請碼給朋友，一起加入 Let's Tennis": {},
     "分享給朋友": {},
-    "刪除": {},
-    "刪除聊天": {},
+    "刪除": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "刪除聊天": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete Chat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除聊天"
+          }
+        }
+      }
+    },
     "到": {
       "localizations": {
         "en": {
@@ -556,6 +617,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "即将到来"
+          }
+        }
+      }
+    },
+    "即將推出": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coming soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将推出"
           }
         }
       }
@@ -674,7 +751,22 @@
       }
     },
     "取消關注": {},
-    "取消靜音": {},
+    "取消靜音": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unmute"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消静音"
+          }
+        }
+      }
+    },
     "可用時間": {},
     "可稍後完善": {},
     "單打": {
@@ -840,7 +932,22 @@
       }
     },
     "寫評論": {},
-    "封鎖「%@」後，對方將無法查看你的資料和約球，也無法向你發送私信。": {},
+    "封鎖「%@」後，對方將無法查看你的資料和約球，也無法向你發送私信。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Once you block \"%@\", they won't be able to view your profile or matches, or send you messages."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽「%@」后，对方将无法查看你的资料和约球，也无法向你发送私信。"
+          }
+        }
+      }
+    },
     "封鎖名單": {
       "localizations": {
         "en": {
@@ -857,10 +964,55 @@
         }
       }
     },
-    "封鎖對方": {},
-    "封鎖後對方將無法再聯絡你。": {},
+    "封鎖對方": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block User"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽对方"
+          }
+        }
+      }
+    },
+    "封鎖後對方將無法再聯絡你。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "They will no longer be able to contact you."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽后对方将无法再联络你。"
+          }
+        }
+      }
+    },
     "封鎖於 %@": {},
-    "封鎖用戶": {},
+    "封鎖用戶": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block User"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "屏蔽用户"
+          }
+        }
+      }
+    },
     "尚未設定偏好時間": {},
     "已取消約球，已通知所有參與者": {
       "localizations": {
@@ -926,6 +1078,22 @@
         }
       }
     },
+    "已取消靜音": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications unmuted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消静音"
+          }
+        }
+      }
+    },
     "已報名": {
       "localizations": {
         "en": {
@@ -943,7 +1111,22 @@
       }
     },
     "已報名選手": {},
-    "已婉拒": {},
+    "已婉拒": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Declined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已婉拒"
+          }
+        }
+      }
+    },
     "已完成": {
       "localizations": {
         "en": {
@@ -956,6 +1139,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已完成"
+          }
+        }
+      }
+    },
+    "已封鎖「%@」": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Blocked \"%@\""
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已屏蔽「%@」"
           }
         }
       }
@@ -1114,6 +1313,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "已关联 %@"
+          }
+        }
+      }
+    },
+    "已靜音通知": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Notifications muted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已静音通知"
           }
         }
       }
@@ -1564,7 +1779,22 @@
         }
       }
     },
-    "暫無聊天": {},
+    "暫無聊天": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No chats yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无聊天"
+          }
+        }
+      }
+    },
     "暫無評價": {},
     "暫無評論": {},
     "暫無變動記錄": {},
@@ -1623,7 +1853,22 @@
       }
     },
     "查看": {},
-    "查看 %@ 的資料": {},
+    "查看 %@ 的資料": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View %@'s Profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看 %@ 的资料"
+          }
+        }
+      }
+    },
     "查看報名者": {
       "localizations": {
         "en": {
@@ -1640,8 +1885,38 @@
         }
       }
     },
-    "查看約球詳情": {},
-    "查看群成員": {},
+    "查看約球詳情": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Match Details"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看约球详情"
+          }
+        }
+      }
+    },
+    "查看群成員": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Members"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看群成员"
+          }
+        }
+      }
+    },
     "查看評論": {
       "localizations": {
         "en": {
@@ -1851,10 +2126,55 @@
         }
       }
     },
-    "發送": {},
-    "發送圖片": {},
+    "發送": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送"
+          }
+        }
+      }
+    },
+    "發送圖片": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Send Photo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送图片"
+          }
+        }
+      }
+    },
     "發送驗證碼": {},
-    "確定要刪除此聊天記錄嗎？刪除後無法恢復。": {},
+    "確定要刪除此聊天記錄嗎？刪除後無法恢復。": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete this conversation? This cannot be undone."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确定要删除此聊天记录吗？删除后无法恢复。"
+          }
+        }
+      }
+    },
     "確定要取消關注「%@」嗎？": {},
     "確定要取消關注「%@」嗎？取消後將從互相關注中移除。": {},
     "確定要解除對「%@」的封鎖嗎？": {},
@@ -1925,7 +2245,22 @@
     "確認取消「%@」？已報名的球友將收到通知。": {},
     "確認報名": {},
     "確認密碼": {},
-    "確認封鎖": {},
+    "確認封鎖": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Block"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认屏蔽"
+          }
+        }
+      }
+    },
     "確認新密碼": {
       "extractionState": "stale",
       "localizations": {
@@ -2578,7 +2913,22 @@
         }
       }
     },
-    "輸入訊息...": {},
+    "輸入訊息...": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Type a message…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入消息…"
+          }
+        }
+      }
+    },
     "輸入驗證碼": {},
     "返回": {},
     "返回修改": {},
@@ -2600,7 +2950,22 @@
         }
       }
     },
-    "退出群聊": {},
+    "退出群聊": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Leave Group"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出群聊"
+          }
+        }
+      }
+    },
     "通用": {
       "localizations": {
         "en": {
@@ -2777,7 +3142,22 @@
         }
       }
     },
-    "開始約球後，與對手的對話會顯示在這裡": {},
+    "開始約球後，與對手的對話會顯示在這裡": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Conversations with your playing partners will show up here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始约球后，与对手的对话会显示在这里"
+          }
+        }
+      }
+    },
     "關於我們": {
       "localizations": {
         "en": {
@@ -2958,7 +3338,22 @@
     },
     "雙方尚未留下評論": {},
     "需要幫助？": {},
-    "靜音通知": {},
+    "靜音通知": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mute Notifications"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静音通知"
+          }
+        }
+      }
+    },
     "首頁": {
       "localizations": {
         "en": {
@@ -2997,7 +3392,22 @@
     "🎾": {},
     "🎾 查看 NTRP 技術分級標準 →": {},
     "🎾 約球記錄": {},
-    "🎾 約球邀請": {},
+    "🎾 約球邀請": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎾 Match Invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎾 约球邀请"
+          }
+        }
+      }
+    },
     "🎾 網球 NTRP 技術分級標準（精簡版）": {},
     "🎾 記錄": {
       "localizations": {
