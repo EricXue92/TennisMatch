@@ -269,21 +269,21 @@ private struct ChangePasswordSheet: View {
                     focusedField = nil
                     // 驗證當前密碼
                     guard !currentPassword.isEmpty else {
-                        withAnimation { toastMessage = "請輸入目前的密碼" }
+                        withAnimation { toastMessage = L10n.string("請輸入目前的密碼") }
                         return
                     }
                     // 驗證新密碼長度（Mock 階段：接受任何非空當前密碼）
                     guard newPassword.count >= 6 else {
-                        withAnimation { toastMessage = "新密碼至少需要 6 位" }
+                        withAnimation { toastMessage = L10n.string("新密碼至少需要 6 位") }
                         return
                     }
                     // 驗證兩次新密碼一致
                     guard newPassword == confirmPassword else {
-                        withAnimation { toastMessage = "兩次新密碼不一致" }
+                        withAnimation { toastMessage = L10n.string("兩次新密碼不一致") }
                         return
                     }
                     // 所有驗證通過，顯示成功並關閉
-                    withAnimation { toastMessage = "密碼修改成功" }
+                    withAnimation { toastMessage = L10n.string("密碼修改成功") }
                     DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                         dismiss()
                     }
@@ -413,12 +413,14 @@ private struct LinkedAccountsSheet: View {
             Button {
                 let linkedCount = [wechatLinked, appleLinked, googleLinked].filter { $0 }.count
                 if isLinked.wrappedValue && linkedCount <= 1 {
-                    withAnimation { toastMessage = "至少需要保留一種登錄方式" }
+                    withAnimation { toastMessage = L10n.string("至少需要保留一種登錄方式") }
                     return
                 }
                 withAnimation {
                     isLinked.wrappedValue.toggle()
-                    toastMessage = isLinked.wrappedValue ? "已關聯\(title)" : "已取消關聯\(title)"
+                    toastMessage = isLinked.wrappedValue
+                        ? L10n.string("已關聯 \(title)")
+                        : L10n.string("已取消關聯 \(title)")
                 }
             } label: {
                 Text(isLinked.wrappedValue ? "已關聯" : "關聯")
