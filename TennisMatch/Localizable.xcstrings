@@ -259,6 +259,38 @@
     "例如：我會準時到！": {},
     "例如：自帶球、需要教練等": {},
     "例如：香港春季網球公開賽": {},
+    "信譽分低於 60，帳號已被永久封禁": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credit below 60 — account permanently banned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信誉分低于 60，账号已被永久封禁"
+          }
+        }
+      }
+    },
+    "信譽分低於 70，帳號將凍結 1 個月": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Credit below 70 — account frozen for 1 month"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "信誉分低于 70，账号将冻结 1 个月"
+          }
+        }
+      }
+    },
     "信譽積分": {
       "localizations": {
         "en": {
@@ -393,7 +425,22 @@
         }
       }
     },
-    "再想想": {},
+    "再想想": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Never mind"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "再想想"
+          }
+        }
+      }
+    },
     "凍結帳號 1 個月": {},
     "分享你的邀請碼給朋友，一起加入 Let's Tennis": {},
     "分享給朋友": {},
@@ -418,10 +465,86 @@
     "創建約球": {},
     "創建賽事": {},
     "匹配度": {},
-    "去發起賽事": {},
-    "去賽事頁發起你的第一場賽事": {},
-    "去首頁找一場約球，或發起新的約球": {},
-    "去首頁看看": {},
+    "即將到來": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upcoming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "即将到来"
+          }
+        }
+      }
+    },
+    "去發起賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Tournament"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去发起赛事"
+          }
+        }
+      }
+    },
+    "去賽事頁發起你的第一場賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create your first tournament on the Tournaments page"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去赛事页发起你的第一场赛事"
+          }
+        }
+      }
+    },
+    "去首頁找一場約球，或發起新的約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Find a match on Home, or create a new one"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去首页找一场约球，或发起新的约球"
+          }
+        }
+      }
+    },
+    "去首頁看看": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go to Home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "去首页看看"
+          }
+        }
+      }
+    },
     "參加者": {},
     "取消": {
       "localizations": {
@@ -439,8 +562,38 @@
         }
       }
     },
-    "取消約球": {},
-    "取消賽事": {},
+    "取消約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Match"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消约球"
+          }
+        }
+      }
+    },
+    "取消賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel Tournament"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消赛事"
+          }
+        }
+      }
+    },
     "取消關注": {},
     "取消靜音": {},
     "可用時間": {},
@@ -556,7 +709,22 @@
         }
       }
     },
-    "完成的約球會顯示在這裡": {},
+    "完成的約球會顯示在這裡": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed matches will appear here"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成的约球会显示在这里"
+          }
+        }
+      }
+    },
     "完成約球後收到的評價會顯示在這裡": {},
     "完成約球後，可在這裡給對手留下評價": {},
     "完成設定": {},
@@ -599,6 +767,54 @@
     "封鎖於 %@": {},
     "封鎖用戶": {},
     "尚未設定偏好時間": {},
+    "已取消約球，已通知所有參與者": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match cancelled, all participants notified"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消约球，已通知所有参与者"
+          }
+        }
+      }
+    },
+    "已取消約球，扣 %lld 分信譽": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match cancelled, %lld credit deducted"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消约球，扣 %lld 分信誉"
+          }
+        }
+      }
+    },
+    "已取消賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tournament cancelled"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已取消赛事"
+          }
+        }
+      }
+    },
     "已取消關聯 %@": {
       "localizations": {
         "en": {
@@ -633,8 +849,72 @@
     },
     "已報名選手": {},
     "已婉拒": {},
+    "已完成": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "已拒絕邀請": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invitation declined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已拒绝邀请"
+          }
+        }
+      }
+    },
     "已接受邀請！": {},
     "已滿員！已通知所有參加者，比賽確認成功": {},
+    "已為你開啟與 %@ 的私信": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Opened DM with %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已为你开启与 %@ 的私信"
+          }
+        }
+      }
+    },
+    "已確認": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirmed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已确认"
+          }
+        }
+      }
+    },
     "已自動取消": {
       "localizations": {
         "en": {
@@ -929,6 +1209,22 @@
       }
     },
     "我的評論": {},
+    "我的賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "My Tournaments"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的赛事"
+          }
+        }
+      }
+    },
     "所有人": {
       "localizations": {
         "en": {
@@ -1000,7 +1296,22 @@
         }
       }
     },
-    "拒絕": {},
+    "拒絕": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Decline"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "拒绝"
+          }
+        }
+      }
+    },
     "招募中": {
       "localizations": {
         "en": {
@@ -1017,7 +1328,22 @@
         }
       }
     },
-    "接受": {},
+    "接受": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accept"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "接受"
+          }
+        }
+      }
+    },
     "推薦": {},
     "提交評價": {},
     "搜尋球場": {},
@@ -1096,7 +1422,22 @@
       }
     },
     "暫無互關好友": {},
-    "暫無已完成的約球": {},
+    "暫無已完成的約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No completed matches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无已完成的约球"
+          }
+        }
+      }
+    },
     "暫無聊天": {},
     "暫無評價": {},
     "暫無評論": {},
@@ -1125,10 +1466,40 @@
     "未解鎖": {},
     "查看": {},
     "查看 %@ 的資料": {},
-    "查看報名者": {},
+    "查看報名者": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Registrants"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看报名者"
+          }
+        }
+      }
+    },
     "查看約球詳情": {},
     "查看群成員": {},
-    "查看評論": {},
+    "查看評論": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "View Reviews"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看评论"
+          }
+        }
+      }
+    },
     "根據你的 NTRP %@、常去球場和空閒時間為你推薦": {},
     "根據您的實際水平選擇對應的 NTRP 等級": {},
     "比賽成績": {},
@@ -1258,7 +1629,22 @@
     "登入即表示您同意 ": {},
     "發布約球": {},
     "發布賽事": {},
-    "發起人": {},
+    "發起人": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Organizer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发起人"
+          }
+        }
+      }
+    },
     "發起人: %@": {},
     "發起約球": {
       "localizations": {
@@ -1331,7 +1717,22 @@
         }
       }
     },
-    "確認取消": {},
+    "確認取消": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认取消"
+          }
+        }
+      }
+    },
     "確認取消「%@」？已報名的球友將收到通知。": {},
     "確認報名": {},
     "確認密碼": {},
@@ -1374,10 +1775,41 @@
       }
     },
     "私信": {},
-    "私信邀請球友": {},
+    "私信邀請球友": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite via DM"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "私信邀请球友"
+          }
+        }
+      }
+    },
     "積分規則": {},
     "立即報名 · %@": {},
     "立即註冊": {},
+    "等待中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Waiting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "等待中"
+          }
+        }
+      }
+    },
     "简体中文": {
       "localizations": {
         "en": {
@@ -1394,7 +1826,22 @@
         }
       }
     },
-    "管理": {},
+    "管理": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理"
+          }
+        }
+      }
+    },
     "管理第三方登錄方式": {
       "localizations": {
         "en": {
@@ -1411,8 +1858,38 @@
         }
       }
     },
-    "管理約球": {},
-    "管理賽事": {},
+    "管理約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Match"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理约球"
+          }
+        }
+      }
+    },
+    "管理賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage Tournament"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理赛事"
+          }
+        }
+      }
+    },
     "篩選": {
       "localizations": {
         "en": {
@@ -1498,9 +1975,71 @@
       }
     },
     "給發起人留言（選填）": {},
-    "編輯約球": {},
+    "編輯約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Match"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑约球"
+          }
+        }
+      }
+    },
+    "編輯約球功能即將推出": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Match coming soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑约球功能即将推出"
+          }
+        }
+      }
+    },
     "編輯資料": {},
-    "編輯賽事": {},
+    "編輯賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Tournament"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑赛事"
+          }
+        }
+      }
+    },
+    "編輯賽事功能即將推出": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Tournament coming soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑赛事功能即将推出"
+          }
+        }
+      }
+    },
     "繁體中文": {
       "localizations": {
         "en": {
@@ -1880,7 +2419,22 @@
     "選擇要邀請的朋友加入%@": {},
     "選擇金額": {},
     "邀請": {},
-    "邀請 %lld": {},
+    "邀請 %lld": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld invitation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 个邀请"
+          }
+        }
+      }
+    },
     "邀請好友": {
       "localizations": {
         "en": {
@@ -1900,10 +2454,40 @@
     "邀請好友一起打球": {},
     "邀請朋友": {},
     "還沒有互相關注的球友": {},
-    "還沒有即將到來的約球": {},
+    "還沒有即將到來的約球": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No upcoming matches"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有即将到来的约球"
+          }
+        }
+      }
+    },
     "還沒有帳號？": {},
     "還沒有球友報名": {},
-    "還沒有發起過賽事": {},
+    "還沒有發起過賽事": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No tournaments yet"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有发起过赛事"
+          }
+        }
+      }
+    },
     "還沒有粉絲": {},
     "還沒有關注的球友": {},
     "郵箱地址": {},
@@ -2025,7 +2609,38 @@
         }
       }
     },
-    "關閉報名": {},
+    "關閉報名": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Registration"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭报名"
+          }
+        }
+      }
+    },
+    "關閉報名功能即將推出": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Close Registration coming soon"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关闭报名功能即将推出"
+          }
+        }
+      }
+    },
     "隱私政策": {
       "localizations": {
         "en": {
@@ -2107,6 +2722,22 @@
     "🏆 賽事記錄": {},
     "💡 根據人數，推薦「%@」": {},
     "💬 私信": {},
+    "💬 聊天": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💬 Chat"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "💬 聊天"
+          }
+        }
+      }
+    },
     "📅": {},
     "📅 %@": {},
     "📅 %@  📍 %@": {
@@ -2139,7 +2770,22 @@
     "📍": {},
     "📍 %@": {},
     "📨 邀請": {},
-    "📩 收到邀請": {},
+    "📩 收到邀請": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📩 Invitations"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📩 收到邀请"
+          }
+        }
+      }
+    },
     "📱": {},
     "🗓️ %@": {},
     "🙏": {},
