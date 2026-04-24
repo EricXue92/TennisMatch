@@ -171,7 +171,7 @@ struct MyMatchesView: View {
         }
         selectedChatMatchContext = target.chatContext
         selectedChat = chat
-        toast = .init(kind: .success, text: "已為你開啟與 \(player.name) 的私信")
+        toast = .init(kind: .success, text: L10n.string("已為你開啟與 \(player.name) 的私信"))
     }
 
     var body: some View {
@@ -321,13 +321,13 @@ struct MyMatchesView: View {
                     }
                     // 检查账号冻结/封禁
                     if creditScoreStore.score < CreditScoreStore.banThreshold {
-                        toast = .init(kind: .warning, text: "信譽分低於 60，帳號已被永久封禁")
+                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 60，帳號已被永久封禁"))
                     } else if creditScoreStore.score < CreditScoreStore.freezeThreshold {
-                        toast = .init(kind: .warning, text: "信譽分低於 70，帳號將凍結 1 個月")
+                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 70，帳號將凍結 1 個月"))
                     } else if creditDeducted {
-                        toast = .init(kind: .warning, text: "已取消約球，扣 \(deduction) 分信譽")
+                        toast = .init(kind: .warning, text: L10n.string("已取消約球，扣 \(deduction) 分信譽"))
                     } else {
-                        toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
+                        toast = .init(kind: .success, text: L10n.string("已取消約球，已通知所有參與者"))
                     }
                     UINotificationFeedbackGenerator().notificationOccurred(creditDeducted ? .warning : .success)
                 }
@@ -343,10 +343,10 @@ struct MyMatchesView: View {
                 registrantMatch = match
             }
             Button("編輯約球") {
-                toast = .init(kind: .info, text: "編輯約球功能即將推出")
+                toast = .init(kind: .info, text: L10n.string("編輯約球功能即將推出"))
             }
             Button("關閉報名") {
-                toast = .init(kind: .info, text: "關閉報名功能即將推出")
+                toast = .init(kind: .info, text: L10n.string("關閉報名功能即將推出"))
             }
             Button("私信邀請球友") {
                 inviteTarget = .match(
@@ -371,10 +371,10 @@ struct MyMatchesView: View {
                 tournamentRegistrantSheet = tournament
             }
             Button("編輯賽事") {
-                toast = .init(kind: .info, text: "編輯賽事功能即將推出")
+                toast = .init(kind: .info, text: L10n.string("編輯賽事功能即將推出"))
             }
             Button("關閉報名") {
-                toast = .init(kind: .info, text: "關閉報名功能即將推出")
+                toast = .init(kind: .info, text: L10n.string("關閉報名功能即將推出"))
             }
             Button("私信邀請球友") {
                 inviteTarget = .tournament(
@@ -407,7 +407,7 @@ struct MyMatchesView: View {
                     time: "剛剛",
                     isRead: false
                 ))
-                toast = .init(kind: .success, text: "已取消賽事")
+                toast = .init(kind: .success, text: L10n.string("已取消賽事"))
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
                 tournamentToCancel = nil
             }
@@ -720,7 +720,7 @@ private extension MyMatchesView {
                         }
                     } label: {
                         VStack(spacing: Spacing.xs) {
-                            Text(tab)
+                            Text(LocalizedStringKey(tab))
                                 .font(Typography.bodyMedium)
                                 .foregroundColor(selectedFilter == tab ? Theme.primary : Theme.textBody)
                                 .frame(maxWidth: .infinity)
@@ -846,7 +846,7 @@ private extension MyMatchesView {
 
             Spacer()
 
-            Text(badgeText)
+            Text(LocalizedStringKey(badgeText))
                 .font(Typography.micro)
                 .foregroundColor(.white)
                 .padding(.horizontal, Spacing.xs)
@@ -870,7 +870,7 @@ private extension MyMatchesView {
         .padding(.leading, 48)
     }
 
-    func matchActionButton(_ title: String, style: MatchActionStyle, action: (() -> Void)? = nil) -> some View {
+    func matchActionButton(_ title: LocalizedStringKey, style: MatchActionStyle, action: (() -> Void)? = nil) -> some View {
         Button {
             action?()
         } label: {
@@ -927,7 +927,7 @@ private extension MyMatchesView {
                     withAnimation {
                         persistRejection(invitation)
                     }
-                    toast = .init(kind: .warning, text: "已拒絕邀請")
+                    toast = .init(kind: .warning, text: L10n.string("已拒絕邀請"))
                 } label: {
                     Text("拒絕")
                         .font(Typography.micro)
