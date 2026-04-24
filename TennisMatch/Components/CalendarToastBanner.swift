@@ -29,9 +29,9 @@ private struct CalendarToastBanner: View {
             if let text = message {
                 HStack(spacing: Spacing.sm) {
                     Image(systemName: systemImage)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Typography.labelSemibold)
                     Text(text)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                 }
                 .foregroundColor(.white)
                 .padding(.horizontal, Spacing.md)

@@ -14,7 +14,7 @@ struct RecommendedPlayersSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("📈 推薦")
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.button)
                 .foregroundColor(Theme.textPrimary)
                 .padding(.horizontal, Spacing.md)
 
@@ -35,7 +35,7 @@ struct RecommendedPlayersSection: View {
             }
         }
         .padding(.vertical, Spacing.sm)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     // MARK: - 單張推薦卡片
@@ -49,7 +49,7 @@ struct RecommendedPlayersSection: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 2) {
                     Text(name)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(Theme.textPrimary)
                         .lineLimit(1)
                     Text(gender.symbol)
@@ -67,7 +67,7 @@ struct RecommendedPlayersSection: View {
                     followStore.toggle(name)
                 } label: {
                     Text(isFollowing ? "已關注" : "關注")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(isFollowing ? Theme.primary : .white)
                         .frame(width: 60, height: 24)
                         .background(isFollowing ? Color.clear : Theme.primary)
@@ -82,7 +82,7 @@ struct RecommendedPlayersSection: View {
         .frame(width: 170, alignment: .leading)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .overlay {
             RoundedRectangle(cornerRadius: 12, style: .continuous)

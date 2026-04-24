@@ -28,11 +28,11 @@ struct InviteFriendsView: View {
             }
 
             Text("邀請好友一起打球")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             Text("分享你的邀請碼給朋友，一起加入 Let's Tennis")
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textBody)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, Spacing.xl)
@@ -55,14 +55,14 @@ struct InviteFriendsView: View {
                         Image(systemName: "doc.on.doc")
                             .font(Typography.small)
                         Text("複製邀請碼")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Typography.captionMedium)
                     }
                     .foregroundColor(Theme.primary)
                 }
             }
             .padding(Spacing.lg)
             .frame(maxWidth: .infinity)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
             .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
             .padding(.horizontal, Spacing.md)
@@ -75,9 +75,9 @@ struct InviteFriendsView: View {
             } label: {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "square.and.arrow.up")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                     Text("分享給朋友")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -96,13 +96,13 @@ struct InviteFriendsView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("邀請好友")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .sheet(isPresented: $showShareSheet) {

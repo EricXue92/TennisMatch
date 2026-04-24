@@ -19,6 +19,7 @@ struct HomeView: View {
     @State private var showTournaments = false
     @State private var selectedTab = 0
     @State private var selectedFilter = "全部"
+    private let matchFilterOptions = ["全部", "單打", "雙打", "拉球"]
     @State private var showFilterPanel = false
     @State private var ntrpLow: Double = 1.0
     @State private var ntrpHigh: Double = 7.0
@@ -37,14 +38,7 @@ struct HomeView: View {
     @State private var chatUnreadCount = 0
     @State private var sharedChats: [MockChat] = mockChatsInitial
     @State private var acceptedMatches: [AcceptedMatchInfo] = []
-    @State private var showMatchAssistant = false
-    @State private var showReviews = false
-    @State private var showNotifications = false
-    @State private var showBlockList = false
-    @State private var showTipDeveloper = false
-    @State private var showInviteFriends = false
-    @State private var showSettings = false
-    @State private var showHelp = false
+    @State private var drawerNav: DrawerDestination?
     @State private var pendingDMOrganizer: SignUpMatchInfo?
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
@@ -86,7 +80,9 @@ struct HomeView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             // Custom tab bar
-            customTabBar
+            CustomTabBar(selectedTab: $selectedTab, chatUnreadCount: chatUnreadCount) {
+                showCreateMatch = true
+            }
 
             // 側邊抽屜
             if showDrawer {
@@ -94,16 +90,10 @@ struct HomeView: View {
                     isPresented: $showDrawer,
                     unreadNotificationCount: notificationStore.unreadCount
                 ) { destination in
-                    switch destination {
-                    case .tournaments:    showTournaments = true
-                    case .matchAssistant: showMatchAssistant = true
-                    case .reviews:        showReviews = true
-                    case .notifications:  showNotifications = true
-                    case .blockList:      showBlockList = true
-                    case .inviteFriends:  showInviteFriends = true
-                    case .tipDeveloper:   showTipDeveloper = true
-                    case .settings:       showSettings = true
-                    case .help:           showHelp = true
+                    if destination == .tournaments {
+                        showTournaments = true
+                    } else {
+                        drawerNav = destination
                     }
                 }
             }
@@ -175,29 +165,18 @@ struct HomeView: View {
                 }
             )
         }
-        .navigationDestination(isPresented: $showMatchAssistant) {
-            MatchAssistantView()
-        }
-        .navigationDestination(isPresented: $showReviews) {
-            ReviewsView()
-        }
-        .navigationDestination(isPresented: $showNotifications) {
-            NotificationsView()
-        }
-        .navigationDestination(isPresented: $showTipDeveloper) {
-            TipDeveloperView()
-        }
-        .navigationDestination(isPresented: $showBlockList) {
-            BlockListView()
-        }
-        .navigationDestination(isPresented: $showInviteFriends) {
-            InviteFriendsView()
-        }
-        .navigationDestination(isPresented: $showSettings) {
-            SettingsView()
-        }
-        .navigationDestination(isPresented: $showHelp) {
-            HelpView()
+        .navigationDestination(item: $drawerNav) { dest in
+            switch dest {
+            case .matchAssistant: MatchAssistantView()
+            case .reviews:        ReviewsView()
+            case .notifications:  NotificationsView()
+            case .tipDeveloper:   TipDeveloperView()
+            case .blockList:      BlockListView()
+            case .inviteFriends:  InviteFriendsView()
+            case .settings:       SettingsView()
+            case .help:           HelpView()
+            case .tournaments:    EmptyView() // handled via fullScreenCover
+            }
         }
         .navigationDestination(item: $selectedPlayer) { player in
             PublicProfileView(player: player)
@@ -227,88 +206,6 @@ struct HomeView: View {
             if let data = try? JSONEncoder().encode(newValue) {
                 UserDefaults.standard.set(data, forKey: "signedUpMatchIDs")
             }
-        }
-    }
-
-    private func placeholderTab(_ title: String) -> some View {
-        VStack {
-            Spacer()
-            Text(title)
-                .font(Typography.title)
-                .foregroundColor(Theme.textSecondary)
-            Spacer()
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Theme.background)
-    }
-
-    // MARK: - Custom Tab Bar
-
-    private var customTabBar: some View {
-        HStack(spacing: 0) {
-            tabBarItem(icon: "house.fill", label: "首頁", tag: 0)
-            tabBarItem(icon: "calendar", label: "我的約球", tag: 1)
-            centerTabButton
-            tabBarItem(icon: "message.fill", label: "聊天", tag: 3, badgeCount: chatUnreadCount)
-            tabBarItem(icon: "person.fill", label: "我的", tag: 4)
-        }
-        .padding(.top, Spacing.sm)
-        .padding(.bottom, Spacing.xl)
-        .background(
-            Rectangle()
-                .fill(.white)
-                .shadow(color: .black.opacity(0.08), radius: 8, y: -2)
-                .ignoresSafeArea(edges: .bottom)
-        )
-    }
-
-    private func tabBarItem(icon: String, label: String, tag: Int, badgeCount: Int = 0) -> some View {
-        Button {
-            selectedTab = tag
-        } label: {
-            VStack(spacing: 4) {
-                ZStack(alignment: .topTrailing) {
-                    Image(systemName: icon)
-                        .font(.system(size: 20))
-                    if badgeCount > 0 {
-                        Text("\(badgeCount)")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.white)
-                            .frame(width: 16, height: 16)
-                            .background(Theme.badge)
-                            .clipShape(Circle())
-                            .offset(x: 8, y: -4)
-                    }
-                }
-                Text(label)
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .foregroundColor(selectedTab == tag ? Theme.primary : Theme.textSecondary)
-            .frame(maxWidth: .infinity)
-        }
-    }
-
-    private var centerTabButton: some View {
-        Button {
-            showCreateMatch = true
-        } label: {
-            VStack(spacing: 4) {
-                ZStack {
-                    Circle()
-                        .fill(Theme.primary)
-                        .frame(width: 52, height: 52)
-                        .shadow(color: Theme.primary.opacity(0.4), radius: 6, y: 2)
-                    Image(systemName: "plus")
-                        .font(.system(size: 24, weight: .bold))
-                        .foregroundColor(.white)
-                }
-                .offset(y: -16)
-                Text("一鍵約球")
-                    .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(selectedTab == 2 ? Theme.primary : Theme.textSecondary)
-                    .offset(y: -16)
-            }
-            .frame(maxWidth: .infinity)
         }
     }
 
@@ -382,7 +279,7 @@ private extension HomeView {
                     Spacer()
 
                     Text("☀️ 24°C")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, Spacing.md)
@@ -408,7 +305,7 @@ private extension HomeView {
                 .font(Typography.fieldLabel)
                 .foregroundColor(.white.opacity(0.9))
             Text(value)
-                .font(.system(size: 24, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(.white)
         }
         .frame(maxWidth: .infinity)
@@ -445,7 +342,7 @@ private extension HomeView {
                     selectedFilter = option
                 } label: {
                     Text(option)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? .white : Theme.textBody)
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 30)
@@ -457,6 +354,7 @@ private extension HomeView {
                             }
                         }
                 }
+                .frame(minHeight: 44)
             }
 
             Spacer()
@@ -468,9 +366,9 @@ private extension HomeView {
             } label: {
                 HStack(spacing: 4) {
                     Image(systemName: "line.3.horizontal.decrease")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typography.smallMedium)
                     Text("篩選")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typography.smallMedium)
                     if activeFilterCount > 0 {
                         Text("\(activeFilterCount)")
                             .font(.system(size: 10, weight: .bold))
@@ -491,10 +389,11 @@ private extension HomeView {
                     }
                 }
             }
+            .frame(minHeight: 44)
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.xs)
-        .background(.white)
+        .background(Theme.surface)
     }
 }
 
@@ -599,15 +498,15 @@ private extension HomeView {
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 4) {
                         Text(match.name)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
                             .lineLimit(1)
                         Text(match.gender.symbol)
-                            .font(.system(size: 14))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
 
                         Text(match.matchType)
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.micro)
                             .foregroundColor(Theme.textBody)
                             .padding(.horizontal, 6)
                             .frame(height: 18)
@@ -631,7 +530,7 @@ private extension HomeView {
             // Bottom: tags + sign up button
             HStack(spacing: Spacing.xs) {
                 Text(match.fee)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Typography.micro)
                     .foregroundColor(Theme.textBody)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 22)
@@ -639,7 +538,7 @@ private extension HomeView {
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Text(match.isOwnMatch ? "我發起的" : "招募中")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Typography.micro)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 22)
@@ -670,7 +569,7 @@ private extension HomeView {
                         showSignUp(match)
                     } label: {
                         Text(label)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(disabled ? Theme.textSecondary : .white)
                             .frame(minWidth: 52, idealWidth: 52)
                             .padding(.horizontal, autoCancelled ? Spacing.xs : 0)
@@ -684,7 +583,7 @@ private extension HomeView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
         .overlay(alignment: .leading) {

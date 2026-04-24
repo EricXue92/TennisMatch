@@ -135,12 +135,12 @@ struct EditProfileView: View {
                     .frame(width: 44, height: 44)
             }
             Text("編輯資料")
-                .font(.system(size: 18, weight: .semibold))
+                .font(Typography.sectionTitle)
                 .foregroundColor(Theme.textPrimary)
             Spacer()
         }
         .padding(.horizontal, Spacing.xs)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     // MARK: - Avatar
@@ -183,7 +183,7 @@ struct EditProfileView: View {
             // 用戶名
             formRow(label: "用戶名") {
                 TextField("請輸入用戶名", text: $name)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textBody)
             }
             formDivider
@@ -205,7 +205,7 @@ struct EditProfileView: View {
             // 個人簡介
             formRow(label: "個人簡介") {
                 TextField("一句話介紹自己", text: $bio)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textBody)
             }
             formDivider
@@ -222,11 +222,11 @@ struct EditProfileView: View {
                 } label: {
                     HStack {
                         Text(selectedCourt?.name ?? "選擇球場")
-                            .font(.system(size: 14))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textBody)
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(Theme.textSecondary)
                     }
                 }
@@ -255,7 +255,7 @@ struct EditProfileView: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.sm)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }
@@ -266,7 +266,7 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text("偏好打球時間")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
@@ -274,9 +274,9 @@ struct EditProfileView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "plus")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(Typography.micro)
                         Text("新增")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                     }
                     .foregroundColor(Theme.primary)
                 }
@@ -328,7 +328,7 @@ struct EditProfileView: View {
         VStack(spacing: Spacing.xs) {
             if showNameError {
                 Text(nameErrorMessage)
-                    .font(.system(size: 12))
+                    .font(Typography.small)
                     .foregroundColor(Theme.requiredText)
                     .transition(.opacity)
             }
@@ -346,6 +346,7 @@ struct EditProfileView: View {
                     return
                 }
                 showNameError = false
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 userStore.displayName = trimmed
                 userStore.gender = selectedGender
                 userStore.bio = bio
@@ -358,7 +359,7 @@ struct EditProfileView: View {
                 dismiss()
             } label: {
                 Text("儲存修改")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -373,7 +374,7 @@ struct EditProfileView: View {
     private func formRow<Content: View>(label: String, @ViewBuilder content: () -> Content) -> some View {
         HStack(spacing: 0) {
             Text(label)
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textPrimary)
                 .frame(width: 110, alignment: .leading)
             content()
@@ -399,7 +400,7 @@ struct EditProfileView: View {
                     }
                 }
                 Text(label)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textBody)
             }
         }
@@ -411,17 +412,17 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("NTRP 水平")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Text(String(format: "%.1f", ntrpLevel))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.primary)
             }
 
             HStack(spacing: Spacing.sm) {
                 Text(String(format: "%.1f", ntrpMin))
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textSecondary)
                     .frame(width: 28)
 
@@ -462,7 +463,7 @@ struct EditProfileView: View {
                 .frame(height: 28)
 
                 Text(String(format: "%.1f", ntrpMax))
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textSecondary)
                     .frame(width: 28)
             }
@@ -476,11 +477,11 @@ struct EditProfileView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("偏好球友水平")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Text(String(format: "%.1f - %.1f", partnerLevelLow, partnerLevelHigh))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.primary)
             }
 
@@ -555,13 +556,13 @@ private struct AddPreferredSlotSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("新增偏好時段")
-                .font(.system(size: 18, weight: .bold))
+                .font(Typography.body)
                 .foregroundColor(Theme.textPrimary)
 
             // Day selection
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("星期")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
 
                 HStack(spacing: 6) {
@@ -569,7 +570,7 @@ private struct AddPreferredSlotSheet: View {
                         let isSelected = selectedDay == day
                         Button { selectedDay = day } label: {
                             Text(day.short)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(Typography.captionMedium)
                                 .foregroundColor(isSelected ? .white : Theme.textBody)
                                 .frame(width: 38, height: 38)
                                 .background(isSelected ? Theme.primary : Theme.inputBg)
@@ -583,7 +584,7 @@ private struct AddPreferredSlotSheet: View {
             HStack(spacing: Spacing.lg) {
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("開始")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                     Picker("", selection: $startTime) {
                         ForEach(timeSlots, id: \.self) { slot in
@@ -595,7 +596,7 @@ private struct AddPreferredSlotSheet: View {
                 }
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("結束")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                     Picker("", selection: $endTime) {
                         ForEach(endTimeSlots, id: \.self) { slot in
@@ -622,7 +623,7 @@ private struct AddPreferredSlotSheet: View {
                     .font(Typography.caption)
                     .foregroundColor(Theme.primary)
                 Text(preview.displayText)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.primary)
             }
             .padding(.horizontal, Spacing.md)
@@ -638,11 +639,11 @@ private struct AddPreferredSlotSheet: View {
                     dismiss()
                 } label: {
                     Text("取消")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textBody)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
-                        .background(.white)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 10, style: .continuous)
@@ -655,7 +656,7 @@ private struct AddPreferredSlotSheet: View {
                     dismiss()
                 } label: {
                     Text("新增")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(Typography.labelSemibold)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)

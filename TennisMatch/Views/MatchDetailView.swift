@@ -97,7 +97,7 @@ struct MatchDetailView: View {
             }
             ToolbarItem(placement: .principal) {
                 Text("約球詳情")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
     }
@@ -149,7 +149,7 @@ private extension MatchDetailView {
                     let following = followStore.isFollowing(match.name)
                     // 未關注 → 綠色實心(與 HomeView 推薦卡片一致);已關注 → 透明邊框
                     Text(following ? "已關注" : "關注")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(following ? Theme.primary : .white)
                         .frame(width: 60, height: 44)
                         .background(following ? .clear : Theme.primary)
@@ -173,7 +173,7 @@ private extension MatchDetailView {
             // Tags
             HStack(spacing: Spacing.xs) {
                 Text(match.matchType)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
@@ -181,7 +181,7 @@ private extension MatchDetailView {
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
                 Text(match.isOwnMatch ? "我發起的" : "招募中")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(match.isOwnMatch ? .white : Theme.textDeep)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 24)
@@ -215,7 +215,7 @@ private extension MatchDetailView {
             // Notes
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("備註")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 Text(match.notes)
                     .font(Typography.caption)
@@ -223,19 +223,19 @@ private extension MatchDetailView {
             }
             .padding(Spacing.md)
         }
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     func detailRow(icon: String, title: String, subtitle: String?) -> some View {
         HStack(alignment: .top, spacing: Spacing.sm) {
             Text(icon)
-                .font(.system(size: 16))
+                .font(Typography.buttonMedium)
                 .frame(width: 24)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 if let subtitle {
                     Text(subtitle)
@@ -253,7 +253,7 @@ private extension MatchDetailView {
     var weatherCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("⛅ 天氣")
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textPrimary)
 
             HStack(spacing: 0) {
@@ -264,14 +264,14 @@ private extension MatchDetailView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
     func weatherItem(value: String, label: String?) -> some View {
         VStack(spacing: 2) {
             Text(value)
-                .font(.system(size: 15, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
             if let label {
                 Text(label)
@@ -289,7 +289,7 @@ private extension MatchDetailView {
     var participantsCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("參加者")
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textPrimary)
 
             ForEach(participants) { p in
@@ -299,18 +299,18 @@ private extension MatchDetailView {
                             .fill(Theme.avatarPlaceholder)
                             .frame(width: 36, height: 36)
                         Text(String(p.name.prefix(1)))
-                            .font(.system(size: 14, weight: .bold))
+                            .font(Typography.labelSemibold)
                             .foregroundColor(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 4) {
                             Text(p.name)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(Theme.textPrimary)
                                 .lineLimit(1)
                             Text(p.gender.symbol)
-                                .font(.system(size: 14))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(p.gender == .female ? Theme.genderFemale : Theme.genderMale)
                         }
                         Text("NTRP \(p.ntrp)")
@@ -339,7 +339,7 @@ private extension MatchDetailView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 }
@@ -354,7 +354,7 @@ private extension MatchDetailView {
                     showInviteSheet = true
                 } label: {
                     Text("📨 邀請")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -366,7 +366,7 @@ private extension MatchDetailView {
                     navigateToChat = true
                 } label: {
                     Text("💬 私信")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(Typography.labelSemibold)
                         .foregroundColor(Theme.primaryDark)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -408,7 +408,7 @@ private extension MatchDetailView {
                     showSignUpConfirm = true
                 } label: {
                     Text(label)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                         .foregroundColor(disabled ? Theme.textSecondary : .white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -423,7 +423,7 @@ private extension MatchDetailView {
         .padding(.bottom, Spacing.xl)
         .background(
             Rectangle()
-                .fill(.white)
+                .fill(Theme.surface)
                 .shadow(color: .black.opacity(0.06), radius: 4, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )
@@ -580,10 +580,10 @@ private struct InviteContactsSheet: View {
                                 VStack(alignment: .leading, spacing: 2) {
                                     HStack(spacing: 4) {
                                         Text(contact.name)
-                                            .font(.system(size: 14, weight: .medium))
+                                            .font(Typography.bodyMedium)
                                             .foregroundColor(Theme.textPrimary)
                                         Text(contact.genderSymbol)
-                                            .font(.system(size: 14))
+                                            .font(Typography.bodyMedium)
                                             .foregroundColor(contact.genderColor)
                                     }
                                     Text("NTRP \(contact.ntrp)")
@@ -599,7 +599,7 @@ private struct InviteContactsSheet: View {
                                     }
                                 } label: {
                                     Text(isInvited ? "已邀請" : "邀請")
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(Typography.smallMedium)
                                         .foregroundColor(isInvited ? Theme.textCaption : .white)
                                         .frame(width: 56, height: 30)
                                         .background(isInvited ? Theme.chipUnselectedBg : Theme.primary)

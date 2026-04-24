@@ -31,6 +31,7 @@ struct MyMatchesView: View {
     /// JSON-encoded and persisted via @AppStorage so rejections survive app
     /// restarts. UUIDs change each launch with mock data, so we key by content.
     @AppStorage("rejectedInvitationKeys") private var rejectedInvitationKeysJSON: String = "[]"
+    @AppStorage("acceptedInvitationKeys") private var acceptedInvitationKeysJSON: String = "[]"
     @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
@@ -71,9 +72,30 @@ struct MyMatchesView: View {
         }
     }
 
+    private var acceptedInvitationKeys: Set<String> {
+        guard let data = acceptedInvitationKeysJSON.data(using: .utf8),
+              let arr = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return Set(arr)
+    }
+
+    private func persistAcceptance(_ inv: MyMatchInvitation) {
+        var keys = acceptedInvitationKeys
+        keys.insert(rejectKey(for: inv))
+        if let data = try? JSONEncoder().encode(Array(keys)),
+           let json = String(data: data, encoding: .utf8) {
+            acceptedInvitationKeysJSON = json
+        }
+    }
+
     private var visibleInvitations: [MyMatchInvitation] {
         let rejected = rejectedInvitationKeys
-        return mockInvitations.filter { !rejected.contains(rejectKey(for: $0)) }
+        let accepted = acceptedInvitationKeys
+        return mockInvitations.filter {
+            let key = rejectKey(for: $0)
+            return !rejected.contains(key) && !accepted.contains(key)
+        }
     }
 
     private var acceptedMatchItems: [MyMatchItem] {
@@ -82,6 +104,12 @@ struct MyMatchesView: View {
             let startHour = Int(timeStr.prefix(2)) ?? 10
             let endHour = startHour + info.durationHours
             let endTime = String(format: "%02d:00", endHour)
+            // 至少包含發起人與當前用戶(小李) — 確保「查看報名者」不會是空列表
+            let ntrpMid = ntrpMidpoint(range: info.ntrpRange)
+            let registrants: [MatchRegistrant] = [
+                MatchRegistrant(name: info.organizerName, ntrp: ntrpMid, isOrganizer: true),
+                MatchRegistrant(name: "小李", ntrp: ntrpMid, isOrganizer: false),
+            ]
             return MyMatchItem(
                 title: "\(info.organizerName) 發起的\(info.matchType)",
                 isOrganizer: false,
@@ -93,9 +121,17 @@ struct MyMatchesView: View {
                 weather: "☀️ 24°C",
                 matchType: info.matchType,
                 acceptedMatchID: info.id,
-                sourceMatchID: info.sourceMatchID
+                sourceMatchID: info.sourceMatchID,
+                registrants: registrants
             )
         }
+    }
+
+    /// 從 "3.0-4.0" 取中位 NTRP,供 registrant 顯示用。解析失敗時回退到 "3.5"。
+    private func ntrpMidpoint(range: String) -> String {
+        let parts = range.split(separator: "-").compactMap { Double($0) }
+        guard parts.count == 2 else { return "3.5" }
+        return String(format: "%.1f", (parts[0] + parts[1]) / 2)
     }
 
     var body: some View {
@@ -120,7 +156,7 @@ struct MyMatchesView: View {
                             onGoHome()
                         } label: {
                             Text("去首頁看看")
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, Spacing.lg)
                                 .frame(height: 36)
@@ -227,6 +263,7 @@ struct MyMatchesView: View {
                     } else {
                         toast = .init(kind: .success, text: "已取消約球，已通知所有參與者")
                     }
+                    UINotificationFeedbackGenerator().notificationOccurred(creditDeducted ? .warning : .success)
                 }
                 matchToCancel = nil
             }
@@ -238,6 +275,12 @@ struct MyMatchesView: View {
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
             Button("查看報名者") {
                 registrantMatch = match
+            }
+            Button("編輯約球") {
+                toast = .init(kind: .info, text: "編輯約球功能即將推出")
+            }
+            Button("關閉報名") {
+                toast = .init(kind: .info, text: "關閉報名功能即將推出")
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
@@ -257,12 +300,12 @@ struct MyMatchesView: View {
                                     .fill(Theme.avatarPlaceholder)
                                     .frame(width: 36, height: 36)
                                 Text(String(registrant.name.suffix(1)))
-                                    .font(.system(size: 14, weight: .bold))
+                                    .font(Typography.labelSemibold)
                                     .foregroundColor(.white)
                             }
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(registrant.name)
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(Typography.bodyMedium)
                                     .foregroundColor(Theme.textPrimary)
                                 Text("NTRP \(registrant.ntrp)")
                                     .font(Typography.small)
@@ -271,7 +314,7 @@ struct MyMatchesView: View {
                             Spacer()
                             if registrant.isOrganizer {
                                 Text("發起人")
-                                    .font(.system(size: 11, weight: .medium))
+                                    .font(Typography.micro)
                                     .foregroundColor(Theme.primary)
                                     .padding(.horizontal, Spacing.xs)
                                     .frame(height: 20)
@@ -316,7 +359,7 @@ struct MyMatchesView: View {
                     Image(systemName: current.kind.icon)
                         .foregroundColor(.white)
                     Text(current.text)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, Spacing.md)
@@ -427,7 +470,7 @@ private extension MyMatchesView {
             Spacer()
             if !visibleInvitations.isEmpty {
                 Text("邀請 \(visibleInvitations.count)")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 26)
@@ -437,7 +480,7 @@ private extension MyMatchesView {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     var filterTabs: some View {
@@ -451,7 +494,7 @@ private extension MyMatchesView {
                     } label: {
                         VStack(spacing: Spacing.xs) {
                             Text(tab)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(selectedFilter == tab ? Theme.primary : Theme.textBody)
                                 .frame(maxWidth: .infinity)
 
@@ -467,7 +510,7 @@ private extension MyMatchesView {
 
             Theme.inputBorder.frame(height: 1)
         }
-        .background(.white)
+        .background(Theme.surface)
     }
 }
 
@@ -487,12 +530,12 @@ private extension MyMatchesView {
 
                     HStack(spacing: 4) {
                         Text(match.title)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
 
                         if match.isOrganizer {
                             Text("發起人")
-                                .font(.system(size: 11, weight: .medium))
+                                .font(Typography.micro)
                                 .foregroundColor(Theme.primary)
                                 .padding(.horizontal, 6)
                                 .frame(height: 18)
@@ -520,10 +563,10 @@ private extension MyMatchesView {
                         Spacer()
                         HStack(spacing: 4) {
                             Text("查看評論")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(Typography.smallMedium)
                                 .foregroundColor(Theme.primary)
                             Image(systemName: "chevron.right")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(Typography.micro)
                                 .foregroundColor(Theme.primary)
                         }
                         .frame(minHeight: 44)
@@ -558,7 +601,7 @@ private extension MyMatchesView {
             }
             .padding(Spacing.sm)
         }
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }
@@ -571,13 +614,13 @@ private extension MyMatchesView {
         let bannerColor = autoCancelled ? Theme.requiredBg : match.status.bannerColor
         return HStack {
             Text("🗓️ \(match.dateLabel)")
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(Theme.textPrimary)
 
             Spacer()
 
             Text(badgeText)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.micro)
                 .foregroundColor(.white)
                 .padding(.horizontal, Spacing.xs)
                 .frame(height: 20)
@@ -605,7 +648,7 @@ private extension MyMatchesView {
             action?()
         } label: {
             Text(title)
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(style == .filled ? .white : Theme.textBody)
                 .padding(.horizontal, Spacing.sm)
                 .frame(height: 30)
@@ -629,7 +672,7 @@ private extension MyMatchesView {
         VStack(alignment: .leading, spacing: 0) {
             // Banner
             Text("📩 收到邀請")
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(Theme.textPrimary)
                 .padding(.horizontal, Spacing.sm)
                 .frame(height: 26, alignment: .leading)
@@ -644,7 +687,7 @@ private extension MyMatchesView {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text("\(invitation.inviterName) 邀請你打\(invitation.matchType)")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(Theme.textPrimary)
                     Text(invitation.displayDetails)
                         .font(Typography.fieldLabel)
@@ -660,7 +703,7 @@ private extension MyMatchesView {
                     toast = .init(kind: .warning, text: "已拒絕邀請")
                 } label: {
                     Text("拒絕")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textBody)
                         .frame(width: 48, height: 26)
                         .overlay {
@@ -708,11 +751,15 @@ private extension MyMatchesView {
                             label: label
                         ))
                     }
+                    withAnimation {
+                        persistAcceptance(invitation)
+                    }
                     acceptedInvitation = invitation
                     showAcceptSuccess = true
+                    UINotificationFeedbackGenerator().notificationOccurred(.success)
                 } label: {
                     Text("接受")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(.white)
                         .frame(width: 48, height: 26)
                         .background(Theme.primary)
@@ -723,7 +770,7 @@ private extension MyMatchesView {
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.sm)
         }
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }
@@ -1091,7 +1138,7 @@ private struct InvitationAcceptSuccessView: View {
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(Theme.textDark)
                         .frame(width: 44, height: 44)
                 }
@@ -1104,7 +1151,7 @@ private struct InvitationAcceptSuccessView: View {
             ZStack {
                 Circle().fill(Theme.primary).frame(width: 80, height: 80)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(Typography.heroStat)
                     .foregroundColor(.white)
             }
 
@@ -1135,7 +1182,7 @@ private struct InvitationAcceptSuccessView: View {
             }
             .padding(Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -1160,7 +1207,7 @@ private struct InvitationAcceptSuccessView: View {
 
             Button { dismiss() } label: {
                 Text("返回我的約球")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -1175,7 +1222,9 @@ private struct InvitationAcceptSuccessView: View {
     }
 
     private func saveInvitationToCalendar() {
-        guard let monthDay = detailParts.first,
+        // 從原始 details 取日期(MM/dd),displayDetails 會插入時段導致解析失敗
+        let monthDay = invitation.details.components(separatedBy: " · ").first ?? ""
+        guard !monthDay.isEmpty,
               let range = CalendarService.parseShortMatch(
                 monthDay: monthDay,
                 startTime: invitation.time,
@@ -1206,7 +1255,7 @@ private struct InvitationAcceptSuccessView: View {
     private func summaryRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
@@ -1219,14 +1268,14 @@ private struct InvitationAcceptSuccessView: View {
         Button(action: action) {
             HStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                 Text(label)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typography.bodyMedium)
             }
             .foregroundColor(Theme.accentGreen)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -1292,7 +1341,7 @@ private struct CompletedMatchReviewSheet: View {
                     // 约球摘要
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         Text(match.title)
-                            .font(.system(size: 16, weight: .semibold))
+                            .font(Typography.button)
                             .foregroundColor(Theme.textPrimary)
                         HStack(spacing: Spacing.sm) {
                             Label(match.dateLabel, systemImage: "calendar")
@@ -1306,12 +1355,12 @@ private struct CompletedMatchReviewSheet: View {
                     }
                     .padding(Spacing.md)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                     // 评论区
                     Text("互相評論")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(Typography.labelSemibold)
                         .foregroundColor(Theme.textPrimary)
 
                     if reviews.isEmpty {
@@ -1320,7 +1369,7 @@ private struct CompletedMatchReviewSheet: View {
                                 .font(.system(size: 36))
                                 .foregroundColor(Theme.textSecondary)
                             Text("暫無評論")
-                                .font(.system(size: 14))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(Theme.textSecondary)
                             Text("雙方尚未留下評論")
                                 .font(Typography.small)
@@ -1343,7 +1392,7 @@ private struct CompletedMatchReviewSheet: View {
                                 Image(systemName: "square.and.pencil")
                                 Text("寫評論")
                             }
-                            .font(.system(size: 14, weight: .semibold))
+                            .font(Typography.labelSemibold)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .frame(height: 44)
@@ -1419,18 +1468,18 @@ private struct CompletedMatchReviewSheet: View {
                     .fill(review.isMyReview ? Theme.primary : Theme.avatarPlaceholder)
                     .frame(width: 36, height: 36)
                 Text(String(review.reviewerName.prefix(1)))
-                    .font(.system(size: 14, weight: .bold))
+                    .font(Typography.labelSemibold)
                     .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(review.reviewerName)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                     if review.isMyReview {
                         Text("我的評論")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.micro)
                             .foregroundColor(Theme.primary)
                             .padding(.horizontal, 6)
                             .frame(height: 16)
@@ -1446,7 +1495,7 @@ private struct CompletedMatchReviewSheet: View {
                 HStack(spacing: 2) {
                     ForEach(0..<5, id: \.self) { i in
                         Image(systemName: i < review.rating ? "star.fill" : "star")
-                            .font(.system(size: 11))
+                            .font(Typography.fieldLabel)
                             .foregroundColor(i < review.rating ? Theme.starYellow : Theme.textSecondary)
                     }
                 }
@@ -1457,7 +1506,7 @@ private struct CompletedMatchReviewSheet: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
@@ -1472,7 +1521,7 @@ private struct WriteReviewSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("評價對手")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             Text(matchTitle)
@@ -1493,7 +1542,7 @@ private struct WriteReviewSheet: View {
             .frame(maxWidth: .infinity)
 
             TextField("說說你的打球體驗...", text: $text, axis: .vertical)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .lineLimit(3...5)
                 .padding(Spacing.sm)
                 .background(Theme.inputBg)
@@ -1507,7 +1556,7 @@ private struct WriteReviewSheet: View {
 
             Button(action: onSubmit) {
                 Text("提交評價")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)

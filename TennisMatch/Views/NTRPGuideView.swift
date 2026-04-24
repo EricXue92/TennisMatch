@@ -34,7 +34,7 @@ struct NTRPGuideView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(.white)
                 }
             }
@@ -58,7 +58,7 @@ private struct NTRPCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("\(level.range)  \(level.name)")
-                .font(.system(size: 14, weight: .bold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.accentGreen)
 
             Text(level.englishName)
@@ -89,7 +89,7 @@ private struct NTRPCard: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, 10)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 3, y: 1)
     }

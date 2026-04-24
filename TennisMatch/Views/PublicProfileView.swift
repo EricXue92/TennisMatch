@@ -39,7 +39,7 @@ struct PublicProfileView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(.white)
                 }
             }
@@ -70,14 +70,14 @@ struct PublicProfileView: View {
                         .fill(.white)
                         .frame(width: 64, height: 64)
                     Text(String(player.name.prefix(1)))
-                        .font(.system(size: 24, weight: .bold))
+                        .font(Typography.title)
                         .foregroundColor(Theme.primary)
                 }
 
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 4) {
                         Text(player.name)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(Typography.largeStat)
                             .foregroundColor(.white)
                         Text(player.gender.symbol)
                             .font(.system(size: 18))
@@ -104,7 +104,7 @@ struct PublicProfileView: View {
                 } label: {
                     let following = followStore.isFollowing(player.name)
                     Text(following ? "已關注" : "關注")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(following ? Theme.textBody : .white)
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 32)
@@ -120,7 +120,7 @@ struct PublicProfileView: View {
                     showBlockAlert = true
                 } label: {
                     Image(systemName: "nosign")
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(.white.opacity(0.7))
                         .frame(width: 32, height: 32)
                         .background(.white.opacity(0.2))
@@ -150,15 +150,15 @@ struct PublicProfileView: View {
     private func statItem(value: String, label: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
             Text(label)
-                .font(.system(size: 10))
+                .font(Typography.micro)
                 .foregroundColor(Theme.textSecondary)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 60)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -168,7 +168,7 @@ struct PublicProfileView: View {
     private var playerInfoCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("📋 球友資料")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             if !player.matchTypes.isEmpty {
@@ -183,17 +183,17 @@ struct PublicProfileView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Image(systemName: "mappin.and.ellipse")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.primary)
                             .frame(width: 18)
                         Text("常去球場")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Typography.captionMedium)
                             .foregroundColor(Theme.textSecondary)
                     }
                     FlowLayout(spacing: 6) {
                         ForEach(player.preferredCourts, id: \.self) { court in
                             Text("📍 \(court)")
-                                .font(.system(size: 12))
+                                .font(Typography.small)
                                 .foregroundColor(Theme.textBody)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -209,17 +209,17 @@ struct PublicProfileView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 6) {
                         Image(systemName: "clock")
-                            .font(.system(size: 12))
+                            .font(Typography.small)
                             .foregroundColor(Theme.primary)
                             .frame(width: 18)
                         Text("偏好時間")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Typography.captionMedium)
                             .foregroundColor(Theme.textSecondary)
                     }
                     FlowLayout(spacing: 6) {
                         ForEach(player.preferredTimes, id: \.self) { time in
                             Text(time)
-                                .font(.system(size: 12))
+                                .font(Typography.small)
                                 .foregroundColor(Theme.textBody)
                                 .padding(.horizontal, 8)
                                 .padding(.vertical, 4)
@@ -233,7 +233,7 @@ struct PublicProfileView: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -241,15 +241,15 @@ struct PublicProfileView: View {
     private func infoRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: 6) {
             Image(systemName: icon)
-                .font(.system(size: 12))
+                .font(Typography.small)
                 .foregroundColor(Theme.primary)
                 .frame(width: 18)
             Text(label)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textSecondary)
             Spacer()
             Text(value)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textBody)
         }
     }
@@ -259,7 +259,7 @@ struct PublicProfileView: View {
     private var matchHistoryCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("🎾 約球記錄")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             ForEach(player.recentMatches, id: \.self) { match in
@@ -274,7 +274,7 @@ struct PublicProfileView: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -292,9 +292,9 @@ struct PublicProfileView: View {
         } label: {
             HStack(spacing: Spacing.xs) {
                 Image(systemName: "bubble.left.fill")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                 Text("私信")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
             }
             .foregroundColor(.white)
             .frame(maxWidth: .infinity)
@@ -307,7 +307,7 @@ struct PublicProfileView: View {
         .padding(.bottom, Spacing.xl)
         .background(
             Rectangle()
-                .fill(.white)
+                .fill(Theme.surface)
                 .shadow(color: .black.opacity(0.06), radius: 4, y: -2)
                 .ignoresSafeArea(edges: .bottom)
         )

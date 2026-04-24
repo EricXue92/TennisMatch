@@ -89,16 +89,25 @@ final class NotificationStore {
     }
 
     /// 与原 NotificationsView 中 mock 数据等价,统一在 store 内维护。
-    static let mockSeed: [MatchNotification] = [
-        MatchNotification(type: .signUp, title: "新的報名", body: "王強 報名了你發起的雙打約球（04/20 跑馬地）", time: "10 分鐘前", isRead: false),
-        MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的莎拉單打約球（04/19 維多利亞公園）已確認", time: "2 小時前", isRead: false),
-        MatchNotification(type: .updated, title: "約球更新", body: "志明 的單打約球時間更改為 16:30", time: "3 小時前", isRead: true),
-        MatchNotification(type: .cancelled, title: "約球取消", body: "小美 取消了雙打約球（04/22 沙田公園）", time: "昨天", isRead: true),
-        MatchNotification(type: .signUp, title: "新的報名", body: "嘉欣 報名了你發起的雙打約球（04/20 跑馬地）", time: "昨天", isRead: true),
-        MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的 Michael 單打約球（04/28 跑馬地）已確認", time: "2 天前", isRead: true),
-        MatchNotification(type: .signUp, title: "新的報名", body: "阿豪 報名了你發起的雙打約球（04/25 將軍澳）", time: "2 天前", isRead: true),
-        MatchNotification(type: .updated, title: "約球更新", body: "大衛 的雙打約球地點更改為歌和老街公園", time: "3 天前", isRead: true),
-        MatchNotification(type: .cancelled, title: "約球取消", body: "麗莎 取消了雙打約球（04/20 香港網球中心）", time: "3 天前", isRead: true),
-        MatchNotification(type: .signUp, title: "新的報名", body: "思慧 報名了你發起的單打約球（04/30 將軍澳）", time: "4 天前", isRead: true),
-    ]
+    /// 日期使用相對計算，確保 mock 數據永不過期。
+    static let mockSeed: [MatchNotification] = {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "MM/dd"
+        func d(_ offset: Int) -> String {
+            guard let date = Calendar.current.date(byAdding: .day, value: offset, to: Date()) else { return "01/01" }
+            return fmt.string(from: date)
+        }
+        return [
+            MatchNotification(type: .signUp, title: "新的報名", body: "王強 報名了你發起的雙打約球（\(d(0)) 跑馬地）", time: "10 分鐘前", isRead: false),
+            MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的莎拉單打約球（\(d(-1)) 維多利亞公園）已確認", time: "2 小時前", isRead: false),
+            MatchNotification(type: .updated, title: "約球更新", body: "志明 的單打約球時間更改為 16:30", time: "3 小時前", isRead: true),
+            MatchNotification(type: .cancelled, title: "約球取消", body: "小美 取消了雙打約球（\(d(-2)) 沙田公園）", time: "昨天", isRead: true),
+            MatchNotification(type: .signUp, title: "新的報名", body: "嘉欣 報名了你發起的雙打約球（\(d(0)) 跑馬地）", time: "昨天", isRead: true),
+            MatchNotification(type: .accepted, title: "報名已接受", body: "你報名的 Michael 單打約球（\(d(4)) 跑馬地）已確認", time: "2 天前", isRead: true),
+            MatchNotification(type: .signUp, title: "新的報名", body: "阿豪 報名了你發起的雙打約球（\(d(1)) 將軍澳）", time: "2 天前", isRead: true),
+            MatchNotification(type: .updated, title: "約球更新", body: "大衛 的雙打約球地點更改為歌和老街公園", time: "3 天前", isRead: true),
+            MatchNotification(type: .cancelled, title: "約球取消", body: "麗莎 取消了雙打約球（\(d(-1)) 香港網球中心）", time: "3 天前", isRead: true),
+            MatchNotification(type: .signUp, title: "新的報名", body: "思慧 報名了你發起的單打約球（\(d(6)) 將軍澳）", time: "4 天前", isRead: true),
+        ]
+    }()
 }

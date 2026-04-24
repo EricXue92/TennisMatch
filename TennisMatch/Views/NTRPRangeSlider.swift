@@ -19,7 +19,7 @@ struct NTRPRangeSlider: View {
     var body: some View {
         HStack(spacing: Spacing.sm) {
             Text(String(format: "%.1f", range.lowerBound))
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 28)
 
@@ -65,10 +65,10 @@ struct NTRPRangeSlider: View {
                         )
                 }
             }
-            .frame(height: 28)
+            .frame(height: 44)
 
             Text(String(format: "%.1f", range.upperBound))
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 28)
         }
@@ -84,5 +84,7 @@ struct NTRPRangeSlider: View {
                     .fill(Theme.primary)
                     .frame(width: 10, height: 10)
             }
+            // 擴大觸控區域到 44pt（HIG 最小觸控目標）
+            .contentShape(Circle().scale(44.0 / 24.0))
     }
 }

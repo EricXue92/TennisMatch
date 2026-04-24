@@ -101,7 +101,7 @@ private extension TournamentView {
                 showCreateTournament = true
             } label: {
                 Text("+ 建立賽事")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(.white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(minHeight: 44)
@@ -111,7 +111,7 @@ private extension TournamentView {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.xs)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     var filterTabs: some View {
@@ -125,7 +125,7 @@ private extension TournamentView {
                     } label: {
                         VStack(spacing: Spacing.xs) {
                             Text(option)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(selectedFilter == option ? Theme.primary : Theme.textSecondary)
                                 .frame(maxWidth: .infinity)
 
@@ -141,7 +141,7 @@ private extension TournamentView {
 
             Theme.inputBorder.frame(height: 1)
         }
-        .background(.white)
+        .background(Theme.surface)
     }
 }
 
@@ -169,7 +169,7 @@ private extension TournamentView {
 
                 VStack(alignment: .leading, spacing: 6) {
                     Text(t.name)
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                         .foregroundColor(Theme.textPrimary)
 
                     // Tags
@@ -179,7 +179,7 @@ private extension TournamentView {
                         tagPill(t.ntrpRange, style: .gray)
                         if t.isOwnTournament {
                             Text("我發起的")
-                                .font(.system(size: 10, weight: .medium))
+                                .font(Typography.micro)
                                 .foregroundColor(.white)
                                 .padding(.horizontal, 6)
                                 .frame(height: 20)
@@ -221,7 +221,7 @@ private extension TournamentView {
                             selectedTournament = t
                         } label: {
                             Text("報名")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(Typography.smallMedium)
                                 .foregroundColor(.white)
                                 .frame(width: 70, height: 26)
                                 .background(Theme.primary)
@@ -234,7 +234,7 @@ private extension TournamentView {
                             selectedTournament = t
                         } label: {
                             Text("查看")
-                                .font(.system(size: 12, weight: .medium))
+                                .font(Typography.smallMedium)
                                 .foregroundColor(Theme.primary)
                                 .frame(width: 70, height: 26)
                                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
@@ -250,7 +250,7 @@ private extension TournamentView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
         .overlay(alignment: .leading) {
@@ -265,7 +265,7 @@ private extension TournamentView {
 
     func tagPill(_ text: String, style: TagStyle) -> some View {
         Text(text)
-            .font(.system(size: 10, weight: .medium))
+            .font(Typography.micro)
             .foregroundColor(style == .gray ? Theme.textSecondary : .white)
             .padding(.horizontal, 6)
             .frame(height: 20)
@@ -275,7 +275,7 @@ private extension TournamentView {
 
     func statusPill(_ status: String) -> some View {
         Text(status)
-            .font(.system(size: 10, weight: .medium))
+            .font(Typography.micro)
             .foregroundColor(.white)
             .padding(.horizontal, 6)
             .frame(height: 20)
@@ -353,7 +353,7 @@ struct TournamentDetailView: View {
             }
             ToolbarItem(placement: .principal) {
                 Text("賽事詳情")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .sheet(isPresented: $showSignUpConfirm) {
@@ -431,7 +431,7 @@ private extension TournamentDetailView {
                     detailBadge(tournament.matchType)
                     detailBadge(tournament.ntrpRange)
                     Text(tournament.status)
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.xs)
                         .padding(.vertical, 3)
@@ -454,7 +454,7 @@ private extension TournamentDetailView {
 
     func detailBadge(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .medium))
+            .font(Typography.micro)
             .foregroundColor(.white)
             .padding(.horizontal, Spacing.xs)
             .padding(.vertical, 3)
@@ -479,7 +479,7 @@ private extension TournamentDetailView {
                 .frame(height: 1)
 
             Text("賽事規則")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textInk)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -492,7 +492,7 @@ private extension TournamentDetailView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
     }
@@ -500,13 +500,13 @@ private extension TournamentDetailView {
     func detailInfoRow(icon: String, label: String, value: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Text(icon)
-                .font(.system(size: 16))
+                .font(Typography.buttonMedium)
             Text(label)
                 .font(Typography.caption)
                 .foregroundColor(Theme.textMid)
                 .frame(width: 70, alignment: .leading)
             Text(value)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textDeeper)
         }
     }
@@ -525,7 +525,7 @@ private extension TournamentDetailView {
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(tournament.organizer)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(Typography.labelSemibold)
                         .foregroundColor(Theme.textInk)
                     Text("NTRP 4.0 · 賽事組織者")
                         .font(Typography.fieldLabel)
@@ -538,17 +538,24 @@ private extension TournamentDetailView {
                     withAnimation { followStore.toggle(tournament.organizer) }
                 } label: {
                     Text(followStore.isFollowing(tournament.organizer) ? "已關注" : "關注")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(followStore.isFollowing(tournament.organizer) ? .white : Theme.textDark)
+                        .font(Typography.smallMedium)
+                        // 未關注 → 綠色實心；已關注 → 透明邊框（與 HomeView/MatchDetailView 一致）
+                        .foregroundColor(followStore.isFollowing(tournament.organizer) ? Theme.primary : .white)
                         .padding(.horizontal, 14)
                         .frame(height: 44)
-                        .background(followStore.isFollowing(tournament.organizer) ? Theme.primary : Theme.chipBg)
+                        .background(followStore.isFollowing(tournament.organizer) ? .clear : Theme.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+                        .overlay {
+                            if followStore.isFollowing(tournament.organizer) {
+                                RoundedRectangle(cornerRadius: 8, style: .continuous)
+                                    .stroke(Theme.primary, lineWidth: 1)
+                            }
+                        }
                 }
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
     }
@@ -564,7 +571,7 @@ private extension TournamentDetailView {
                     .foregroundColor(Theme.textInk)
                 Spacer()
                 Text(displayParticipants)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textSubtle)
             }
 
@@ -572,11 +579,11 @@ private extension TournamentDetailView {
                 HStack(spacing: Spacing.sm) {
                     if isCompleted && index < 3 {
                         Text(["🥇", "🥈", "🥉"][index])
-                            .font(.system(size: 16))
+                            .font(Typography.buttonMedium)
                             .frame(width: 22, height: 22)
                     } else {
                         Text("\(index + 1)")
-                            .font(.system(size: 11, weight: .medium))
+                            .font(Typography.micro)
                             .foregroundColor(Theme.textMid)
                             .frame(width: 22, height: 22)
                             .background(Theme.chipBg)
@@ -589,7 +596,7 @@ private extension TournamentDetailView {
 
                     VStack(alignment: .leading, spacing: 1) {
                         Text(player.name)
-                            .font(.system(size: 13, weight: .semibold))
+                            .font(Typography.captionMedium)
                             .foregroundColor(Theme.textDeeper)
                         Text("NTRP \(player.ntrp)")
                             .font(Typography.fieldLabel)
@@ -602,7 +609,7 @@ private extension TournamentDetailView {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 8, y: 2)
     }
@@ -632,7 +639,7 @@ private extension TournamentDetailView {
             .padding(.bottom, Spacing.xl)
             .background(
                 Rectangle()
-                    .fill(.white)
+                    .fill(Theme.surface)
                     .shadow(color: .black.opacity(0.06), radius: 4, y: -2)
                     .ignoresSafeArea(edges: .bottom)
             )
@@ -650,7 +657,7 @@ private struct TournamentSignUpSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("確認報名")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -663,11 +670,12 @@ private struct TournamentSignUpSheet: View {
             Spacer()
 
             Button {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 dismiss()
                 onConfirm()
             } label: {
                 Text("確認報名")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -683,7 +691,7 @@ private struct TournamentSignUpSheet: View {
     private func infoRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
@@ -704,7 +712,7 @@ private struct TournamentSignUpSuccessView: View {
             HStack {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(Theme.textDark)
                         .frame(width: 44, height: 44)
                 }
@@ -717,7 +725,7 @@ private struct TournamentSignUpSuccessView: View {
             ZStack {
                 Circle().fill(Theme.primary).frame(width: 80, height: 80)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(Typography.heroStat)
                     .foregroundColor(.white)
             }
 
@@ -744,7 +752,7 @@ private struct TournamentSignUpSuccessView: View {
             }
             .padding(Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -769,7 +777,7 @@ private struct TournamentSignUpSuccessView: View {
 
             Button { dismiss() } label: {
                 Text("返回賽事")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -810,7 +818,7 @@ private struct TournamentSignUpSuccessView: View {
     private func summaryRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
@@ -823,14 +831,14 @@ private struct TournamentSignUpSuccessView: View {
         Button(action: action) {
             HStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                 Text(label)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typography.bodyMedium)
             }
             .foregroundColor(Theme.accentGreen)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)

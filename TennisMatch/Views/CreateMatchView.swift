@@ -98,19 +98,19 @@ struct CreateMatchView: View {
                 dismiss()
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(Typography.sectionTitle)
                     .foregroundColor(Theme.textPrimary)
                     .frame(width: 44, height: 44)
             }
 
             Text("創建約球")
-                .font(.system(size: 18, weight: .semibold))
+                .font(Typography.sectionTitle)
                 .foregroundColor(Theme.textPrimary)
 
             Spacer()
         }
         .padding(.horizontal, Spacing.xs)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     // MARK: - Form Card
@@ -133,7 +133,7 @@ struct CreateMatchView: View {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 3, y: 1)
     }
@@ -151,7 +151,7 @@ struct CreateMatchView: View {
     private var matchTypeSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("比賽類型")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             HStack(spacing: Spacing.lg) {
@@ -173,7 +173,7 @@ struct CreateMatchView: View {
     private var dateTimeSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("日期與時間")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             // Date
@@ -184,7 +184,7 @@ struct CreateMatchView: View {
             } label: {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                     Text(dateFormatted)
                         .font(Typography.caption)
@@ -193,7 +193,7 @@ struct CreateMatchView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .frame(height: 44)
                 .padding(.horizontal, Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -220,7 +220,7 @@ struct CreateMatchView: View {
                 } label: {
                     HStack(spacing: Spacing.xs) {
                         Image(systemName: "clock")
-                            .font(.system(size: 14))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
                         Text(startTimeEdited ? selectedStartTime : "開始時間")
                             .font(Typography.caption)
@@ -229,7 +229,7 @@ struct CreateMatchView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(height: 44)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -238,7 +238,7 @@ struct CreateMatchView: View {
                 }
 
                 Text("~")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
 
                 Button {
@@ -248,7 +248,7 @@ struct CreateMatchView: View {
                 } label: {
                     HStack(spacing: Spacing.xs) {
                         Image(systemName: "clock")
-                            .font(.system(size: 14))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
                         Text(endTimeEdited ? selectedEndTime : "結束時間")
                             .font(Typography.caption)
@@ -257,7 +257,7 @@ struct CreateMatchView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(height: 44)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -330,7 +330,7 @@ struct CreateMatchView: View {
     private var courtSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("球場")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             Button {
@@ -339,7 +339,7 @@ struct CreateMatchView: View {
             } label: {
                 HStack(spacing: Spacing.xs) {
                     Text("📍")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                     Text(selectedCourt?.name ?? "選擇球場...")
                         .font(Typography.caption)
                         .foregroundColor(selectedCourt != nil ? Theme.textPrimary : Theme.textSecondary)
@@ -347,7 +347,7 @@ struct CreateMatchView: View {
                 }
                 .frame(height: 44)
                 .padding(.horizontal, Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -363,11 +363,11 @@ struct CreateMatchView: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("NTRP要求")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typography.labelSemibold)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Text(String(format: "%.1f - %.1f", ntrpLow, ntrpHigh))
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.primary)
             }
 
@@ -380,7 +380,7 @@ struct CreateMatchView: View {
     private var genderSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("性別要求")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             HStack(spacing: Spacing.lg) {
@@ -402,7 +402,7 @@ struct CreateMatchView: View {
     private var costSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("費用分攤")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             HStack(spacing: Spacing.lg) {
@@ -422,7 +422,7 @@ struct CreateMatchView: View {
                     .keyboardType(.numberPad)
                     .frame(height: 44)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -442,7 +442,7 @@ struct CreateMatchView: View {
     private var notesSection: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("備註")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             TextField("例如：自帶球、需要教練等", text: $notes)
@@ -450,7 +450,7 @@ struct CreateMatchView: View {
                 .foregroundColor(Theme.textPrimary)
                 .frame(height: 44)
                 .padding(.horizontal, Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -464,7 +464,15 @@ struct CreateMatchView: View {
     private var submitButton: some View {
         Button {
             // 必填項校驗
-            if selectedCourt == nil {
+            if !dateWasEdited {
+                validationMessage = "請選擇日期"
+                showCostError = true
+                return
+            } else if !startTimeEdited || !endTimeEdited {
+                validationMessage = "請選擇開始和結束時間"
+                showCostError = true
+                return
+            } else if selectedCourt == nil {
                 validationMessage = "請選擇球場"
                 showCostError = true
                 return
@@ -478,7 +486,7 @@ struct CreateMatchView: View {
             showConfirmation = true
         } label: {
             Text("發布約球")
-                .font(.system(size: 16, weight: .semibold))
+                .font(Typography.button)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 44)
@@ -505,7 +513,7 @@ struct CreateMatchView: View {
                 }
 
                 Text(label)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textDark)
             }
             .frame(minHeight: 44)
@@ -516,7 +524,7 @@ struct CreateMatchView: View {
     private var confirmationSheet: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("確認約球資訊")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -538,11 +546,11 @@ struct CreateMatchView: View {
                     showConfirmation = false
                 } label: {
                     Text("返回修改")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textBody)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
-                        .background(.white)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -554,7 +562,7 @@ struct CreateMatchView: View {
                     publishMatch()
                 } label: {
                     Text("確認發布")
-                        .font(.system(size: 15, weight: .semibold))
+                        .font(Typography.labelSemibold)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
@@ -571,7 +579,7 @@ struct CreateMatchView: View {
     private func confirmRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)
@@ -603,6 +611,7 @@ struct CreateMatchView: View {
             costAmount: costAmount,
             notes: notes
         )
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
         showConfirmation = false
         onPublish?(info)
         dismiss()

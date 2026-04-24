@@ -77,15 +77,15 @@ struct PhoneInputView: View {
                     } label: {
                         HStack(spacing: 4) {
                             Text(countryCode)
-                                .font(.system(size: 16, weight: .medium))
+                                .font(Typography.buttonMedium)
                                 .foregroundColor(Theme.textPrimary)
                             Image(systemName: "chevron.down")
-                                .font(.system(size: 10))
+                                .font(Typography.micro)
                                 .foregroundColor(Theme.textSecondary)
                         }
                         .padding(.horizontal, 12)
                         .frame(height: 48)
-                        .background(.white)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -95,7 +95,7 @@ struct PhoneInputView: View {
 
                     TextField("請輸入手機號碼", text: $phoneNumber)
                         .keyboardType(.phonePad)
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                         .focused($isPhoneFocused)
                         .onChange(of: phoneNumber) { _, newValue in
@@ -104,7 +104,7 @@ struct PhoneInputView: View {
                         }
                         .padding(.horizontal, Spacing.md)
                         .frame(height: 48)
-                        .background(.white)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -174,7 +174,7 @@ struct PhoneInputView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(.white)
                 }
             }

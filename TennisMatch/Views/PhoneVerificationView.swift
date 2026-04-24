@@ -40,7 +40,7 @@ struct PhoneVerificationView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(.white)
                 }
             }
@@ -66,25 +66,7 @@ struct PhoneVerificationView: View {
         .navigationDestination(isPresented: $showRegister) {
             RegisterView()
         }
-        .overlay(alignment: .top) {
-            if let msg = toastMessage {
-                Text(msg)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(Theme.textDeep.opacity(0.92))
-                    .clipShape(Capsule())
-                    .padding(.top, 60)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            withAnimation { toastMessage = nil }
-                        }
-                    }
-            }
-        }
-        .animation(.easeInOut(duration: 0.3), value: toastMessage)
+        .toast($toastMessage)
     }
 
     // MARK: - Content
@@ -167,7 +149,7 @@ struct PhoneVerificationView: View {
 
         return ZStack {
             RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .fill(.white)
+                .fill(Theme.surface)
                 .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
 
             RoundedRectangle(cornerRadius: 12, style: .continuous)

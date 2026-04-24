@@ -4,31 +4,37 @@
 //
 
 import SwiftUI
+import UIKit
 
 enum Theme {
-    // MARK: - Primary
+    // MARK: - Primary (品牌色，不隨模式切換)
     static let primary       = Color(hex: 0x16A34A)
-    static let primaryLight  = Color(hex: 0xE5F5E5)
+    static let primaryLight  = Color(light: Color(hex: 0xE5F5E5), dark: Color(hex: 0x1A3A24))
 
-    // MARK: - Background
-    static let background    = Color(hex: 0xF5F7F7)
+    // MARK: - Surface & Background (深色模式核心)
+    /// 頁面底層背景
+    static let background    = Color(light: Color(hex: 0xF5F7F7), dark: Color(hex: 0x000000))
+    /// 卡片/區塊/輸入框背景 — 取代所有 `.background(.white)`
+    static let surface       = Color(light: .white, dark: Color(hex: 0x1C1C1E))
+    /// 浮層/彈窗背景
+    static let surfaceElevated = Color(light: .white, dark: Color(hex: 0x2C2C2E))
 
     // MARK: - Text
-    static let textPrimary   = Color(hex: 0x1F2938)
-    static let textSecondary = Color(hex: 0x9CA3B0)
+    static let textPrimary   = Color(light: Color(hex: 0x1F2938), dark: Color(hex: 0xF2F2F7))
+    static let textSecondary = Color(light: Color(hex: 0x9CA3B0), dark: Color(hex: 0x8E8E93))
 
     // MARK: - Border
-    static let border        = Color(hex: 0xDADFE4)
-    static let divider       = Color(hex: 0xE9ECEF)
+    static let border        = Color(light: Color(hex: 0xDADFE4), dark: Color(hex: 0x3A3A3C))
+    static let divider       = Color(light: Color(hex: 0xE9ECEF), dark: Color(hex: 0x38383A))
 
     // MARK: - Warning
-    static let warningBg     = Color(hex: 0xFFF3E0)
-    static let warningText   = Color(hex: 0xB48232)
+    static let warningBg     = Color(light: Color(hex: 0xFFF3E0), dark: Color(hex: 0x3D2E12))
+    static let warningText   = Color(light: Color(hex: 0xB48232), dark: Color(hex: 0xF0C060))
 
     // MARK: - Chip
-    static let chipSelectedBg   = Color(hex: 0xDCF0E1)
-    static let chipUnselectedBg = Color(hex: 0xF0F3F5)
-    static let chipUnselectedFg = Color(hex: 0x505A64)
+    static let chipSelectedBg   = Color(light: Color(hex: 0xDCF0E1), dark: Color(hex: 0x1A3A24))
+    static let chipUnselectedBg = Color(light: Color(hex: 0xF0F3F5), dark: Color(hex: 0x2C2C2E))
+    static let chipUnselectedFg = Color(light: Color(hex: 0x505A64), dark: Color(hex: 0xAEAEB2))
 
     // MARK: - Badge
     static let requiredBg    = Color(hex: 0xFFEDED)
@@ -37,19 +43,19 @@ enum Theme {
     static let optionalBg    = Color(hex: 0xF0F5F7)
 
     // MARK: - Tag
-    static let tagBg         = Color(hex: 0xF0F8F3)
-    static let tagBorder     = Color(hex: 0xDCE6DE)
-    static let slotBg        = Color(hex: 0xF0FDF4)
+    static let tagBg         = Color(light: Color(hex: 0xF0F8F3), dark: Color(hex: 0x1A3A24))
+    static let tagBorder     = Color(light: Color(hex: 0xDCE6DE), dark: Color(hex: 0x2D4A34))
+    static let slotBg        = Color(light: Color(hex: 0xF0FDF4), dark: Color(hex: 0x1A3A24))
     static let slotBorder    = Color(red: 0.298, green: 0.686, blue: 0.314, opacity: 0.3)
 
     // MARK: - Input
-    static let inputBg       = Color(hex: 0xF9FAFB)
-    static let inputBorder   = Color(hex: 0xE5E7EB)
+    static let inputBg       = Color(light: Color(hex: 0xF9FAFB), dark: Color(hex: 0x2C2C2E))
+    static let inputBorder   = Color(light: Color(hex: 0xE5E7EB), dark: Color(hex: 0x3A3A3C))
 
     // MARK: - Card Text
-    static let textDark      = Color(hex: 0x333333)
-    static let textHint      = Color(hex: 0x888888)
-    static let textMedium    = Color(hex: 0x505050)
+    static let textDark      = Color(light: Color(hex: 0x333333), dark: Color(hex: 0xE5E5EA))
+    static let textHint      = Color(light: Color(hex: 0x888888), dark: Color(hex: 0x8E8E93))
+    static let textMedium    = Color(light: Color(hex: 0x505050), dark: Color(hex: 0xAEAEB2))
 
     // MARK: - Accent
     static let accentGreen   = Color(hex: 0x4CAF50)
@@ -60,31 +66,31 @@ enum Theme {
     static let genderMale    = Color(hex: 0x3366E5)
 
     // MARK: - Body Text
-    static let textBody      = Color(hex: 0x4B5563)
-    static let textCaption   = Color(hex: 0x6B7280)
+    static let textBody      = Color(light: Color(hex: 0x4B5563), dark: Color(hex: 0xD1D5DB))
+    static let textCaption   = Color(light: Color(hex: 0x6B7280), dark: Color(hex: 0x9CA3AF))
 
     // MARK: - Match Status
-    static let confirmedBg   = Color(hex: 0xE7F4EC)
-    static let pendingBg     = Color(hex: 0xFEF3E3)
+    static let confirmedBg   = Color(light: Color(hex: 0xE7F4EC), dark: Color(hex: 0x1A3A24))
+    static let pendingBg     = Color(light: Color(hex: 0xFEF3E3), dark: Color(hex: 0x3D2E12))
     static let pendingBadge  = Color(hex: 0xEA9319)
 
     // MARK: - Tournament Create
-    static let tournamentBg    = Color(hex: 0xFFF0F0, alpha: 0.3)
-    static let selectedCardBg  = Color(hex: 0xECFDF5)
+    static let tournamentBg    = Color(light: Color(hex: 0xFFF0F0, alpha: 0.3), dark: Color(hex: 0x3A2020, alpha: 0.3))
+    static let selectedCardBg  = Color(light: Color(hex: 0xECFDF5), dark: Color(hex: 0x1A3A24))
 
-    // MARK: - Neutrals (added for B2-11 theme refactor)
-    static let avatarPlaceholder = Color(hex: 0xE0E0E0)
-    static let borderMuted       = Color(hex: 0xCCCCCC)
-    static let pillBg            = Color(hex: 0xEBEBEB)
-    static let chipBg            = Color(hex: 0xF2F2F2)
-    static let surfaceMuted      = Color(hex: 0xF3F4F6)
-    static let textMuted         = Color(hex: 0x666666)
-    static let textFaint         = Color(hex: 0x808080)
-    static let textMid           = Color(hex: 0x737373)
-    static let textDeep          = Color(hex: 0x4D4D4D)
-    static let textDeeper        = Color(hex: 0x262626)
-    static let textInk           = Color(hex: 0x1A1A1A)
-    static let textSubtle        = Color(hex: 0x8C8C8C)
+    // MARK: - Neutrals
+    static let avatarPlaceholder = Color(light: Color(hex: 0xE0E0E0), dark: Color(hex: 0x3A3A3C))
+    static let borderMuted       = Color(light: Color(hex: 0xCCCCCC), dark: Color(hex: 0x48484A))
+    static let pillBg            = Color(light: Color(hex: 0xEBEBEB), dark: Color(hex: 0x3A3A3C))
+    static let chipBg            = Color(light: Color(hex: 0xF2F2F2), dark: Color(hex: 0x2C2C2E))
+    static let surfaceMuted      = Color(light: Color(hex: 0xF3F4F6), dark: Color(hex: 0x2C2C2E))
+    static let textMuted         = Color(light: Color(hex: 0x666666), dark: Color(hex: 0xAEAEB2))
+    static let textFaint         = Color(light: Color(hex: 0x808080), dark: Color(hex: 0x8E8E93))
+    static let textMid           = Color(light: Color(hex: 0x737373), dark: Color(hex: 0x9CA3AF))
+    static let textDeep          = Color(light: Color(hex: 0x4D4D4D), dark: Color(hex: 0xD1D5DB))
+    static let textDeeper        = Color(light: Color(hex: 0x262626), dark: Color(hex: 0xE5E5EA))
+    static let textInk           = Color(light: Color(hex: 0x1A1A1A), dark: Color(hex: 0xF2F2F7))
+    static let textSubtle        = Color(light: Color(hex: 0x8C8C8C), dark: Color(hex: 0x8E8E93))
 
     // MARK: - Accents
     static let accentBlue        = Color(hex: 0x2674DD)
@@ -129,5 +135,12 @@ extension Color {
             blue:  Double( hex        & 0xFF) / 255,
             opacity: alpha
         )
+    }
+
+    /// 根據淺色/深色模式自動切換顏色
+    init(light: Color, dark: Color) {
+        self.init(UIColor { traits in
+            traits.userInterfaceStyle == .dark ? UIColor(dark) : UIColor(light)
+        })
     }
 }

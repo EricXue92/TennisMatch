@@ -21,7 +21,7 @@ struct AchievementsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: Spacing.md) {
                 Text("已解鎖 · \(mockAchievements.filter(\.unlocked).count)/\(mockAchievements.count)")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
 
                 LazyVGrid(columns: columns, spacing: Spacing.md) {
@@ -46,13 +46,13 @@ struct AchievementsView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("成就")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
     }
@@ -69,12 +69,12 @@ struct AchievementsView: View {
             }
 
             Text(badge.name)
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(Theme.textPrimary)
                 .opacity(badge.unlocked ? 1 : 0.4)
 
             Text(badge.description)
-                .font(.system(size: 10))
+                .font(Typography.micro)
                 .foregroundColor(Theme.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -82,7 +82,7 @@ struct AchievementsView: View {
         }
         .padding(.vertical, Spacing.sm)
         .frame(maxWidth: .infinity)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .shadow(color: .black.opacity(badge.unlocked ? 0.06 : 0.02), radius: 4, y: 1)
     }
@@ -105,7 +105,7 @@ struct AchievementsView: View {
 
             // 名稱
             Text(badge.name)
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             // 說明
@@ -117,7 +117,7 @@ struct AchievementsView: View {
 
             // 狀態標籤
             Text(badge.unlocked ? "已解鎖" : "未解鎖")
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(badge.unlocked ? Theme.primary : Theme.textSecondary)
                 .padding(.horizontal, Spacing.md)
                 .padding(.vertical, Spacing.xs)
@@ -133,7 +133,7 @@ struct AchievementsView: View {
                 selectedBadge = nil
             } label: {
                 Text("關閉")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)

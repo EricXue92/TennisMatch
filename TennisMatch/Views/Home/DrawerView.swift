@@ -9,7 +9,7 @@ import SwiftUI
 
 // MARK: - 抽屜目標頁面枚舉
 
-enum DrawerDestination {
+enum DrawerDestination: Hashable {
     case tournaments
     case matchAssistant
     case reviews
@@ -107,7 +107,7 @@ struct DrawerView: View {
                 .padding(.bottom, Spacing.lg)
         }
         .frame(maxHeight: .infinity)
-        .background(.white)
+        .background(Theme.surface)
     }
 
     // MARK: - 抽屜選單項目
@@ -130,7 +130,7 @@ struct DrawerView: View {
                     .font(.system(size: 20))
                     .frame(width: 28)
                 Text(label)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(isSecondary ? Theme.textCaption : Theme.textPrimary)
                 Spacer()
                 if badge > 0 {

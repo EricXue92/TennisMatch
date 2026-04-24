@@ -64,13 +64,13 @@ struct ReviewsView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("評價")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .sheet(isPresented: $showReviewSheet) {
@@ -96,6 +96,7 @@ struct ReviewsView: View {
                             ntrpEstimate: min(max(ntrpEstimate, 1.0), 7.0)
                         )
 
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
                         withAnimation {
                             pendingReviews.removeAll { $0.id == target.id }
                         }
@@ -115,7 +116,7 @@ struct ReviewsView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.white)
                     Text("評價提交成功")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, Spacing.md)
@@ -143,7 +144,7 @@ struct ReviewsView: View {
                     } label: {
                         VStack(spacing: Spacing.xs) {
                             Text(tab)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(selectedTab == tab ? Theme.primary : Theme.textBody)
                                 .frame(maxWidth: .infinity)
                             Rectangle()
@@ -157,7 +158,7 @@ struct ReviewsView: View {
             .padding(.top, Spacing.sm)
             Theme.inputBorder.frame(height: 1)
         }
-        .background(.white)
+        .background(Theme.surface)
     }
 
     private func receivedReviewCard(_ review: ReceivedReview) -> some View {
@@ -174,7 +175,7 @@ struct ReviewsView: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(review.name)
-                        .font(.system(size: 14, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                     Spacer()
                     Text(review.date)
@@ -196,7 +197,7 @@ struct ReviewsView: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -213,7 +214,7 @@ struct ReviewsView: View {
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(review.name)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                 Text(review.matchInfo)
                     .font(Typography.small)
@@ -227,7 +228,7 @@ struct ReviewsView: View {
                 showReviewSheet = true
             } label: {
                 Text("評價")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(.white)
                     .frame(width: 56, height: 30)
                     .background(Theme.primary)
@@ -236,7 +237,7 @@ struct ReviewsView: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 }
@@ -253,7 +254,7 @@ private struct ReviewFormSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("評價 \(targetName)")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             VStack(spacing: Spacing.xs) {
@@ -272,13 +273,13 @@ private struct ReviewFormSheet: View {
                 // 未選星級時顯示提示
                 if rating == 0 {
                     Text("請先選擇評分")
-                        .font(.system(size: 12))
+                        .font(Typography.small)
                         .foregroundColor(Theme.textSecondary)
                 }
             }
 
             TextField("說說你的打球體驗...", text: $text, axis: .vertical)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .lineLimit(3...5)
                 .padding(Spacing.sm)
                 .background(Theme.inputBg)
@@ -292,7 +293,7 @@ private struct ReviewFormSheet: View {
 
             Button(action: onSubmit) {
                 Text("提交評價")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)

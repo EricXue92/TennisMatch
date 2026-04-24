@@ -48,11 +48,11 @@ struct MatchFilterPanelView: View {
                     timeTo = 23.0
                 } label: {
                     Text("重置")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(Theme.textBody)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 36)
-                        .background(.white)
+                        .frame(height: 44)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -64,17 +64,17 @@ struct MatchFilterPanelView: View {
                     onDismiss()
                 } label: {
                     Text("確認")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
-                        .frame(height: 36)
+                        .frame(height: 44)
                         .background(Theme.primary)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 }
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
     }
 }
 
@@ -84,7 +84,7 @@ private extension MatchFilterPanelView {
     var genderFilterRow: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("性別")
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textPrimary)
 
             HStack(spacing: Spacing.xs) {
@@ -94,13 +94,14 @@ private extension MatchFilterPanelView {
                         selectedGender = isSelected ? "" : option
                     } label: {
                         Text(option)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .padding(.horizontal, Spacing.sm)
                             .frame(height: 28)
                             .background(isSelected ? Theme.primary : Theme.inputBg)
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
+                    .frame(minHeight: 44)
                 }
             }
         }
@@ -109,7 +110,7 @@ private extension MatchFilterPanelView {
     var timeFilterRow: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("時間")
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textPrimary)
 
             // Day of week selection
@@ -124,12 +125,13 @@ private extension MatchFilterPanelView {
                         }
                     } label: {
                         Text(day)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .frame(width: 36, height: 36)
                             .background(isSelected ? Theme.primary : Theme.inputBg)
                             .clipShape(Circle())
                     }
+                    .frame(minWidth: 44, minHeight: 44)
                 }
             }
 
@@ -180,7 +182,7 @@ private extension MatchFilterPanelView {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("球場")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
@@ -188,9 +190,9 @@ private extension MatchFilterPanelView {
                 } label: {
                     HStack(spacing: 4) {
                         Text(selectedCourts.isEmpty ? "選擇球場" : "已選 \(selectedCourts.count) 個")
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.micro)
                     }
                     .foregroundColor(Theme.primary)
                 }
@@ -202,7 +204,7 @@ private extension MatchFilterPanelView {
                     ForEach(Array(selectedCourts).sorted { $0.name < $1.name }) { court in
                         HStack(spacing: 4) {
                             Text(court.name)
-                                .font(.system(size: 11, weight: .medium))
+                                .font(Typography.micro)
                                 .foregroundColor(Theme.primary)
                                 .lineLimit(1)
                             Button {
@@ -211,10 +213,12 @@ private extension MatchFilterPanelView {
                                 Image(systemName: "xmark")
                                     .font(.system(size: 9, weight: .bold))
                                     .foregroundColor(Theme.textCaption)
+                                    .frame(width: 28, height: 28)
+                                    .contentShape(Rectangle())
                             }
                         }
                         .padding(.horizontal, Spacing.sm)
-                        .frame(height: 28)
+                        .frame(minHeight: 44)
                         .background(Theme.primary.opacity(0.1))
                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
@@ -230,11 +234,11 @@ private extension MatchFilterPanelView {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             HStack {
                 Text("NTRP")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Text(ntrpRangeLabel)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.primary)
             }
 
@@ -252,7 +256,7 @@ private extension MatchFilterPanelView {
     func filterRow(title: String, options: [String], selection: Binding<Set<String>>) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textPrimary)
 
             // Use LazyVGrid for wrapping layout
@@ -268,13 +272,14 @@ private extension MatchFilterPanelView {
                         }
                     } label: {
                         Text(option)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(isSelected ? .white : Theme.textBody)
                             .padding(.horizontal, Spacing.sm)
                             .frame(height: 28)
                             .background(isSelected ? Theme.primary : Theme.inputBg)
                             .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                     }
+                    .frame(minHeight: 44)
                 }
             }
         }

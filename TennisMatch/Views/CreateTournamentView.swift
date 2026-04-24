@@ -95,7 +95,7 @@ struct CreateTournamentView: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundColor(.white)
                     Text(toast)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(.white)
                 }
                 .padding(.horizontal, Spacing.md)
@@ -134,19 +134,19 @@ private extension CreateTournamentView {
                 }
             } label: {
                 Image(systemName: "chevron.left")
-                    .font(.system(size: 18, weight: .medium))
+                    .font(Typography.sectionTitle)
                     .foregroundColor(Theme.textPrimary)
                     .frame(width: 44, height: 44)
             }
 
             Text("創建賽事")
-                .font(.system(size: 18, weight: .semibold))
+                .font(Typography.sectionTitle)
                 .foregroundColor(Theme.textPrimary)
 
             Spacer()
         }
         .padding(.horizontal, Spacing.xs)
-        .background(.white)
+        .background(Theme.surface)
     }
 }
 
@@ -173,7 +173,7 @@ private extension CreateTournamentView {
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -198,7 +198,7 @@ private extension CreateTournamentView {
                 .foregroundColor(Theme.textDark)
                 .frame(height: 34)
                 .padding(.horizontal, Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -230,12 +230,12 @@ private extension CreateTournamentView {
 
             ZStack(alignment: .trailing) {
                 TextField("", text: $participantCount)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textDark)
                     .keyboardType(.numberPad)
                     .frame(height: 34)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -252,7 +252,7 @@ private extension CreateTournamentView {
                     }
 
                 Text("人")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textHint)
                     .padding(.trailing, Spacing.sm)
             }
@@ -301,7 +301,7 @@ private extension CreateTournamentView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(height: 34)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -323,7 +323,7 @@ private extension CreateTournamentView {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(height: 34)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -377,7 +377,7 @@ private extension CreateTournamentView {
                 }
                 .frame(height: 34)
                 .padding(.horizontal, Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -409,7 +409,7 @@ private extension CreateTournamentView {
                     }
                     .frame(height: 34)
                     .padding(.horizontal, Spacing.sm)
-                    .background(.white)
+                    .background(Theme.surface)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                     .overlay(
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -428,7 +428,7 @@ private extension CreateTournamentView {
                         .keyboardType(.numberPad)
                         .frame(height: 34)
                         .padding(.horizontal, Spacing.sm)
-                        .background(.white)
+                        .background(Theme.surface)
                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                         .overlay(
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -454,7 +454,7 @@ private extension CreateTournamentView {
                 .foregroundColor(Theme.textDark)
                 .lineLimit(3...8)
                 .padding(Spacing.sm)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -469,7 +469,7 @@ private extension CreateTournamentView {
 private extension CreateTournamentView {
     func sectionTitle(_ title: String) -> some View {
         Text(title)
-            .font(.system(size: 15, weight: .medium))
+            .font(Typography.bodyMedium)
             .foregroundColor(Theme.textDark)
     }
 
@@ -505,14 +505,14 @@ private extension CreateTournamentView {
             VStack(alignment: .leading, spacing: 2) {
                 HStack {
                     Text(format.name)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? Theme.accentGreen : Theme.textDark)
 
                     Spacer()
 
                     if recommendedFormats.contains(format.name) {
                         Text("推薦")
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.micro)
                             .foregroundColor(.white)
                             .padding(.horizontal, 6)
                             .padding(.vertical, 2)
@@ -526,7 +526,7 @@ private extension CreateTournamentView {
                     .foregroundColor(Theme.textHint)
 
                 Text(format.description)
-                    .font(.system(size: 10))
+                    .font(Typography.micro)
                     .foregroundColor(Theme.textSecondary)
             }
             .padding(.horizontal, Spacing.sm)
@@ -565,7 +565,7 @@ private extension CreateTournamentView {
                 showConfirmation = true
             } label: {
                 Text("發布賽事")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 44)
@@ -610,7 +610,7 @@ private extension CreateTournamentView {
                     showConfirmation = false
                 } label: {
                     Text("返回修改")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textSecondary)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
@@ -622,7 +622,7 @@ private extension CreateTournamentView {
                     publishTournament()
                 } label: {
                     Text("確認發布")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 44)
@@ -638,11 +638,11 @@ private extension CreateTournamentView {
     func confirmRow(_ label: String, value: String) -> some View {
         HStack {
             Text(label)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 80, alignment: .leading)
             Text(value)
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textDark)
             Spacer()
         }

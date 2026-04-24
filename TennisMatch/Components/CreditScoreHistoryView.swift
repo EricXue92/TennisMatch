@@ -39,7 +39,7 @@ struct CreditScoreHistoryView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("完成") { dismiss() }
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.primary)
                 }
             }
@@ -54,12 +54,12 @@ struct CreditScoreHistoryView: View {
                 .font(.system(size: 48, weight: .bold))
                 .foregroundColor(Theme.primary)
             Text("當前積分")
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textCaption)
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, Spacing.lg)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -68,7 +68,7 @@ struct CreditScoreHistoryView: View {
     private var rulesCard: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text("積分規則")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
             ruleRow(sign: "+", amount: "1", text: "完成一場約球")
             ruleRow(sign: "+", amount: "1", text: "獲得球友好評")
@@ -78,41 +78,41 @@ struct CreditScoreHistoryView: View {
 
             Divider().padding(.vertical, 4)
             Text("帳號處罰")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
             HStack(spacing: Spacing.xs) {
                 Text("< 70")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.requiredText)
                     .frame(width: 40, alignment: .leading)
                 Text("凍結帳號 1 個月")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }
             HStack(spacing: Spacing.xs) {
                 Text("< 60")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.requiredText)
                     .frame(width: 40, alignment: .leading)
                 Text("永久封號")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private func ruleRow(sign: String, amount: String, text: String) -> some View {
         HStack(spacing: Spacing.xs) {
             Text("\(sign)\(amount)")
-                .font(.system(size: 13, weight: .semibold))
+                .font(Typography.captionMedium)
                 .foregroundColor(sign == "+" ? Theme.primary : Theme.requiredText)
                 .frame(width: 40, alignment: .leading)
             Text(text)
-                .font(.system(size: 13))
+                .font(Typography.caption)
                 .foregroundColor(Theme.textBody)
         }
     }
@@ -122,13 +122,13 @@ struct CreditScoreHistoryView: View {
     private var historyCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("變動記錄")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
                 .padding(.bottom, Spacing.sm)
 
             if entries.isEmpty {
                 Text("暫無變動記錄")
-                    .font(.system(size: 13))
+                    .font(Typography.caption)
                     .foregroundColor(Theme.textCaption)
                     .frame(maxWidth: .infinity, alignment: .center)
                     .padding(.vertical, Spacing.md)
@@ -143,7 +143,7 @@ struct CreditScoreHistoryView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
@@ -151,15 +151,15 @@ struct CreditScoreHistoryView: View {
         HStack(alignment: .center, spacing: Spacing.sm) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(entry.reason)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textBody)
                 Text("\(entry.date) · \(entry.detail)")
-                    .font(.system(size: 11))
+                    .font(Typography.fieldLabel)
                     .foregroundColor(Theme.textCaption)
             }
             Spacer()
             Text("\(entry.delta > 0 ? "+" : "")\(entry.delta)")
-                .font(.system(size: 15, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(entry.delta >= 0 ? Theme.primary : Theme.requiredText)
         }
         .padding(.vertical, Spacing.xs)

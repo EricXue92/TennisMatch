@@ -20,21 +20,11 @@ struct ProfileView: View {
     @State private var showFollowers = false
     @State private var showMutual = false
     @State private var showCreditHistory = false
-    @State private var showCalibrationSheet = false
-
-    /// 用戶上次 dismiss / 接受 校準提示時的 peerAverage 快照。下一次提示
-    /// 只在 peerAverage 漂移 ≥ 0.1 後才會再彈,避免頻繁打擾。
-    /// `Double.nan` 作為 "尚未 dismiss 過" 的哨兵(AppStorage 不接 Optional<Double>)。
-    @AppStorage("calibrationDismissedAvg") private var calibrationDismissedAvg: Double = .nan
-
     var body: some View {
         VStack(spacing: 0) {
             headerSection
             ScrollView {
                 VStack(spacing: Spacing.sm) {
-                    if let suggestion = visibleCalibrationSuggestion {
-                        calibrationBanner(suggestion)
-                    }
                     recordCard
                     tournamentCard
                     achievementCard
@@ -69,86 +59,6 @@ struct ProfileView: View {
                 entries: creditScoreStore.entries
             )
         }
-        .sheet(isPresented: $showCalibrationSheet) {
-            if let suggestion = ratingFeedbackStore.calibrationSuggestion(selfNTRP: userStore.ntrpLevel) {
-                CalibrationSheet(
-                    suggestion: suggestion,
-                    selfNTRP: userStore.ntrpLevel,
-                    onCalibrate: {
-                        userStore.ntrpLevel = suggestion.suggested
-                        calibrationDismissedAvg = suggestion.peerAverage
-                        showCalibrationSheet = false
-                    },
-                    onKeep: {
-                        calibrationDismissedAvg = suggestion.peerAverage
-                        showCalibrationSheet = false
-                    },
-                    onLater: {
-                        showCalibrationSheet = false
-                    }
-                )
-                .presentationDetents([.medium])
-            }
-        }
-    }
-
-    // MARK: - Calibration
-
-    /// 當前需要展示的校準建議。已被用戶 dismiss 過的(且球友均值無顯著漂移)會被過濾。
-    private var visibleCalibrationSuggestion: CalibrationSuggestion? {
-        guard let suggestion = ratingFeedbackStore.calibrationSuggestion(selfNTRP: userStore.ntrpLevel) else {
-            return nil
-        }
-        // 沒 dismiss 過 → 直接顯示。
-        if calibrationDismissedAvg.isNaN { return suggestion }
-        // dismiss 過後,球友均值漂移 ≥ 0.1 才再次提示。
-        if abs(suggestion.peerAverage - calibrationDismissedAvg) >= 0.1 {
-            return suggestion
-        }
-        return nil
-    }
-
-    private func calibrationBanner(_ suggestion: CalibrationSuggestion) -> some View {
-        Button {
-            showCalibrationSheet = true
-        } label: {
-            HStack(alignment: .top, spacing: Spacing.sm) {
-                Image(systemName: "scope")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Theme.primary)
-                    .frame(width: 32, height: 32)
-                    .background(Theme.primaryLight)
-                    .clipShape(Circle())
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("水平校準建議")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(Theme.textPrimary)
-
-                    Text(suggestion.bannerSubtitle(selfNTRP: userStore.ntrpLevel))
-                        .font(Typography.small)
-                        .foregroundColor(Theme.textBody)
-                        .multilineTextAlignment(.leading)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-
-                Spacer(minLength: Spacing.xs)
-
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(Theme.textSecondary)
-            }
-            .padding(Spacing.md)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
-            .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-            .overlay(
-                RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .stroke(Theme.primary.opacity(0.4), lineWidth: 1)
-            )
-            .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - 統計計算（mock 階段用信譽記錄推算，接後端後替換）
@@ -202,7 +112,7 @@ struct ProfileView: View {
                         .fill(.white)
                         .frame(width: 64, height: 64)
                     Text(userStore.avatarInitial)
-                        .font(.system(size: 24, weight: .bold))
+                        .font(Typography.title)
                         .foregroundColor(Theme.primary)
                 }
 
@@ -210,7 +120,7 @@ struct ProfileView: View {
                 VStack(alignment: .leading, spacing: 6) {
                     HStack(spacing: 4) {
                         Text(userStore.displayName)
-                            .font(.system(size: 20, weight: .bold))
+                            .font(Typography.largeStat)
                             .foregroundColor(.white)
                         Text(userStore.genderSymbol)
                             .font(.system(size: 18))
@@ -223,7 +133,7 @@ struct ProfileView: View {
                         // 只有信譽積分 ≥ 85 且完成場次 ≥ 5 才顯示金色勳章
                         if showIdealBadge {
                             Text("理想球友")
-                                .font(.system(size: 11, weight: .medium))
+                                .font(Typography.micro)
                                 .foregroundColor(Theme.goldText)
                                 .padding(.horizontal, Spacing.xs)
                                 .frame(height: 20)
@@ -271,7 +181,7 @@ struct ProfileView: View {
                     EditProfileView()
                 } label: {
                     Text("編輯資料")
-                        .font(.system(size: 11, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(.white)
                         .padding(.horizontal, Spacing.sm)
                         .frame(height: 32)
@@ -312,7 +222,7 @@ struct ProfileView: View {
 
     private func headerPill(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 11, weight: .medium))
+            .font(Typography.micro)
             .foregroundColor(.white)
             .padding(.horizontal, Spacing.xs)
             .frame(height: 20)
@@ -323,7 +233,7 @@ struct ProfileView: View {
     private func followStat(count: String, label: String) -> some View {
         HStack(spacing: 3) {
             Text(count)
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(.white)
             Text(label)
                 .font(Typography.small)
@@ -334,10 +244,10 @@ struct ProfileView: View {
     private func statCard(value: String, label: String) -> some View {
         VStack(spacing: 4) {
             Text(value)
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(.white)
             Text(label)
-                .font(.system(size: 10))
+                .font(Typography.micro)
                 .foregroundColor(.white.opacity(0.85))
         }
         .frame(maxWidth: .infinity)
@@ -351,7 +261,7 @@ struct ProfileView: View {
     private var recordCard: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("🎾 記錄")
-                .font(.system(size: 14, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             recordRow(label: "總場次", value: "\(totalMatches)")
@@ -360,7 +270,7 @@ struct ProfileView: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -372,7 +282,7 @@ struct ProfileView: View {
                 .foregroundColor(Theme.textCaption)
             Spacer()
             Text(value)
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(Theme.textPrimary)
         }
     }
@@ -383,7 +293,7 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text("🏆 賽事記錄")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typography.labelSemibold)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
@@ -404,7 +314,7 @@ struct ProfileView: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -413,11 +323,11 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 Text(record.name)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Text(record.round)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Typography.micro)
                     .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
                     .padding(.horizontal, Spacing.xs)
                     .frame(height: 22)
@@ -428,7 +338,7 @@ struct ProfileView: View {
             HStack(spacing: Spacing.md) {
                 HStack(spacing: 4) {
                     Image(systemName: "calendar")
-                        .font(.system(size: 10))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textSecondary)
                     Text(record.date)
                         .font(Typography.fieldLabel)
@@ -436,7 +346,7 @@ struct ProfileView: View {
                 }
                 HStack(spacing: 4) {
                     Image(systemName: "person.2")
-                        .font(.system(size: 10))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textSecondary)
                     Text(record.draw)
                         .font(Typography.fieldLabel)
@@ -448,7 +358,7 @@ struct ProfileView: View {
                 HStack(spacing: Spacing.xs) {
                     ForEach(record.scores, id: \.self) { score in
                         Text(score)
-                            .font(.system(size: 12, weight: .medium))
+                            .font(Typography.smallMedium)
                             .foregroundColor(Theme.textPrimary)
                             .padding(.horizontal, Spacing.xs)
                             .frame(height: 24)
@@ -457,7 +367,7 @@ struct ProfileView: View {
                     }
                     Spacer()
                     Text(record.result)
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Typography.micro)
                         .foregroundColor(record.isWin ? Theme.primary : Theme.requiredText)
                 }
             }
@@ -470,7 +380,7 @@ struct ProfileView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text("🏅 成就")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(Typography.labelSemibold)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
                 Button {
@@ -491,7 +401,7 @@ struct ProfileView: View {
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
@@ -507,7 +417,7 @@ struct ProfileView: View {
                     .opacity(unlocked ? 1 : 0.4)
             }
             Text(label)
-                .font(.system(size: 10, weight: .medium))
+                .font(Typography.micro)
                 .foregroundColor(Theme.textBody)
                 .opacity(unlocked ? 1 : 0.4)
         }
@@ -592,131 +502,6 @@ private let mockTournamentRecords: [TournamentRecord] = [
     ),
 ]
 
-// MARK: - Calibration Sheet
-
-private extension CalibrationSuggestion {
-    /// 銀行式短描述,給 Profile 入口卡片用,字數壓在兩行內。
-    func bannerSubtitle(selfNTRP: Double) -> String {
-        let selfText = String(format: "%.1f", selfNTRP)
-        let avgText = String(format: "%.1f", peerAverage)
-        switch direction {
-        case .selfUnderrated:
-            return "\(sampleSize) 位球友平均評你 \(avgText)，比自評 \(selfText) 高，建議上調。"
-        case .selfOverrated:
-            return "\(sampleSize) 位球友平均評你 \(avgText)，比自評 \(selfText) 低，建議下調。"
-        }
-    }
-
-    var directionHeadline: String {
-        switch direction {
-        case .selfUnderrated: return "你可能低估了自己的水平"
-        case .selfOverrated:  return "你可能高估了自己的水平"
-        }
-    }
-}
-
-private struct CalibrationSheet: View {
-    let suggestion: CalibrationSuggestion
-    let selfNTRP: Double
-    let onCalibrate: () -> Void
-    let onKeep: () -> Void
-    let onLater: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.md) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text("水平校準")
-                    .font(.system(size: 20, weight: .bold))
-                    .foregroundColor(Theme.textPrimary)
-                Text(suggestion.directionHeadline)
-                    .font(Typography.caption)
-                    .foregroundColor(Theme.textBody)
-            }
-
-            // 對比卡:自評 vs 球友均值
-            HStack(spacing: Spacing.sm) {
-                comparisonCard(
-                    title: "你的自評",
-                    value: String(format: "%.1f", selfNTRP),
-                    accent: Theme.textBody
-                )
-                Image(systemName: "arrow.right")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(Theme.textSecondary)
-                comparisonCard(
-                    title: "球友均值",
-                    value: String(format: "%.1f", suggestion.peerAverage),
-                    accent: Theme.primary
-                )
-            }
-            .frame(maxWidth: .infinity)
-
-            Text("基於 \(suggestion.sampleSize) 位球友賽後評估,差距已超過 \(String(format: "%.1f", RatingFeedbackStore.deviationThreshold)) 級。建議將 NTRP 調整至 \(String(format: "%.1f", suggestion.suggested)),匹配更精準。")
-                .font(Typography.small)
-                .foregroundColor(Theme.textCaption)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer()
-
-            VStack(spacing: Spacing.xs) {
-                Button(action: onCalibrate) {
-                    Text("校準到 \(String(format: "%.1f", suggestion.suggested))")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 48)
-                        .background(Theme.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-                }
-
-                HStack(spacing: Spacing.sm) {
-                    Button(action: onKeep) {
-                        Text("保留 \(String(format: "%.1f", selfNTRP))")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Theme.textBody)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Theme.inputBorder, lineWidth: 1)
-                            )
-                    }
-                    Button(action: onLater) {
-                        Text("稍後再說")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(Theme.textBody)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 44)
-                            .background(.white)
-                            .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 10, style: .continuous)
-                                    .stroke(Theme.inputBorder, lineWidth: 1)
-                            )
-                    }
-                }
-            }
-        }
-        .padding(Spacing.lg)
-    }
-
-    private func comparisonCard(title: String, value: String, accent: Color) -> some View {
-        VStack(spacing: 4) {
-            Text(title)
-                .font(Typography.fieldLabel)
-                .foregroundColor(Theme.textCaption)
-            Text(value)
-                .font(.system(size: 28, weight: .bold))
-                .foregroundColor(accent)
-        }
-        .frame(maxWidth: .infinity)
-        .frame(height: 76)
-        .background(Theme.inputBg)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
-}
 
 // MARK: - Preview
 

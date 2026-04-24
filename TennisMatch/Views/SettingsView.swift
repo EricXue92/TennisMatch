@@ -34,23 +34,7 @@ struct SettingsView: View {
         .listStyle(.insetGrouped)
         .background(Theme.background)
         .scrollContentBackground(.hidden)
-        .overlay(alignment: .top) {
-            if let msg = toastMessage {
-                Text(msg)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.xs)
-                    .background(Capsule().fill(Color.black.opacity(0.8)))
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .padding(.top, Spacing.xs)
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                            withAnimation { toastMessage = nil }
-                        }
-                    }
-            }
-        }
+        .toast($toastMessage)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -58,13 +42,13 @@ struct SettingsView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("設定")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .alert("退出登錄", isPresented: $showLogoutAlert) {
@@ -180,7 +164,7 @@ struct SettingsView: View {
                 HStack {
                     Spacer()
                     Text("退出登錄")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.requiredText)
                     Spacer()
                 }
@@ -198,7 +182,7 @@ struct SettingsView: View {
             Spacer()
             if let value {
                 Text(value)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
             }
         }
@@ -213,11 +197,11 @@ struct SettingsView: View {
                 Spacer()
                 if let value {
                     Text(value)
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textSecondary)
                 }
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(Theme.textSecondary)
             }
         }
@@ -285,7 +269,7 @@ private struct ChangePasswordSheet: View {
                     }
                 } label: {
                     Text("確認修改")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
@@ -297,17 +281,7 @@ private struct ChangePasswordSheet: View {
             .padding(.horizontal, Spacing.lg)
             .padding(.top, Spacing.md)
             .padding(.bottom, Spacing.lg)
-            .overlay(alignment: .top) {
-                if let msg = toastMessage {
-                    Text(msg)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.xs)
-                        .background(Capsule().fill(msg == "密碼修改成功" ? Theme.primary : Theme.requiredText))
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                }
-            }
+            .toast($toastMessage)
             .navigationTitle("修改密碼")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -323,7 +297,7 @@ private struct ChangePasswordSheet: View {
     private func passwordField(title: String, text: Binding<String>, field: PasswordField) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
-                .font(.system(size: 13, weight: .medium))
+                .font(Typography.captionMedium)
                 .foregroundColor(Theme.textBody)
             SecureField("", text: text)
                 .font(Typography.fieldValue)
@@ -390,23 +364,7 @@ private struct LinkedAccountsSheet: View {
                     .foregroundColor(Theme.textSecondary)
                     .padding(.bottom, Spacing.lg)
             }
-            .overlay(alignment: .top) {
-                if let msg = toastMessage {
-                    Text(msg)
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.xs)
-                        .background(Capsule().fill(Color.black.opacity(0.8)))
-                        .transition(.move(edge: .top).combined(with: .opacity))
-                        .padding(.top, Spacing.xs)
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                withAnimation { toastMessage = nil }
-                            }
-                        }
-                }
-            }
+            .toast($toastMessage)
             .navigationTitle("關聯帳號")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -444,7 +402,7 @@ private struct LinkedAccountsSheet: View {
                 }
             } label: {
                 Text(isLinked.wrappedValue ? "已關聯" : "關聯")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(isLinked.wrappedValue ? Theme.textBody : .white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 32)

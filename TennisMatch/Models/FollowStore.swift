@@ -8,6 +8,7 @@
 //
 
 import Foundation
+import UIKit
 import Observation
 
 @Observable
@@ -34,6 +35,7 @@ final class FollowStore {
     }
 
     func toggle(_ name: String) {
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
         if following.contains(name) {
             following.remove(name)
         } else {

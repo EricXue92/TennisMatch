@@ -239,28 +239,7 @@ struct ChatDetailView: View {
         .navigationDestination(item: $selectedPlayer) { player in
             PublicProfileView(player: player)
         }
-        .overlay(alignment: .top) {
-            if let text = chatMenuToast {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "info.circle.fill").foregroundColor(.white)
-                    Text(text)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(Capsule().fill(Theme.textBody))
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .task(id: text) {
-                    try? await Task.sleep(nanoseconds: 2_200_000_000)
-                    if chatMenuToast == text {
-                        withAnimation { chatMenuToast = nil }
-                    }
-                }
-            }
-        }
-        .animation(.easeInOut(duration: 0.2), value: chatMenuToast)
+        .toast($chatMenuToast, icon: "info.circle.fill")
     }
 
     // MARK: - Message Routing
@@ -275,7 +254,7 @@ struct ChatDetailView: View {
                 outgoingBubble(text)
                 if let ts = message.timestamp {
                     Text(ts)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textHint)
                 }
             }
@@ -284,7 +263,7 @@ struct ChatDetailView: View {
                 outgoingImageBubble(data)
                 if let ts = message.timestamp {
                     Text(ts)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textHint)
                 }
             }
@@ -304,7 +283,7 @@ struct ChatDetailView: View {
                 .frame(width: 32, height: 32)
                 .overlay(
                     Text("🎾")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                 )
                 .onTapGesture {
                     // 點擊頭像查看對方資料
@@ -321,7 +300,7 @@ struct ChatDetailView: View {
                 .padding(.vertical, Spacing.xs)
                 .background(
                     RoundedRectangle(cornerRadius: 12)
-                        .fill(.white)
+                        .fill(Theme.surface)
                 )
 
             Spacer(minLength: 60)
@@ -408,7 +387,7 @@ struct ChatDetailView: View {
                 }
             } else {
                 Text(text)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(Theme.textCaption)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
@@ -468,6 +447,7 @@ struct ChatDetailView: View {
                                 location: location
                             )
                             acceptedMatches.append(match)
+                            UINotificationFeedbackGenerator().notificationOccurred(.success)
                             if let range = MatchSchedule.dateRange(text: scheduleText) {
                                 let label = "\(organizerName) \(scheduleText)"
                                 bookedSlotStore.add(BookedSlot(
@@ -520,7 +500,7 @@ struct ChatDetailView: View {
             .padding(Spacing.sm)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(.white)
+                    .fill(Theme.surface)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Theme.inputBorder, lineWidth: 1)
@@ -543,6 +523,7 @@ struct ChatDetailView: View {
         let ts = formatter.string(from: now)
         sentMessages.append(ChatBubble(.outgoing(trimmed), timestamp: ts))
         messageText = ""
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
 
     private var inputBar: some View {
@@ -556,7 +537,7 @@ struct ChatDetailView: View {
                     Image(systemName: "photo")
                         .font(.system(size: 18))
                         .foregroundColor(Theme.textDark)
-                        .frame(width: 44, height: 36)
+                        .frame(width: 44, height: 44)
                         .background(
                             Capsule().fill(Theme.inputBg)
                         )
@@ -616,7 +597,7 @@ struct ChatDetailView: View {
                 TextField("輸入訊息...", text: $messageText)
                     .font(Typography.caption)
                     .padding(.horizontal, Spacing.sm)
-                    .frame(height: 36)
+                    .frame(height: 44)
                     .background(
                         Capsule()
                             .fill(Theme.inputBg)
@@ -631,7 +612,7 @@ struct ChatDetailView: View {
                     Text("發送")
                         .font(.system(size: 13, weight: .bold))
                         .foregroundColor(.white)
-                        .frame(width: 50, height: 36)
+                        .frame(width: 54, height: 44)
                         .background(
                             Capsule().fill(messageText.trimmingCharacters(in: .whitespaces).isEmpty
                                 ? Theme.chipUnselectedBg
@@ -642,7 +623,7 @@ struct ChatDetailView: View {
             }
             .padding(.horizontal, Spacing.md)
             .padding(.vertical, Spacing.sm)
-            .background(.white)
+            .background(Theme.surface)
         }
     }
 }

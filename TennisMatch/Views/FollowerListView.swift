@@ -43,13 +43,13 @@ struct FollowerListView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("粉絲")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .navigationDestination(item: $selectedPlayer) { player in

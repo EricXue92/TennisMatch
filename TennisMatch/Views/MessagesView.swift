@@ -54,7 +54,7 @@ struct MessagesView: View {
             .padding(.bottom, 100)
             }
         }
-        .background(.white)
+        .background(Theme.surface)
         .onAppear { recalculateUnread() }
         .navigationDestination(item: $selectedChat) { chat in
             ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, onRemoveChat: {
@@ -71,25 +71,7 @@ struct MessagesView: View {
             readChatIDs.insert(chat.id)
             recalculateUnread()
         }
-        .overlay(alignment: .top) {
-            if let text = blockToast {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "nosign").foregroundColor(.white)
-                    Text(text)
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.vertical, Spacing.sm)
-                .background(Capsule().fill(Theme.textBody))
-                .transition(.move(edge: .top).combined(with: .opacity))
-                .padding(.top, Spacing.lg)
-                .task(id: text) {
-                    try? await Task.sleep(for: .seconds(2))
-                    withAnimation { blockToast = nil }
-                }
-            }
-        }
+        .toast($blockToast, icon: "nosign")
         .alert("刪除聊天", isPresented: $showDeleteAlert) {
             Button("取消", role: .cancel) {
                 chatToDelete = nil
@@ -123,7 +105,7 @@ struct MessagesView: View {
     private var headerBar: some View {
         HStack {
             Text("聊天")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
             Spacer()
         }
@@ -146,7 +128,7 @@ struct MessagesView: View {
         .padding(Spacing.md)
         .background(
             RoundedRectangle(cornerRadius: 16)
-                .fill(.white)
+                .fill(Theme.surface)
                 .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
         )
         .contentShape(Rectangle())
@@ -201,7 +183,7 @@ struct MessagesView: View {
                     .foregroundColor(Theme.textPrimary)
                     .lineLimit(1)
                 Text("📍 \(dateTime)")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Typography.micro)
                     .foregroundColor(Theme.primary)
                     .lineLimit(1)
             case .personal(let name, let symbol, let symbolColor):

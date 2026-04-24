@@ -27,7 +27,7 @@ struct NotificationsView: View {
                         }
                     } label: {
                         Text("全部已讀")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Typography.captionMedium)
                             .foregroundColor(Theme.primary)
                     }
                     .padding(.horizontal, Spacing.md)
@@ -52,13 +52,13 @@ struct NotificationsView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("通知")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .navigationDestination(item: $selectedMatchDetail) { detail in
@@ -77,7 +77,7 @@ struct NotificationsView: View {
                     .fill(notification.iconBg)
                     .frame(width: 40, height: 40)
                 Image(systemName: notification.icon)
-                    .font(.system(size: 16))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(notification.iconColor)
             }
 
@@ -126,6 +126,14 @@ struct NotificationsView: View {
 
     /// 根據通知內容生成對應的約球詳情(Mock 階段)。
     /// 每種通知類型使用不同的時間、地點、參與者，避免所有通知顯示相同資料。
+    /// 生成相對於今天的日期字串（yyyy/MM/dd）
+    private func relativeDate(daysFromNow: Int) -> String {
+        let fmt = DateFormatter()
+        fmt.dateFormat = "yyyy/MM/dd"
+        guard let date = Calendar.current.date(byAdding: .day, value: daysFromNow, to: Date()) else { return fmt.string(from: Date()) }
+        return fmt.string(from: date)
+    }
+
     private func mockMatchDetail(for notification: MatchNotification) -> MatchDetailData {
         let matchType = notification.body.contains("雙打") ? "雙打" : "單打"
         // 嘗試從通知 body 的括號內提取日期（「MM/dd」格式）
@@ -138,7 +146,7 @@ struct NotificationsView: View {
                 name: extractName(from: notification.body) ?? "球友",
                 gender: .male, ntrp: "3.5", reputation: 88,
                 matchType: matchType,
-                date: dateStr ?? "2026/04/20", timeRange: "14:00 - 16:00",
+                date: dateStr ?? relativeDate(daysFromNow: 0), timeRange: "14:00 - 16:00",
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
                 district: "香港銅鑼灣",
                 players: "2/4 人", ntrpRange: "3.0-4.5", fee: "AA ¥100",
@@ -158,7 +166,7 @@ struct NotificationsView: View {
                 name: name,
                 gender: .female, ntrp: "3.5", reputation: 90,
                 matchType: matchType,
-                date: dateStr ?? "2026/04/19", timeRange: "10:00 - 12:00",
+                date: dateStr ?? relativeDate(daysFromNow: -1), timeRange: "10:00 - 12:00",
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
                 district: "香港銅鑼灣",
                 players: "2/2 人", ntrpRange: "3.0-4.0", fee: "AA ¥120",
@@ -176,7 +184,7 @@ struct NotificationsView: View {
                 name: name,
                 gender: .female, ntrp: "3.0", reputation: 85,
                 matchType: matchType,
-                date: dateStr ?? "2026/04/22", timeRange: "09:00 - 11:00",
+                date: dateStr ?? relativeDate(daysFromNow: -1), timeRange: "09:00 - 11:00",
                 location: extractLocation(from: notification.body) ?? "沙田公園網球場",
                 district: "新界沙田",
                 players: "1/4 人", ntrpRange: "2.5-4.0", fee: "AA ¥80",
@@ -193,7 +201,7 @@ struct NotificationsView: View {
                 name: name,
                 gender: .male, ntrp: "4.5", reputation: 92,
                 matchType: matchType,
-                date: dateStr ?? "2026/04/25", timeRange: "16:30 - 18:30",
+                date: dateStr ?? relativeDate(daysFromNow: 1), timeRange: "16:30 - 18:30",
                 location: extractLocation(from: notification.body) ?? "跑馬地運動場",
                 district: "香港灣仔",
                 players: "2/2 人", ntrpRange: "3.5-5.0", fee: "AA ¥150",

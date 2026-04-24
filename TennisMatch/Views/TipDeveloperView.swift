@@ -81,7 +81,7 @@ struct TipDeveloperView: View {
             }
 
             Text("感謝你的支持！")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             Text("Let'sTennis 是一個免費的約球App\n你的打賞是我繼續開發的動力")
@@ -106,7 +106,7 @@ struct TipDeveloperView: View {
     private var amountSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("選擇金額")
-                .font(.system(size: 15, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: Spacing.sm) {
@@ -120,7 +120,7 @@ struct TipDeveloperView: View {
                     } label: {
                         VStack(spacing: 4) {
                             Text(amount.label)
-                                .font(.system(size: 18, weight: .bold))
+                                .font(Typography.body)
                                 .foregroundColor(isSelected ? .white : Theme.textPrimary)
                             Text(amount.subtitle)
                                 .font(Typography.fieldLabel)
@@ -144,11 +144,11 @@ struct TipDeveloperView: View {
             let isCustom = selectedAmount == nil
             HStack(spacing: Spacing.sm) {
                 Text("HK$")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(isCustom ? Theme.primary : Theme.textCaption)
 
                 TextField("自定義金額", text: $customAmountText)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .keyboardType(.numberPad)
                     .focused($customAmountFocused)
                     .onChange(of: customAmountText) { _, newValue in
@@ -172,7 +172,7 @@ struct TipDeveloperView: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -181,7 +181,7 @@ struct TipDeveloperView: View {
     private var paymentMethodSection: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("支付方式")
-                .font(.system(size: 15, weight: .semibold))
+                .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
             VStack(spacing: 0) {
@@ -197,7 +197,7 @@ struct TipDeveloperView: View {
                                 .frame(width: 32)
 
                             Text(method.name)
-                                .font(.system(size: 14, weight: .medium))
+                                .font(Typography.bodyMedium)
                                 .foregroundColor(Theme.textPrimary)
 
                             Spacer()
@@ -225,7 +225,7 @@ struct TipDeveloperView: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
     }
 
@@ -241,7 +241,7 @@ struct TipDeveloperView: View {
         } label: {
             let label = effectiveAmount.map { "打賞 HK$\($0)" } ?? "打賞"
             Text(label)
-                .font(.system(size: 16, weight: .bold))
+                .font(Typography.button)
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
                 .frame(height: 50)
@@ -280,7 +280,7 @@ struct TipDeveloperView: View {
             }
 
             Text("感謝你的打賞！")
-                .font(.system(size: 24, weight: .bold))
+                .font(Typography.title)
                 .foregroundColor(Theme.textPrimary)
 
             Text("你的支持讓 Let'sTennis 變得更好\n我們會繼續努力開發更多功能")
@@ -296,7 +296,7 @@ struct TipDeveloperView: View {
                 dismiss()
             } label: {
                 Text("返回")
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)

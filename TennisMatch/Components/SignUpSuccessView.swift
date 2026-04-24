@@ -22,7 +22,7 @@ struct SignUpSuccessView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(Theme.textDark)
                         .frame(width: 44, height: 44)
                 }
@@ -38,7 +38,7 @@ struct SignUpSuccessView: View {
                     .fill(Theme.primary)
                     .frame(width: 80, height: 80)
                 Image(systemName: "checkmark")
-                    .font(.system(size: 36, weight: .bold))
+                    .font(Typography.heroStat)
                     .foregroundColor(.white)
             }
 
@@ -67,7 +67,7 @@ struct SignUpSuccessView: View {
             }
             .padding(Spacing.md)
             .frame(maxWidth: .infinity, alignment: .leading)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)
@@ -79,10 +79,10 @@ struct SignUpSuccessView: View {
             if match.isFull {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.primary)
                     Text("已滿員！已通知所有參加者，比賽確認成功")
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(Theme.primary)
                 }
                 .padding(Spacing.sm)
@@ -113,7 +113,7 @@ struct SignUpSuccessView: View {
                 dismiss()
             } label: {
                 Text(dismissButtonTitle)
-                    .font(.system(size: 16, weight: .medium))
+                    .font(Typography.buttonMedium)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -163,7 +163,7 @@ struct SignUpSuccessView: View {
     private func summaryRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textHint)
                 .frame(width: 20)
             Text(text)
@@ -176,14 +176,14 @@ struct SignUpSuccessView: View {
         Button(action: action) {
             HStack(spacing: Spacing.xs) {
                 Image(systemName: icon)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                 Text(label)
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typography.bodyMedium)
             }
             .foregroundColor(Theme.accentGreen)
             .frame(maxWidth: .infinity)
             .frame(height: 48)
-            .background(.white)
+            .background(Theme.surface)
             .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             .overlay(
                 RoundedRectangle(cornerRadius: 12, style: .continuous)

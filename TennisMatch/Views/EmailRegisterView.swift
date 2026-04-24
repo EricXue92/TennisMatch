@@ -57,7 +57,7 @@ struct EmailRegisterView: View {
                     // Email
                     VStack(alignment: .leading, spacing: 6) {
                         Text("郵箱地址")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textSecondary)
                         HStack(spacing: Spacing.sm) {
                             TextField("請輸入郵箱", text: $email)
@@ -85,7 +85,7 @@ struct EmailRegisterView: View {
                                         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                                 } else {
                                     Text(codeSent ? (canResend ? "重新發送" : "\(countdown)s") : "發送驗證碼")
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(Typography.smallMedium)
                                         .foregroundColor(sendButtonEnabled ? .white : Theme.textSecondary)
                                         .padding(.horizontal, 12)
                                         .frame(height: 34)
@@ -108,7 +108,7 @@ struct EmailRegisterView: View {
                     // Verification code
                     VStack(alignment: .leading, spacing: 6) {
                         Text("驗證碼")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textSecondary)
                         TextField("請輸入 6 位驗證碼", text: $verificationCode)
                             .keyboardType(.numberPad)
@@ -132,7 +132,7 @@ struct EmailRegisterView: View {
                     // Password
                     VStack(alignment: .leading, spacing: 6) {
                         Text("設定密碼")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textSecondary)
                         HStack {
                             Group {
@@ -149,7 +149,7 @@ struct EmailRegisterView: View {
 
                             Button { showPassword.toggle() } label: {
                                 Image(systemName: showPassword ? "eye.slash" : "eye")
-                                    .font(.system(size: 14))
+                                    .font(Typography.bodyMedium)
                                     .foregroundColor(Theme.textSecondary)
                             }
                         }
@@ -166,7 +166,7 @@ struct EmailRegisterView: View {
                     // Confirm password
                     VStack(alignment: .leading, spacing: 6) {
                         Text("確認密碼")
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textSecondary)
                         HStack {
                             Group {
@@ -183,7 +183,7 @@ struct EmailRegisterView: View {
 
                             Button { showConfirmPassword.toggle() } label: {
                                 Image(systemName: showConfirmPassword ? "eye.slash" : "eye")
-                                    .font(.system(size: 14))
+                                    .font(Typography.bodyMedium)
                                     .foregroundColor(Theme.textSecondary)
                             }
                         }
@@ -198,7 +198,7 @@ struct EmailRegisterView: View {
                     }
                 }
                 .padding(Spacing.md)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
                 .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
 
@@ -233,7 +233,7 @@ struct EmailRegisterView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(.white)
                 }
             }
@@ -246,6 +246,11 @@ struct EmailRegisterView: View {
         .toolbarBackground(Theme.primary, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        // 使用者修正任何欄位後自動清除驗證錯誤
+        .onChange(of: email) { _, _ in showValidationError = false }
+        .onChange(of: verificationCode) { _, _ in showValidationError = false }
+        .onChange(of: password) { _, _ in showValidationError = false }
+        .onChange(of: confirmPassword) { _, _ in showValidationError = false }
         .navigationDestination(isPresented: $showProfileSetup) {
             RegisterView()
         }

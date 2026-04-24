@@ -27,7 +27,7 @@ struct MatchAssistantView: View {
 
                     VStack(alignment: .leading, spacing: 2) {
                         Text("約球助理")
-                            .font(.system(size: 15, weight: .semibold))
+                            .font(Typography.labelSemibold)
                             .foregroundColor(Theme.textPrimary)
                         Text("根據你的 NTRP \(userStore.ntrpText)、常去球場和空閒時間為你推薦")
                             .font(Typography.small)
@@ -36,11 +36,11 @@ struct MatchAssistantView: View {
                 }
                 .padding(Spacing.md)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(.white)
+                .background(Theme.surface)
                 .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
 
                 Text("為你推薦")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(Theme.textPrimary)
 
                 ForEach(mockRecommendations) { rec in
@@ -65,13 +65,13 @@ struct MatchAssistantView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("約球助理")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
     }
@@ -91,13 +91,13 @@ struct MatchAssistantView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(spacing: 4) {
                         Text(rec.name)
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
                         Text(rec.gender.symbol)
-                            .font(.system(size: 14))
+                            .font(Typography.bodyMedium)
                             .foregroundColor(rec.gender == .female ? Theme.genderFemale : Theme.genderMale)
                         Text(rec.matchType)
-                            .font(.system(size: 10, weight: .medium))
+                            .font(Typography.micro)
                             .foregroundColor(Theme.textBody)
                             .padding(.horizontal, 6)
                             .frame(height: 18)
@@ -113,7 +113,7 @@ struct MatchAssistantView: View {
 
                 VStack(alignment: .trailing, spacing: 2) {
                     Text("匹配度")
-                        .font(.system(size: 10))
+                        .font(Typography.micro)
                         .foregroundColor(Theme.textSecondary)
                     Text("\(rec.matchScore)%")
                         .font(Typography.button)
@@ -144,7 +144,7 @@ struct MatchAssistantView: View {
                     selectedDetail = rec.toMatchDetailData()
                 } label: {
                     Text("查看")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typography.smallMedium)
                         .foregroundColor(.white)
                         .frame(width: 52, height: 30)
                         .background(Theme.primary)
@@ -155,7 +155,7 @@ struct MatchAssistantView: View {
             .padding(.leading, 52)
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }

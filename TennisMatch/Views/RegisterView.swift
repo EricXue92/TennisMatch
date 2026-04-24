@@ -65,6 +65,11 @@ struct RegisterView: View {
         .toolbarBackground(Theme.primary, for: .navigationBar)
         .toolbarBackground(.visible, for: .navigationBar)
         .toolbarColorScheme(.dark, for: .navigationBar)
+        // 使用者修正任何欄位後自動清除驗證錯誤
+        .onChange(of: name) { _, _ in showValidationError = false }
+        .onChange(of: selectedGender) { _, _ in showValidationError = false }
+        .onChange(of: selectedAgeRange) { _, _ in showValidationError = false }
+        .onChange(of: ntrpScore) { _, _ in showValidationError = false }
     }
 
     // MARK: - Avatar
@@ -158,7 +163,7 @@ struct RegisterView: View {
                 HStack(spacing: Spacing.xs) {
                     requiredLabel("技術水平")
                     TextField("0.0", text: $ntrpScore)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                         .keyboardType(.decimalPad)
                         .frame(width: 70, height: 34)
@@ -186,7 +191,7 @@ struct RegisterView: View {
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.sm)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
@@ -224,7 +229,7 @@ struct RegisterView: View {
             // 常去球場
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("常去球場")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
 
                 FlowLayout(spacing: 8) {
@@ -247,7 +252,7 @@ struct RegisterView: View {
             // 可用時間
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("可用時間")
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
 
                 FlowLayout(spacing: 8) {
@@ -261,7 +266,7 @@ struct RegisterView: View {
                             }
                         } label: {
                             Text(slot.displayName)
-                                .font(.system(size: 13, weight: .medium))
+                                .font(Typography.captionMedium)
                                 .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.vertical, 6)
@@ -282,7 +287,7 @@ struct RegisterView: View {
             // 詳細時段
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("詳細時段")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(Theme.textHint)
 
                 FlowLayout(spacing: 6) {
@@ -306,7 +311,7 @@ struct RegisterView: View {
         .padding(.horizontal, Spacing.md)
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.sm)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .shadow(color: .black.opacity(0.05), radius: 4, y: 2)
     }
@@ -319,7 +324,7 @@ struct RegisterView: View {
                 .font(Typography.button)
                 .foregroundColor(Theme.textPrimary)
             Text(badge)
-                .font(.system(size: 11, weight: .medium))
+                .font(Typography.micro)
                 .foregroundColor(badgeFg)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 2)
@@ -338,7 +343,7 @@ struct RegisterView: View {
                 requiredLabel(label)
             } else {
                 Text(label)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textSecondary)
             }
             content()
@@ -349,10 +354,10 @@ struct RegisterView: View {
     private func requiredLabel(_ text: String) -> some View {
         HStack(spacing: 2) {
             Text(text)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textSecondary)
             Text("*")
-                .font(.system(size: 14, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.requiredText)
         }
     }
@@ -370,7 +375,7 @@ struct RegisterView: View {
                 let isSelected = selected == item
                 Button { onSelect(item) } label: {
                     Text(item[keyPath: label])
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 4)
@@ -382,6 +387,7 @@ struct RegisterView: View {
                                 : nil
                         )
                 }
+                .frame(minHeight: 44)
             }
         }
     }
@@ -402,7 +408,7 @@ struct RegisterView: View {
                     }
                 } label: {
                     Text(item[keyPath: label])
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                         .padding(.horizontal, 14)
                         .padding(.vertical, 4)
@@ -414,6 +420,7 @@ struct RegisterView: View {
                                 : nil
                         )
                 }
+                .frame(minHeight: 44)
             }
         }
     }
@@ -427,12 +434,14 @@ struct RegisterView: View {
                 .foregroundColor(Theme.textPrimary)
             Button(action: onRemove) {
                 Text("×")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(Theme.textSecondary)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 5)
+        .frame(minHeight: 44)
         .background(Theme.tagBg)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
@@ -448,12 +457,14 @@ struct RegisterView: View {
                 .foregroundColor(Theme.textPrimary)
             Button(action: onRemove) {
                 Text("×")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(Theme.textHint)
+                    .frame(width: 28, height: 28)
+                    .contentShape(Rectangle())
             }
         }
         .padding(.horizontal, 10)
-        .padding(.vertical, 6)
+        .frame(minHeight: 44)
         .background(Theme.slotBg)
         .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
         .overlay(
@@ -465,10 +476,10 @@ struct RegisterView: View {
     private func addButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
-                .font(.system(size: 12, weight: .medium))
+                .font(Typography.smallMedium)
                 .foregroundColor(Theme.primary)
                 .padding(.horizontal, 10)
-                .padding(.vertical, 5)
+                .frame(minHeight: 44)
                 .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                 .overlay(
                     RoundedRectangle(cornerRadius: 8, style: .continuous)
@@ -632,9 +643,9 @@ private struct WeeklySlotPickerView: View {
                             let isSelected = selectedDay == day
                             Button { selectedDay = day } label: {
                                 Text(day.shortName)
-                                    .font(.system(size: 14, weight: .medium))
+                                    .font(Typography.bodyMedium)
                                     .foregroundColor(isSelected ? .white : Theme.chipUnselectedFg)
-                                    .frame(width: 52, height: 36)
+                                    .frame(width: 52, height: 44)
                                     .background(isSelected ? Theme.primary : Theme.chipUnselectedBg)
                                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
                             }
@@ -664,7 +675,7 @@ private struct WeeklySlotPickerView: View {
                 // 預覽
                 let preview = buildSlot()
                 Text("📅 \(preview.displayText)")
-                    .font(.system(size: 15, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.primary)
                     .padding(.horizontal, Spacing.md)
                     .padding(.vertical, Spacing.sm)
@@ -729,7 +740,7 @@ private struct WeeklySlotPickerView: View {
             .clipped()
 
             Text(":")
-                .font(.system(size: 16, weight: .medium))
+                .font(Typography.buttonMedium)
                 .foregroundColor(Theme.textPrimary)
 
             Picker("", selection: minute) {

@@ -12,7 +12,7 @@ struct SignUpConfirmSheet: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
             Text("確認報名")
-                .font(.system(size: 20, weight: .bold))
+                .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -29,11 +29,11 @@ struct SignUpConfirmSheet: View {
 
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text("給發起人留言（選填）")
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
 
                 TextField("例如：我會準時到！", text: $message, axis: .vertical)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textPrimary)
                     .lineLimit(3...5)
                     .padding(Spacing.sm)
@@ -48,11 +48,12 @@ struct SignUpConfirmSheet: View {
             Spacer()
 
             Button {
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 dismiss()
                 onConfirm(message)
             } label: {
                 Text("確認報名")
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
@@ -68,7 +69,7 @@ struct SignUpConfirmSheet: View {
     private func infoRow(icon: String, text: String) -> some View {
         HStack(spacing: Spacing.sm) {
             Image(systemName: icon)
-                .font(.system(size: 14))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textSecondary)
                 .frame(width: 20)
             Text(text)

@@ -59,230 +59,258 @@ struct MockMatch: Identifiable {
         let dateStr = String(parts[0])
         let startTime = String(parts[1])
         let startHour = Int(startTime.prefix(2)) ?? hour
-        let endHour = startHour + 2
-        let endTime = String(format: "%02d:00", endHour)
+        let endHour = min(startHour + 2, 24)
+        let endTime = endHour == 24 ? "00:00(隔天)" : String(format: "%02d:00", endHour)
         return "\(dateStr) \(startTime) - \(endTime)"
     }
+}
+
+// MARK: - Mock Date Helpers
+
+/// 生成相對於今天的日期字串（MM/dd 格式），確保 mock 數據永不過期
+private let _mockCalendar = Calendar.current
+private let _mockToday = Date()
+private let _mockDateFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "MM/dd"
+    return f
+}()
+private let _weekdayNames = ["日", "一", "二", "三", "四", "五", "六"]
+
+private func mockDate(_ daysFromNow: Int) -> String {
+    guard let date = _mockCalendar.date(byAdding: .day, value: daysFromNow, to: _mockToday) else { return "01/01" }
+    return _mockDateFormatter.string(from: date)
+}
+
+private func mockDayOfWeek(_ daysFromNow: Int) -> String {
+    guard let date = _mockCalendar.date(byAdding: .day, value: daysFromNow, to: _mockToday) else { return "一" }
+    let weekday = _mockCalendar.component(.weekday, from: date)
+    return _weekdayNames[weekday - 1]
 }
 
 // MARK: - Mock Match Data
 
 let initialMockMatches: [MockMatch] = [
+    // day -2: 已過期，用於測試 isExpired / isAutoCancelled
+    MockMatch(
+        name: "小美", gender: .female, matchType: "雙打",
+        weather: "☀️ 27°C", dateTime: "\(mockDate(-2)) 10:00",
+        location: "沙田公園", fee: "AA ¥80",
+        ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "18-25",
+        genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(-2),
+        currentPlayers: 3, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "大衛", gender: .male, matchType: "雙打",
+        weather: "⛅ 23°C", dateTime: "\(mockDate(-2)) 18:30",
+        location: "歌和老街公園", fee: "AA ¥180",
+        ntrpLow: 4.0, ntrpHigh: 5.0, ageRange: "26-35",
+        genderLabel: "男", hour: 18, dayOfWeek: mockDayOfWeek(-2),
+        currentPlayers: 2, maxPlayers: 4
+    ),
+    // day -1: 昨天，部分已過期
     MockMatch(
         name: "莎拉", gender: .female, matchType: "單打",
-        weather: "☀️ 24°C", dateTime: "04/23 10:00",
+        weather: "☀️ 24°C", dateTime: "\(mockDate(-1)) 10:00",
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "26-35",
-        genderLabel: "女", hour: 10, dayOfWeek: "三",
+        genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(-1),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
+        name: "嘉欣", gender: .female, matchType: "單打",
+        weather: "🌤 26°C", dateTime: "\(mockDate(-1)) 09:00",
+        location: "香港公園", fee: "AA ¥100",
+        ntrpLow: 2.5, ntrpHigh: 3.5, ageRange: "18-25",
+        genderLabel: "女", hour: 9, dayOfWeek: mockDayOfWeek(-1),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    MockMatch(
+        name: "俊傑", gender: .male, matchType: "雙打",
+        weather: "☀️ 29°C", dateTime: "\(mockDate(-1)) 15:00",
+        location: "將軍澳運動場", fee: "AA ¥160",
+        ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
+        genderLabel: "男", hour: 15, dayOfWeek: mockDayOfWeek(-1),
+        currentPlayers: 1, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "阿杰", gender: .male, matchType: "單打",
+        weather: "☀️ 25°C", dateTime: "\(mockDate(-1)) 07:00",
+        location: "沙田公園", fee: "AA ¥60",
+        ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "18-25",
+        genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(-1),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    // day 0: 今天
+    MockMatch(
         name: "王強", gender: .male, matchType: "雙打",
-        weather: "⛅ 26°C", dateTime: "04/24 14:00",
+        weather: "⛅ 26°C", dateTime: "\(mockDate(0)) 14:00",
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
-        genderLabel: "男", hour: 14, dayOfWeek: "四",
+        genderLabel: "男", hour: 14, dayOfWeek: mockDayOfWeek(0),
         currentPlayers: 2, maxPlayers: 4
     ),
     MockMatch(
+        name: "麗莎", gender: .female, matchType: "雙打",
+        weather: "⛅ 26°C", dateTime: "\(mockDate(0)) 19:00",
+        location: "香港網球中心", fee: "AA ¥250",
+        ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "26-35",
+        genderLabel: "女", hour: 19, dayOfWeek: mockDayOfWeek(0),
+        currentPlayers: 2, maxPlayers: 4
+    ),
+    MockMatch(
+        name: "老張", gender: .male, matchType: "單打",
+        weather: "🌤 22°C", dateTime: "\(mockDate(0)) 07:00",
+        location: "九龍仔公園", fee: "AA ¥200",
+        ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "46-55",
+        genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(0),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    // day 1: 明天
+    MockMatch(
         name: "小李", gender: .male, matchType: "雙打",
-        weather: "⛅ 26°C", dateTime: "04/25 14:00",
+        weather: "⛅ 26°C", dateTime: "\(mockDate(1)) 14:00",
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
-        genderLabel: "男", hour: 14, dayOfWeek: "五",
+        genderLabel: "男", hour: 14, dayOfWeek: mockDayOfWeek(1),
         currentPlayers: 2, maxPlayers: 4,
         isOwnMatch: true
     ),
     MockMatch(
         name: "美琪", gender: .female, matchType: "單打",
-        weather: "☀️ 28°C", dateTime: "04/25 08:30",
+        weather: "☀️ 28°C", dateTime: "\(mockDate(1)) 08:30",
         location: "九龍仔公園", fee: "AA ¥100",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "18-25",
-        genderLabel: "女", hour: 8, dayOfWeek: "五",
+        genderLabel: "女", hour: 8, dayOfWeek: mockDayOfWeek(1),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "志明", gender: .male, matchType: "單打",
-        weather: "🌤 25°C", dateTime: "04/25 16:00",
+        weather: "🌤 25°C", dateTime: "\(mockDate(1)) 16:00",
         location: "香港網球中心", fee: "AA ¥150",
         ntrpLow: 4.0, ntrpHigh: 4.5, ageRange: "36-45",
-        genderLabel: "男", hour: 16, dayOfWeek: "五",
-        currentPlayers: 1, maxPlayers: 2
-    ),
-    MockMatch(
-        name: "小美", gender: .female, matchType: "雙打",
-        weather: "☀️ 27°C", dateTime: "04/22 10:00",
-        location: "沙田公園", fee: "AA ¥80",
-        ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "18-25",
-        genderLabel: "女", hour: 10, dayOfWeek: "二",
-        currentPlayers: 3, maxPlayers: 4
-    ),
-    MockMatch(
-        name: "大衛", gender: .male, matchType: "雙打",
-        weather: "⛅ 23°C", dateTime: "04/22 18:30",
-        location: "歌和老街公園", fee: "AA ¥180",
-        ntrpLow: 4.0, ntrpHigh: 5.0, ageRange: "26-35",
-        genderLabel: "男", hour: 18, dayOfWeek: "二",
-        currentPlayers: 2, maxPlayers: 4
-    ),
-    MockMatch(
-        name: "嘉欣", gender: .female, matchType: "單打",
-        weather: "🌤 26°C", dateTime: "04/23 09:00",
-        location: "香港公園", fee: "AA ¥100",
-        ntrpLow: 2.5, ntrpHigh: 3.5, ageRange: "18-25",
-        genderLabel: "女", hour: 9, dayOfWeek: "三",
-        currentPlayers: 1, maxPlayers: 2
-    ),
-    MockMatch(
-        name: "俊傑", gender: .male, matchType: "雙打",
-        weather: "☀️ 29°C", dateTime: "04/23 15:00",
-        location: "將軍澳運動場", fee: "AA ¥160",
-        ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
-        genderLabel: "男", hour: 15, dayOfWeek: "三",
-        currentPlayers: 1, maxPlayers: 4
-    ),
-    MockMatch(
-        name: "阿杰", gender: .male, matchType: "單打",
-        weather: "☀️ 25°C", dateTime: "04/23 07:00",
-        location: "沙田公園", fee: "AA ¥60",
-        ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "18-25",
-        genderLabel: "男", hour: 7, dayOfWeek: "三",
-        currentPlayers: 1, maxPlayers: 2
-    ),
-    MockMatch(
-        name: "麗莎", gender: .female, matchType: "雙打",
-        weather: "⛅ 26°C", dateTime: "04/24 19:00",
-        location: "香港網球中心", fee: "AA ¥250",
-        ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "26-35",
-        genderLabel: "女", hour: 19, dayOfWeek: "四",
-        currentPlayers: 2, maxPlayers: 4
-    ),
-    MockMatch(
-        name: "老張", gender: .male, matchType: "單打",
-        weather: "🌤 22°C", dateTime: "04/24 07:00",
-        location: "九龍仔公園", fee: "AA ¥200",
-        ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "46-55",
-        genderLabel: "男", hour: 7, dayOfWeek: "四",
+        genderLabel: "男", hour: 16, dayOfWeek: mockDayOfWeek(1),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "小玲", gender: .female, matchType: "單打",
-        weather: "☀️ 28°C", dateTime: "04/25 17:30",
+        weather: "☀️ 28°C", dateTime: "\(mockDate(1)) 17:30",
         location: "將軍澳運動場", fee: "AA ¥70",
         ntrpLow: 2.0, ntrpHigh: 2.5, ageRange: "18-25",
-        genderLabel: "女", hour: 17, dayOfWeek: "五",
+        genderLabel: "女", hour: 17, dayOfWeek: mockDayOfWeek(1),
         currentPlayers: 1, maxPlayers: 2
     ),
+    // day 2+: 未來
     MockMatch(
         name: "林叔", gender: .male, matchType: "雙打",
-        weather: "⛅ 24°C", dateTime: "04/26 15:00",
+        weather: "⛅ 24°C", dateTime: "\(mockDate(2)) 15:00",
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "55+",
-        genderLabel: "男", hour: 15, dayOfWeek: "六",
+        genderLabel: "男", hour: 15, dayOfWeek: mockDayOfWeek(2),
         currentPlayers: 3, maxPlayers: 4
     ),
     MockMatch(
         name: "Kelly", gender: .female, matchType: "雙打",
-        weather: "☀️ 27°C", dateTime: "04/27 10:30",
+        weather: "☀️ 27°C", dateTime: "\(mockDate(3)) 10:30",
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
-        genderLabel: "女", hour: 10, dayOfWeek: "日",
+        genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(3),
         currentPlayers: 1, maxPlayers: 4
     ),
     MockMatch(
         name: "Peter", gender: .male, matchType: "單打",
-        weather: "☀️ 30°C", dateTime: "04/28 20:00",
+        weather: "☀️ 30°C", dateTime: "\(mockDate(4)) 20:00",
         location: "跑馬地遊樂場", fee: "AA ¥180",
         ntrpLow: 4.5, ntrpHigh: 5.0, ageRange: "36-45",
-        genderLabel: "男", hour: 20, dayOfWeek: "一",
+        genderLabel: "男", hour: 20, dayOfWeek: mockDayOfWeek(4),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "陳教練", gender: .male, matchType: "單打",
-        weather: "🌤 23°C", dateTime: "04/29 07:30",
+        weather: "🌤 23°C", dateTime: "\(mockDate(5)) 07:30",
         location: "香港網球中心", fee: "AA ¥300",
         ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "36-45",
-        genderLabel: "男", hour: 7, dayOfWeek: "二",
+        genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(5),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "雅婷", gender: .female, matchType: "雙打",
-        weather: "☀️ 26°C", dateTime: "04/29 17:00",
+        weather: "☀️ 26°C", dateTime: "\(mockDate(5)) 17:00",
         location: "九龍公園", fee: "AA ¥90",
         ntrpLow: 2.5, ntrpHigh: 3.0, ageRange: "18-25",
-        genderLabel: "女", hour: 17, dayOfWeek: "二",
+        genderLabel: "女", hour: 17, dayOfWeek: mockDayOfWeek(5),
         currentPlayers: 2, maxPlayers: 4
     ),
     MockMatch(
         name: "阿豪", gender: .male, matchType: "雙打",
-        weather: "⛅ 25°C", dateTime: "04/30 19:30",
+        weather: "⛅ 25°C", dateTime: "\(mockDate(6)) 19:30",
         location: "歌和老街公園", fee: "AA ¥150",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
-        genderLabel: "男", hour: 19, dayOfWeek: "三",
+        genderLabel: "男", hour: 19, dayOfWeek: mockDayOfWeek(6),
         currentPlayers: 1, maxPlayers: 4
     ),
     MockMatch(
         name: "思慧", gender: .female, matchType: "單打",
-        weather: "☀️ 29°C", dateTime: "04/30 09:00",
+        weather: "☀️ 29°C", dateTime: "\(mockDate(6)) 09:00",
         location: "將軍澳運動場", fee: "AA ¥80",
         ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
-        genderLabel: "女", hour: 9, dayOfWeek: "三",
+        genderLabel: "女", hour: 9, dayOfWeek: mockDayOfWeek(6),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "張偉", gender: .male, matchType: "單打",
-        weather: "🌤 24°C", dateTime: "05/01 08:00",
+        weather: "🌤 24°C", dateTime: "\(mockDate(7)) 08:00",
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 4.0, ntrpHigh: 4.5, ageRange: "26-35",
-        genderLabel: "男", hour: 8, dayOfWeek: "四",
+        genderLabel: "男", hour: 8, dayOfWeek: mockDayOfWeek(7),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "詠琪", gender: .female, matchType: "雙打",
-        weather: "☀️ 27°C", dateTime: "05/01 15:30",
+        weather: "☀️ 27°C", dateTime: "\(mockDate(7)) 15:30",
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "18-25",
-        genderLabel: "女", hour: 15, dayOfWeek: "四",
+        genderLabel: "女", hour: 15, dayOfWeek: mockDayOfWeek(7),
         currentPlayers: 3, maxPlayers: 4
     ),
     MockMatch(
         name: "Michael", gender: .male, matchType: "單打",
-        weather: "⛅ 22°C", dateTime: "05/02 18:00",
+        weather: "⛅ 22°C", dateTime: "\(mockDate(8)) 18:00",
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "36-45",
-        genderLabel: "男", hour: 18, dayOfWeek: "五",
+        genderLabel: "男", hour: 18, dayOfWeek: mockDayOfWeek(8),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "艾美", gender: .female, matchType: "雙打",
-        weather: "☀️ 28°C", dateTime: "05/03 10:00",
+        weather: "☀️ 28°C", dateTime: "\(mockDate(9)) 10:00",
         location: "京士柏運動場", fee: "AA ¥130",
         ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
-        genderLabel: "女", hour: 10, dayOfWeek: "六",
+        genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(9),
         currentPlayers: 2, maxPlayers: 4
     ),
     MockMatch(
         name: "家明", gender: .male, matchType: "雙打",
-        weather: "🌤 25°C", dateTime: "05/03 16:00",
+        weather: "🌤 25°C", dateTime: "\(mockDate(9)) 16:00",
         location: "九龍仔公園", fee: "AA ¥160",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
-        genderLabel: "男", hour: 16, dayOfWeek: "六",
+        genderLabel: "男", hour: 16, dayOfWeek: mockDayOfWeek(9),
         currentPlayers: 2, maxPlayers: 4
     ),
     MockMatch(
         name: "曉彤", gender: .female, matchType: "單打",
-        weather: "☀️ 30°C", dateTime: "05/04 11:00",
+        weather: "☀️ 30°C", dateTime: "\(mockDate(10)) 11:00",
         location: "香港公園", fee: "AA ¥70",
         ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "14-17",
-        genderLabel: "女", hour: 11, dayOfWeek: "日",
+        genderLabel: "女", hour: 11, dayOfWeek: mockDayOfWeek(10),
         currentPlayers: 1, maxPlayers: 2
     ),
     MockMatch(
         name: "國輝", gender: .male, matchType: "單打",
-        weather: "⛅ 24°C", dateTime: "05/04 07:00",
+        weather: "⛅ 24°C", dateTime: "\(mockDate(10)) 07:00",
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "55+",
-        genderLabel: "男", hour: 7, dayOfWeek: "日",
+        genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(10),
         currentPlayers: 1, maxPlayers: 2
     ),
 ]

@@ -77,25 +77,7 @@ struct LoginView: View {
             case .privacy:    PrivacyPolicyView()
             }
         }
-        .overlay(alignment: .top) {
-            if let msg = toastMessage {
-                Text(msg)
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .padding(.horizontal, 20)
-                    .padding(.vertical, 12)
-                    .background(Theme.textDeep.opacity(0.92))
-                    .clipShape(Capsule())
-                    .padding(.top, 60)
-                    .transition(.move(edge: .top).combined(with: .opacity))
-                    .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                            withAnimation { toastMessage = nil }
-                        }
-                    }
-            }
-        }
-        .animation(.easeInOut(duration: 0.3), value: toastMessage)
+        .toast($toastMessage)
     }
 
     // MARK: - Background
@@ -149,7 +131,7 @@ struct LoginView: View {
                     .foregroundStyle(.white)
 
                 Text("找 到 你 的 網 球 搭 檔")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Typography.captionMedium)
                     .foregroundColor(sage)
             }
             .opacity(appeared ? 1 : 0)
@@ -186,9 +168,9 @@ struct LoginView: View {
             Button(action: { toastMessage = "Apple 登录即將支持" }) {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
-                        .font(.system(size: 18, weight: .semibold))
+                        .font(Typography.sectionTitle)
                     Text("Apple 登录")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(Typography.button)
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
@@ -215,9 +197,9 @@ struct LoginView: View {
         Button(action: action) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
                 Text(title)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(Typography.button)
             }
             .foregroundColor(fg)
             .frame(maxWidth: .infinity)

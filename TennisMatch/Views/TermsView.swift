@@ -99,7 +99,7 @@ struct TermsView: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 Button { dismiss() } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .medium))
+                        .font(Typography.sectionTitle)
                         .foregroundColor(.white)
                 }
             }
@@ -118,14 +118,14 @@ struct TermsView: View {
 
     private func sectionTitle(_ title: String) -> some View {
         Text(title)
-            .font(.system(size: 16, weight: .bold))
+            .font(Typography.button)
             .foregroundColor(Theme.textPrimary)
             .padding(.top, Spacing.xs)
     }
 
     private func sectionBody(_ text: String) -> some View {
         Text(text)
-            .font(.system(size: 14))
+            .font(Typography.bodyMedium)
             .foregroundColor(Theme.textBody)
             .lineSpacing(4)
     }

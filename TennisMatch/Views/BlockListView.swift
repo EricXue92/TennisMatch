@@ -37,7 +37,7 @@ struct BlockListView: View {
 
                             VStack(alignment: .leading, spacing: 2) {
                                 Text(user.name)
-                                    .font(.system(size: 15, weight: .medium))
+                                    .font(Typography.bodyMedium)
                                     .foregroundColor(Theme.textPrimary)
                                 Text("封鎖於 \(user.blockedDate)")
                                     .font(Typography.small)
@@ -51,7 +51,7 @@ struct BlockListView: View {
                                 showUnblockAlert = true
                             } label: {
                                 Text("解除封鎖")
-                                    .font(.system(size: 12, weight: .medium))
+                                    .font(Typography.smallMedium)
                                     .foregroundColor(Theme.textBody)
                                     .padding(.horizontal, Spacing.sm)
                                     .frame(height: 30)
@@ -76,13 +76,13 @@ struct BlockListView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("封鎖名單")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
         .alert("解除封鎖", isPresented: $showUnblockAlert) {

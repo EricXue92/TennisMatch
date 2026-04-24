@@ -31,13 +31,13 @@ struct HelpView: View {
                     dismiss()
                 } label: {
                     Image(systemName: "chevron.left")
-                        .font(.system(size: 16, weight: .medium))
+                        .font(Typography.buttonMedium)
                         .foregroundColor(Theme.textPrimary)
                 }
             }
             ToolbarItem(placement: .principal) {
                 Text("幫助")
-                    .font(.system(size: 18, weight: .semibold))
+                    .font(Typography.sectionTitle)
             }
         }
     }
@@ -51,12 +51,12 @@ struct HelpView: View {
             } label: {
                 HStack {
                     Text(item.question)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                         .multilineTextAlignment(.leading)
                     Spacer()
                     Image(systemName: expandedFAQ == item.id ? "chevron.up" : "chevron.down")
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Typography.smallMedium)
                         .foregroundColor(Theme.textSecondary)
                 }
                 .padding(Spacing.md)
@@ -65,20 +65,20 @@ struct HelpView: View {
 
             if expandedFAQ == item.id {
                 Text(item.answer)
-                    .font(.system(size: 14))
+                    .font(Typography.bodyMedium)
                     .foregroundColor(Theme.textBody)
                     .padding(.horizontal, Spacing.md)
                     .padding(.bottom, Spacing.md)
             }
         }
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
     }
 
     private var contactSection: some View {
         VStack(spacing: Spacing.sm) {
             Text("找不到答案？")
-                .font(.system(size: 15, weight: .medium))
+                .font(Typography.bodyMedium)
                 .foregroundColor(Theme.textPrimary)
 
             Button {
@@ -88,9 +88,9 @@ struct HelpView: View {
             } label: {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "envelope.fill")
-                        .font(.system(size: 14))
+                        .font(Typography.bodyMedium)
                     Text("聯繫客服")
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)

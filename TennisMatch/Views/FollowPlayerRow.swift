@@ -30,7 +30,7 @@ struct FollowPlayerRow: View {
                     .fill(Theme.avatarPlaceholder)
                     .frame(width: 48, height: 48)
                 Text(String(player.name.prefix(1)))
-                    .font(.system(size: 18, weight: .bold))
+                    .font(Typography.body)
                     .foregroundColor(.white)
             }
 
@@ -38,7 +38,7 @@ struct FollowPlayerRow: View {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 4) {
                     Text(player.name)
-                        .font(.system(size: 15, weight: .medium))
+                        .font(Typography.bodyMedium)
                         .foregroundColor(Theme.textPrimary)
                         .lineLimit(1)
                     Text(player.gender.symbol)
@@ -55,7 +55,7 @@ struct FollowPlayerRow: View {
             // 關注按鈕
             Button(action: onButtonTap) {
                 Text(buttonLabel)
-                    .font(.system(size: 12, weight: .medium))
+                    .font(Typography.smallMedium)
                     .foregroundColor(isOutlineStyle ? Theme.textBody : .white)
                     .padding(.horizontal, Spacing.sm)
                     .frame(height: 30)
@@ -71,7 +71,7 @@ struct FollowPlayerRow: View {
             }
         }
         .padding(Spacing.md)
-        .background(.white)
+        .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
         .contentShape(Rectangle())
         .onTapGesture(perform: onRowTap)
