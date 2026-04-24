@@ -165,7 +165,7 @@ struct ProfileView: View {
             HStack {
                 HStack(spacing: Spacing.md) {
                     Button { showFollowing = true } label: {
-                        followStat(count: "\(followStore.followingCount)", label: "關注")
+                        followStat(count: "\(followStore.followingCount)", label: "關注中")
                     }
                     Button { showFollowers = true } label: {
                         followStat(count: "\(followStore.followerCount)", label: "粉絲")
@@ -230,7 +230,7 @@ struct ProfileView: View {
             .clipShape(Capsule())
     }
 
-    private func followStat(count: String, label: String) -> some View {
+    private func followStat(count: String, label: LocalizedStringKey) -> some View {
         HStack(spacing: 3) {
             Text(count)
                 .font(Typography.labelSemibold)
@@ -241,7 +241,7 @@ struct ProfileView: View {
         }
     }
 
-    private func statCard(value: String, label: String) -> some View {
+    private func statCard(value: String, label: LocalizedStringKey) -> some View {
         VStack(spacing: 4) {
             Text(value)
                 .font(Typography.largeStat)
@@ -275,13 +275,13 @@ struct ProfileView: View {
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
 
-    private func recordRow(label: String, value: String) -> some View {
+    private func recordRow(label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(Typography.small)
                 .foregroundColor(Theme.textCaption)
             Spacer()
-            Text(value)
+            Text(LocalizedStringKey(value))
                 .font(Typography.smallMedium)
                 .foregroundColor(Theme.textPrimary)
         }
@@ -326,7 +326,7 @@ struct ProfileView: View {
                     .font(Typography.captionMedium)
                     .foregroundColor(Theme.textPrimary)
                 Spacer()
-                Text(record.round)
+                Text(LocalizedStringKey(record.round))
                     .font(Typography.micro)
                     .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
                     .padding(.horizontal, Spacing.xs)
@@ -366,7 +366,7 @@ struct ProfileView: View {
                             .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
                     }
                     Spacer()
-                    Text(record.result)
+                    Text(LocalizedStringKey(record.result))
                         .font(Typography.micro)
                         .foregroundColor(record.isWin ? Theme.primary : Theme.requiredText)
                 }
@@ -406,7 +406,7 @@ struct ProfileView: View {
         .shadow(color: .black.opacity(0.06), radius: 4, y: 1)
     }
 
-    private func achievementBadge(icon: String, label: String, unlocked: Bool) -> some View {
+    private func achievementBadge(icon: String, label: LocalizedStringKey, unlocked: Bool) -> some View {
         VStack(spacing: 6) {
             ZStack {
                 Circle()

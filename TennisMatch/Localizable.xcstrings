@@ -218,7 +218,22 @@
       }
     },
     "互相評論": {},
-    "互相關注": {},
+    "互相關注": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mutual"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "互相关注"
+          }
+        }
+      }
+    },
     "互相關注後才能邀請對方": {},
     "互相關注的球友會顯示在這裡": {},
     "五": {
@@ -233,6 +248,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "五"
+          }
+        }
+      }
+    },
+    "亞軍": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Runner-up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "亚军"
           }
         }
       }
@@ -441,7 +472,39 @@
         }
       }
     },
+    "冠軍": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Champion"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "冠军"
+          }
+        }
+      }
+    },
     "凍結帳號 1 個月": {},
+    "出席率": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Attendance"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "出席率"
+          }
+        }
+      }
+    },
     "分享你的邀請碼給朋友，一起加入 Let's Tennis": {},
     "分享給朋友": {},
     "刪除": {},
@@ -464,6 +527,22 @@
     },
     "創建約球": {},
     "創建賽事": {},
+    "勝": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Win"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胜"
+          }
+        }
+      }
+    },
     "匹配度": {},
     "即將到來": {
       "localizations": {
@@ -689,6 +768,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "女"
+          }
+        }
+      }
+    },
+    "守時達人": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Punctual"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "守时达人"
           }
         }
       }
@@ -1056,7 +1151,22 @@
       }
     },
     "帳號處罰": {},
-    "常去球場": {},
+    "常去球場": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usual court"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "常去球场"
+          }
+        }
+      }
+    },
     "幫助": {
       "localizations": {
         "en": {
@@ -1387,6 +1497,22 @@
         }
       }
     },
+    "新手上路": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rookie"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新手上路"
+          }
+        }
+      }
+    },
     "日": {
       "localizations": {
         "en": {
@@ -1464,6 +1590,38 @@
       }
     },
     "未解鎖": {},
+    "未設定": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未设定"
+          }
+        }
+      }
+    },
+    "本月場次": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This month"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本月场次"
+          }
+        }
+      }
+    },
     "查看": {},
     "查看 %@ 的資料": {},
     "查看報名者": {
@@ -1524,6 +1682,22 @@
         }
       }
     },
+    "活躍球手": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Active"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活跃球手"
+          }
+        }
+      }
+    },
     "清除篩選": {
       "localizations": {
         "en": {
@@ -1575,7 +1749,22 @@
         }
       }
     },
-    "理想球友": {},
+    "理想球友": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ideal Player"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "理想球友"
+          }
+        }
+      }
+    },
     "用戶協議": {
       "localizations": {
         "en": {
@@ -1906,7 +2095,22 @@
         }
       }
     },
-    "粉絲": {},
+    "粉絲": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Followers"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "粉丝"
+          }
+        }
+      }
+    },
     "約球助理": {
       "localizations": {
         "en": {
@@ -2007,7 +2211,22 @@
         }
       }
     },
-    "編輯資料": {},
+    "編輯資料": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Edit Profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "编辑资料"
+          }
+        }
+      }
+    },
     "編輯賽事": {
       "localizations": {
         "en": {
@@ -2036,6 +2255,22 @@
           "stringUnit": {
             "state": "translated",
             "value": "编辑赛事功能即将推出"
+          }
+        }
+      }
+    },
+    "總場次": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Total"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "总场次"
           }
         }
       }
@@ -2273,6 +2508,22 @@
     },
     "請輸入郵箱": {},
     "變動記錄": {},
+    "負": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Loss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "负"
+          }
+        }
+      }
+    },
     "費用分攤": {},
     "費用金額 (港幣)": {},
     "賽事": {
@@ -2559,6 +2810,22 @@
         }
       }
     },
+    "關注中": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Following"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "关注中"
+          }
+        }
+      }
+    },
     "關注你的球友會顯示在這裡": {},
     "關注喜歡的球友後，會顯示在這裡": {},
     "關聯": {
@@ -2710,16 +2977,77 @@
     },
     "驗證並登入": {},
     "驗證碼": {},
+    "高手之路": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Master's Path"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高手之路"
+          }
+        }
+      }
+    },
     "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。": {},
     "🎾": {},
     "🎾 查看 NTRP 技術分級標準 →": {},
     "🎾 約球記錄": {},
     "🎾 約球邀請": {},
     "🎾 網球 NTRP 技術分級標準（精簡版）": {},
-    "🎾 記錄": {},
-    "🏅 成就": {},
+    "🎾 記錄": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎾 Record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎾 记录"
+          }
+        }
+      }
+    },
+    "🏅 成就": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏅 Achievements"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏅 成就"
+          }
+        }
+      }
+    },
     "🏆": {},
-    "🏆 賽事記錄": {},
+    "🏆 賽事記錄": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏆 Tournament record"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🏆 赛事记录"
+          }
+        }
+      }
+    },
     "💡 根據人數，推薦「%@」": {},
     "💬 私信": {},
     "💬 聊天": {
