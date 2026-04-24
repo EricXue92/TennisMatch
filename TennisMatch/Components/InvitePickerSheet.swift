@@ -20,6 +20,7 @@ enum InviteTarget: Identifiable {
         }
     }
 
+    // TODO: 將邀請卡片的渲染責任移到 ChatDetailView / 專用 formatter；enum 不應混入 presentation。
     /// 用於 ChatDetailView 的 matchContext 字串 — 渲染邀請卡片。
     var chatContext: String {
         switch self {
@@ -46,7 +47,7 @@ struct InvitePickerSheet: View {
     @Environment(\.dismiss) private var dismiss
 
     private var mutualFollows: [FollowPlayer] {
-        mockMutualFollowPlayers.filter { followStore.isFollowing($0.name) }
+        followStore.mutualFollows
     }
 
     var body: some View {
@@ -93,7 +94,7 @@ struct InvitePickerSheet: View {
                 Circle()
                     .fill(Theme.avatarPlaceholder)
                     .frame(width: 40, height: 40)
-                Text(String(player.name.suffix(1)))
+                Text(String(player.name.prefix(1)))
                     .font(Typography.labelSemibold)
                     .foregroundColor(.white)
             }

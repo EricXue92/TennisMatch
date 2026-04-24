@@ -16,7 +16,7 @@ struct MutualFollowListView: View {
 
     /// 只顯示仍在 followStore.following 中的互關球友。
     private var activeMutuals: [FollowPlayer] {
-        mockMutualFollowPlayers.filter { followStore.isFollowing($0.name) }
+        followStore.mutualFollows
     }
 
     var body: some View {

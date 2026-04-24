@@ -15,7 +15,7 @@ struct FollowingView: View {
     @State private var selectedPlayer: PublicPlayerData?
 
     private var followedPlayers: [FollowPlayer] {
-        mockMutualFollowPlayers.filter { followStore.isFollowing($0.name) }
+        followStore.mutualFollows
     }
 
     var body: some View {

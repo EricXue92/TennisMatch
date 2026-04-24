@@ -34,6 +34,11 @@ final class FollowStore {
         following.contains(name)
     }
 
+    /// 當前用戶的互關球友（mockMutualFollowPlayers 與已關注集合的交集）。
+    var mutualFollows: [FollowPlayer] {
+        mockMutualFollowPlayers.filter { isFollowing($0.name) }
+    }
+
     func toggle(_ name: String) {
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
         if following.contains(name) {
