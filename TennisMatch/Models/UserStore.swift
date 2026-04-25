@@ -13,6 +13,7 @@ import Foundation
 import Observation
 
 @Observable
+@MainActor
 final class UserStore {
     /// 显示名(如 "小李")。
     var displayName: String

@@ -28,6 +28,7 @@ import Foundation
 import Observation
 
 @Observable
+@MainActor
 final class CreditScoreStore {
     /// 当前积分,范围 0…100。
     private(set) var score: Int

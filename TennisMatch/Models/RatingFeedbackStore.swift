@@ -50,6 +50,7 @@ struct CalibrationSuggestion: Equatable {
 }
 
 @Observable
+@MainActor
 final class RatingFeedbackStore {
     private(set) var entries: [PeerRatingEntry]
 

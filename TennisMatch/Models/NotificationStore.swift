@@ -61,6 +61,7 @@ struct MatchNotification: Identifiable {
 }
 
 @Observable
+@MainActor
 final class NotificationStore {
     private(set) var notifications: [MatchNotification]
 

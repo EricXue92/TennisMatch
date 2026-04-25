@@ -9,6 +9,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class TournamentStore {
     var tournaments: [MockTournament]
 

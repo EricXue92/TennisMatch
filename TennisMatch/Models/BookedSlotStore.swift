@@ -24,6 +24,7 @@ struct BookedSlot: Identifiable, Hashable {
 }
 
 @Observable
+@MainActor
 final class BookedSlotStore {
     private(set) var slots: [BookedSlot] = []
 
