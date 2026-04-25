@@ -151,7 +151,7 @@ struct SettingsView: View {
                 Text("跟隨系統").tag(LocaleManager.AppLanguage.system)
                 Text("简体中文").tag(LocaleManager.AppLanguage.zhHans)
                 Text("繁體中文").tag(LocaleManager.AppLanguage.zhHant)
-                Text("English").tag(LocaleManager.AppLanguage.en)
+
             } label: {
                 Label("語言", systemImage: "globe")
                     .font(Typography.fieldValue)
