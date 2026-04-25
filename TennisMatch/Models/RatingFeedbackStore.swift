@@ -104,9 +104,7 @@ final class RatingFeedbackStore {
     }
 
     private static var todayLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        return formatter.string(from: .now)
+        return AppDateFormatter.monthDay.string(from: .now)
     }
 
     /// Mock seed:5 條球友評價,平均約 2.9 — 對應預設自評 3.5,

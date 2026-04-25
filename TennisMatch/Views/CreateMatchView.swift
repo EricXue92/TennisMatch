@@ -306,9 +306,7 @@ struct CreateMatchView: View {
 
     private var dateFormatted: String {
         if !dateWasEdited { return "選擇日期" }
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        return formatter.string(from: selectedDate)
+        return AppDateFormatter.monthDay.string(from: selectedDate)
     }
 
     private let timeSlots: [String] = {
@@ -589,9 +587,7 @@ struct CreateMatchView: View {
     }
 
     private var confirmDateText: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        let dateStr = dateWasEdited ? formatter.string(from: selectedDate) : "未選擇"
+        let dateStr = dateWasEdited ? AppDateFormatter.monthDay.string(from: selectedDate) : "未選擇"
         let startStr = startTimeEdited ? selectedStartTime : "--:--"
         let endStr = endTimeEdited ? selectedEndTime : "--:--"
         return "\(dateStr)  \(startStr) ~ \(endStr)"

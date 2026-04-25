@@ -70,16 +70,11 @@ struct MockMatch: Identifiable {
 /// 生成相對於今天的日期字串（MM/dd 格式），確保 mock 數據永不過期
 private let _mockCalendar = Calendar.current
 private let _mockToday = Date()
-private let _mockDateFormatter: DateFormatter = {
-    let f = DateFormatter()
-    f.dateFormat = "MM/dd"
-    return f
-}()
 private let _weekdayNames = ["日", "一", "二", "三", "四", "五", "六"]
 
 private func mockDate(_ daysFromNow: Int) -> String {
     guard let date = _mockCalendar.date(byAdding: .day, value: daysFromNow, to: _mockToday) else { return "01/01" }
-    return _mockDateFormatter.string(from: date)
+    return AppDateFormatter.monthDay.string(from: date)
 }
 
 private func mockDayOfWeek(_ daysFromNow: Int) -> String {

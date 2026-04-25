@@ -94,8 +94,6 @@ final class CreditScoreStore {
     }
 
     private static var todayLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        return formatter.string(from: .now)
+        return AppDateFormatter.monthDay.string(from: .now)
     }
 }

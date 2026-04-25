@@ -75,9 +75,7 @@ struct ProfileView: View {
         return creditScoreStore.entries.filter { entry in
             guard entry.reason == "完成約球" else { return false }
             // 從 "MM/dd" 格式解析月份
-            let formatter = DateFormatter()
-            formatter.dateFormat = "MM/dd"
-            guard let entryDate = formatter.date(from: entry.date) else { return false }
+            guard let entryDate = AppDateFormatter.monthDay.date(from: entry.date) else { return false }
             let entryMonth = calendar.component(.month, from: entryDate)
             let currentMonth = calendar.component(.month, from: now)
             return entryMonth == currentMonth
