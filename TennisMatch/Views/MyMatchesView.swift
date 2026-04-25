@@ -12,10 +12,11 @@ struct MyMatchesView: View {
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     var onGoTournaments: (() -> Void)? = nil
-    /// 取消約球時回呼上層,傳入 HomeView 來源 MockMatch ID(若有)。
-    /// HomeView 用此回呼遞減 `currentPlayers`,讓被取消的約球重新出現在首頁。
-    /// `signedUpMatchIDs` 與 accepted 列表已由 BookingStore 自行同步,不在此回呼處理。
-    var onMatchCancelled: ((UUID?) -> Void)? = nil
+    /// 取消約球時回呼上層,傳入結構化 payload 讓 HomeView 處理首頁副作用。
+    /// HomeView 會在「找得到源 MockMatch」時遞減 currentPlayers;在「找不到源且用戶非發起人」
+    /// 時用 payload 在首頁合成一筆 MockMatch,讓種子假資料 / 邀請接受的取消也能讓
+    /// 空出的名額對其他球友可見。`signedUpMatchIDs` 與 accepted 已由 BookingStore 處理。
+    var onMatchCancelled: ((CancelledMatchPayload) -> Void)? = nil
     @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
@@ -41,6 +42,10 @@ struct MyMatchesView: View {
     /// restarts. UUIDs change each launch with mock data, so we key by content.
     @AppStorage("rejectedInvitationKeys") private var rejectedInvitationKeysJSON: String = "[]"
     @AppStorage("acceptedInvitationKeys") private var acceptedInvitationKeysJSON: String = "[]"
+    /// 已取消的種子假數據 key(content-keyed,JSON-encoded)。
+    /// MyMatchesView 在切換 tab 時會被銷毀重建,@State 的 upcomingMatches 隨之重置 ——
+    /// 若不持久化「已取消」,用戶可以對同一個種子假資料反覆取消,首頁也會堆出多張合成卡。
+    @AppStorage("cancelledMockUpcomingKeys") private var cancelledMockKeysJSON: String = "[]"
     @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
@@ -51,7 +56,32 @@ struct MyMatchesView: View {
     @State private var selectedCompletedMatch: MyMatchItem?
 
     private var sortedUpcoming: [MyMatchItem] {
-        (acceptedMatchItems + upcomingMatches).sorted { $0.sortDate < $1.sortDate }
+        let cancelled = cancelledMockKeys
+        let visible = upcomingMatches.filter { !cancelled.contains(cancelKey(for: $0)) }
+        return (acceptedMatchItems + visible).sorted { $0.sortDate < $1.sortDate }
+    }
+
+    private var cancelledMockKeys: Set<String> {
+        guard let data = cancelledMockKeysJSON.data(using: .utf8),
+              let arr = try? JSONDecoder().decode([String].self, from: data) else {
+            return []
+        }
+        return Set(arr)
+    }
+
+    /// 種子假資料的內容 key — UUID 每次 view 重建都變,只能靠內容定位。
+    /// dateLabel 含相對日期 (如「明天 · 04/26」),次日自動失效,符合 mock 數據隨日期滾動的特性。
+    private func cancelKey(for item: MyMatchItem) -> String {
+        "\(item.title)|\(item.dateLabel)|\(item.timeRange)|\(item.location)"
+    }
+
+    private func persistCancelledMock(_ item: MyMatchItem) {
+        var keys = cancelledMockKeys
+        keys.insert(cancelKey(for: item))
+        if let data = try? JSONEncoder().encode(Array(keys)),
+           let json = String(data: data, encoding: .utf8) {
+            cancelledMockKeysJSON = json
+        }
     }
 
     private var sortedCompleted: [MyMatchItem] {
@@ -284,10 +314,23 @@ struct MyMatchesView: View {
                             if let removed = bookingStore.cancel(acceptedID: aid) {
                                 removedSourceID = removed.sourceMatchID ?? removedSourceID
                             }
+                        } else {
+                            // 種子假資料(無 acceptedMatchID)取消後需持久化,避免 tab 切換重建後重新出現,
+                            // 進而導致用戶重複取消、首頁堆出多張合成卡。
+                            persistCancelledMock(match)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
-                        // 通知 HomeView 遞減 MockMatch.currentPlayers,讓滿員的約球重新可見。
-                        onMatchCancelled?(removedSourceID)
+                        // 通知 HomeView 處理首頁副作用(遞減或合成新 MockMatch)。
+                        onMatchCancelled?(CancelledMatchPayload(
+                            sourceMatchID: removedSourceID,
+                            isOrganizer: match.isOrganizer,
+                            title: match.title,
+                            location: match.location,
+                            weather: match.weather,
+                            matchType: match.matchType,
+                            startDate: match.startDate,
+                            players: match.players
+                        ))
                     }
                     // 阶梯扣分: ≥24h → 0, 2-24h → -1, <2h → -2
                     let deduction = creditScoreStore.recordCancellation(

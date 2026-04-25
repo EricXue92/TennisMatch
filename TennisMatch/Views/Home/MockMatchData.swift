@@ -53,16 +53,38 @@ struct MockMatch: Identifiable {
     var sortDate: Date { startDate }
 
     /// 显示用的完整时段字符串,如 "04/23 09:00 - 11:00"。
+    /// Phase 2a:直接用 startDate + 2h 算 endDate,避免字符串截取丢失开始时间的分钟。
+    /// 旧实现 `(startHour + 2):00` 会把 08:30 的结束时间错算成 10:00(实际 10:30),
+    /// 导致首页显示与冲突检测(用真实 Date 算)对不上,用户看到「不重叠」却被拒。
     var dateTimeDisplay: String {
-        let parts = dateTime.split(separator: " ")
-        guard parts.count >= 2 else { return dateTime }
-        let dateStr = String(parts[0])
-        let startTime = String(parts[1])
-        let startHour = Int(startTime.prefix(2)) ?? hour
-        let endHour = min(startHour + 2, 24)
-        let endTime = endHour == 24 ? "00:00(隔天)" : String(format: "%02d:00", endHour)
+        let endDate = startDate.addingTimeInterval(2 * 3600)
+        let dateStr = AppDateFormatter.monthDay.string(from: startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: startDate)
+        let endTime = AppDateFormatter.hourMinute.string(from: endDate)
         return "\(dateStr) \(startTime) - \(endTime)"
     }
+}
+
+// MARK: - Cancellation Payload (MyMatchesView → HomeView)
+
+/// 取消約球時 MyMatchesView 傳給 HomeView 的資料,讓首頁能正確處理三種情境:
+/// 1. `sourceMatchID` 對應到首頁已存在的 MockMatch → 遞減 currentPlayers,該球賽重新可見。
+/// 2. 沒有源 MockMatch(種子假資料 / 邀請接受 / 聊天接受)且當前用戶非發起人 →
+///    在首頁新建一個 MockMatch,模擬「空出名額讓其他人看到」。
+/// 3. 當前用戶是發起人(isOrganizer=true) → 視為發起人取消整場,不重新出現在首頁。
+struct CancelledMatchPayload {
+    /// 對應的首頁 MockMatch.id,若不存在則為 nil。
+    let sourceMatchID: UUID?
+    /// 當前用戶是否為該約球發起人。發起人取消 = 整場取消,不應在首頁重生。
+    let isOrganizer: Bool
+    /// 形如 "莎拉 發起的單打" 或 "我發起的雙打"。用來解析發起人姓名。
+    let title: String
+    let location: String
+    let weather: String
+    let matchType: String
+    let startDate: Date
+    /// 形如 "2/2 · NTRP 3.0-4.0",取消後 currentPlayers 自動 -1。
+    let players: String
 }
 
 // MARK: - Mock Date Helpers

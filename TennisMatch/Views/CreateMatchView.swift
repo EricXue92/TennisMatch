@@ -267,34 +267,58 @@ struct CreateMatchView: View {
             }
 
             if showStartTimePicker {
-                Picker("", selection: $selectedStartTime) {
-                    ForEach(timeSlots, id: \.self) { slot in
-                        Text(slot).tag(slot)
+                VStack(spacing: 0) {
+                    HStack {
+                        Spacer()
+                        Button("完成") {
+                            showStartTimePicker = false
+                        }
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(Theme.primary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .padding(.trailing, Spacing.sm)
                     }
-                }
-                .pickerStyle(.wheel)
-                .labelsHidden()
-                .onChange(of: selectedStartTime) { _, newValue in
-                    startTimeEdited = true
-                    if selectedEndTime <= newValue {
-                        if let idx = timeSlots.firstIndex(of: newValue), idx + 1 < timeSlots.count {
-                            selectedEndTime = timeSlots[idx + 1]
-                            endTimeEdited = true
+                    Picker("", selection: $selectedStartTime) {
+                        ForEach(timeSlots, id: \.self) { slot in
+                            Text(slot).tag(slot)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .labelsHidden()
+                    .onChange(of: selectedStartTime) { _, newValue in
+                        startTimeEdited = true
+                        if selectedEndTime <= newValue {
+                            if let idx = timeSlots.firstIndex(of: newValue), idx + 1 < timeSlots.count {
+                                selectedEndTime = timeSlots[idx + 1]
+                                endTimeEdited = true
+                            }
                         }
                     }
                 }
             }
 
             if showEndTimePicker {
-                Picker("", selection: $selectedEndTime) {
-                    ForEach(endTimeSlots, id: \.self) { slot in
-                        Text(slot).tag(slot)
+                VStack(spacing: 0) {
+                    HStack {
+                        Spacer()
+                        Button("完成") {
+                            showEndTimePicker = false
+                        }
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(Theme.primary)
+                        .frame(minWidth: 44, minHeight: 44)
+                        .padding(.trailing, Spacing.sm)
                     }
-                }
-                .pickerStyle(.wheel)
-                .labelsHidden()
-                .onChange(of: selectedEndTime) { _, _ in
-                    endTimeEdited = true
+                    Picker("", selection: $selectedEndTime) {
+                        ForEach(endTimeSlots, id: \.self) { slot in
+                            Text(slot).tag(slot)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .labelsHidden()
+                    .onChange(of: selectedEndTime) { _, _ in
+                        endTimeEdited = true
+                    }
                 }
             }
         }

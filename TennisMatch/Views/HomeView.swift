@@ -61,15 +61,8 @@ struct HomeView: View {
                     sharedChats: $sharedChats,
                     onGoHome: { selectedTab = 0 },
                     onGoTournaments: { showTournaments = true },
-                    onMatchCancelled: { sourceMatchID in
-                        // 取消約球後遞減 MockMatch.currentPlayers,讓滿員的約球重新出現在首頁。
-                        // signedUpMatchIDs 已由 BookingStore.cancel 處理,此處只動 mock 顯示欄位。
-                        guard let id = sourceMatchID,
-                              let idx = matches.firstIndex(where: { $0.id == id })
-                        else { return }
-                        if matches[idx].currentPlayers > 0 {
-                            matches[idx].currentPlayers -= 1
-                        }
+                    onMatchCancelled: { payload in
+                        handleMyMatchCancellation(payload)
                     }
                 )
                 case 2: MatchAssistantView()
@@ -700,6 +693,91 @@ private extension HomeView {
             ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh),
             startDate: start,
             endDate: end
+        )
+    }
+
+    /// 處理「我的約球」取消操作對首頁的副作用。
+    /// 三種情況:
+    /// 1. 找到源 MockMatch → 遞減 currentPlayers(BookingStore-backed sign-up 流)。
+    /// 2. 用戶為發起人 → 整場取消,不重新出現在首頁。
+    /// 3. 找不到源 MockMatch 且非發起人 → 用 payload 在首頁合成一筆 MockMatch,
+    ///    讓種子假資料 / 邀請接受 / 聊天接受的取消也能讓「空名額」對其他人可見。
+    func handleMyMatchCancellation(_ payload: CancelledMatchPayload) {
+        if let id = payload.sourceMatchID,
+           let idx = matches.firstIndex(where: { $0.id == id }) {
+            if matches[idx].currentPlayers > 0 {
+                matches[idx].currentPlayers -= 1
+            }
+            return
+        }
+        guard !payload.isOrganizer else { return }
+        let synthesized = makeRevenantMockMatch(from: payload)
+        // 去重:若首頁已有同 organizer / location / startDate / matchType 的 MockMatch,
+        // 視為重複取消(例如歷史殘留 + 再次取消),不再追加。
+        let alreadyOnHome = matches.contains { existing in
+            existing.name == synthesized.name
+                && existing.location == synthesized.location
+                && existing.matchType == synthesized.matchType
+                && existing.startDate == synthesized.startDate
+        }
+        guard !alreadyOnHome else { return }
+        matches.insert(synthesized, at: 0)
+    }
+
+    /// 由取消 payload 合成回首頁的 MockMatch。沒有 fee / age / gender 等 metadata,
+    /// 取合理預設,避免在首頁卡片露出空字串。
+    func makeRevenantMockMatch(from payload: CancelledMatchPayload) -> MockMatch {
+        // 解析「莎拉 發起的單打」 → "莎拉";解析失敗 fallback 到 "球友"。
+        let organizerName: String = {
+            let parts = payload.title.components(separatedBy: " 發起的")
+            if let first = parts.first, !first.isEmpty, first != "我" { return first }
+            return "球友"
+        }()
+
+        // 解析 "2/2 · NTRP 3.0-4.0":current/max + ntrp 上下限。
+        let counts: (current: Int, max: Int) = {
+            let digits = payload.players.split { !$0.isNumber }.map(String.init)
+            guard digits.count >= 2,
+                  let cur = Int(digits[0]),
+                  let mx = Int(digits[1]) else { return (1, 2) }
+            return (cur, mx)
+        }()
+        let ntrp: (low: Double, high: Double) = {
+            guard let range = payload.players.components(separatedBy: "NTRP ").last else { return (3.0, 4.0) }
+            let parts = range.split(separator: "-").compactMap { Double($0) }
+            guard parts.count == 2 else { return (3.0, 4.0) }
+            return (parts[0], parts[1])
+        }()
+
+        let calendar = Calendar.current
+        let hour = calendar.component(.hour, from: payload.startDate)
+        let weekdayIndex = calendar.component(.weekday, from: payload.startDate)
+        let dayMap = [1: "日", 2: "一", 3: "二", 4: "三", 5: "四", 6: "五", 7: "六"]
+        let dayOfWeek = dayMap[weekdayIndex] ?? "一"
+        let dateStr = AppDateFormatter.monthDay.string(from: payload.startDate)
+        let startTimeStr = AppDateFormatter.hourMinute.string(from: payload.startDate)
+
+        // 取消後實際 current = 原 current - 1(用戶剛離開)。
+        let newCurrent = max(counts.current - 1, 0)
+
+        return MockMatch(
+            name: organizerName,
+            gender: .male,
+            matchType: payload.matchType,
+            weather: payload.weather,
+            dateTime: "\(dateStr) \(startTimeStr)",
+            startDate: payload.startDate,
+            location: payload.location,
+            fee: "AA ¥100",
+            ntrpLow: ntrp.low,
+            ntrpHigh: ntrp.high,
+            ageRange: "26-35",
+            genderLabel: "不限",
+            hour: hour,
+            dayOfWeek: dayOfWeek,
+            currentPlayers: newCurrent,
+            maxPlayers: counts.max,
+            isOwnMatch: false
         )
     }
 
