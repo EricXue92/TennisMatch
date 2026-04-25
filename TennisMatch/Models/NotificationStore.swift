@@ -61,6 +61,7 @@ struct MatchNotification: Identifiable {
 }
 
 @Observable
+@MainActor
 final class NotificationStore {
     private(set) var notifications: [MatchNotification]
 
@@ -90,12 +91,10 @@ final class NotificationStore {
 
     /// 与原 NotificationsView 中 mock 数据等价,统一在 store 内维护。
     /// 日期使用相對計算，確保 mock 數據永不過期。
-    static let mockSeed: [MatchNotification] = {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "MM/dd"
+    nonisolated static let mockSeed: [MatchNotification] = {
         func d(_ offset: Int) -> String {
             guard let date = Calendar.current.date(byAdding: .day, value: offset, to: Date()) else { return "01/01" }
-            return fmt.string(from: date)
+            return AppDateFormatter.monthDay.string(from: date)
         }
         return [
             MatchNotification(type: .signUp, title: "新的報名", body: "王強 報名了你發起的雙打約球（\(d(0)) 跑馬地）", time: "10 分鐘前", isRead: false),

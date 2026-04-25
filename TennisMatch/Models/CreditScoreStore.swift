@@ -28,6 +28,7 @@ import Foundation
 import Observation
 
 @Observable
+@MainActor
 final class CreditScoreStore {
     /// 当前积分,范围 0…100。
     private(set) var score: Int
@@ -94,8 +95,6 @@ final class CreditScoreStore {
     }
 
     private static var todayLabel: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        return formatter.string(from: .now)
+        return AppDateFormatter.monthDay.string(from: .now)
     }
 }

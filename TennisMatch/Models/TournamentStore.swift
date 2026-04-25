@@ -9,6 +9,7 @@
 import Foundation
 
 @Observable
+@MainActor
 final class TournamentStore {
     var tournaments: [MockTournament]
 
@@ -22,9 +23,7 @@ final class TournamentStore {
         organizerName: String,
         organizerGender: Gender
     ) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        let dateRange = "\(formatter.string(from: info.startDate)) - \(formatter.string(from: info.endDate))"
+        let dateRange = "\(AppDateFormatter.yearMonthDay.string(from: info.startDate)) - \(AppDateFormatter.yearMonthDay.string(from: info.endDate))"
 
         let tournament = MockTournament(
             name: info.name.isEmpty ? "我的賽事" : info.name,

@@ -12,6 +12,7 @@ import UIKit
 import Observation
 
 @Observable
+@MainActor
 final class FollowStore {
     /// 当前用户关注的球员名字集合。
     var following: Set<String>

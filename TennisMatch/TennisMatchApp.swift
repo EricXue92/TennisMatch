@@ -33,6 +33,9 @@ struct TennisMatchApp: App {
                     }
                 }
             }
+            // TODO(Phase1.5): 暂时强制浅色 — MessagesView / RecommendedPlayersSection / LoginView
+            // 等 ~7 处仍硬编码 `Color.white`,跟随系统切深色时白底文字对比度完全失效。
+            // 见审计 P2-#11,等 Theme 语义色全覆盖后再移除。
             .preferredColorScheme(.light)
             .environment(\.locale, localeManager.currentLocale)
             .environment(localeManager)

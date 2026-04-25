@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 
 @Observable
+@MainActor
 final class LocaleManager {
     static let shared = LocaleManager()
 

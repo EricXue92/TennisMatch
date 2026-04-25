@@ -1132,6 +1132,7 @@ private func relativeDateLabel(daysFromNow: Int) -> String {
     let weekday = calendar.component(.weekday, from: date)
     let weekdayStr = weekdaySymbols[weekday - 1]
 
+    // TODO(Phase1.5): migrate to AppDateFormatter — formatter has Locale(identifier: "zh_TW") special handling
     formatter.dateFormat = "MM/dd"
     let dateStr = formatter.string(from: date)
 
@@ -1153,9 +1154,7 @@ private func relativeDateLabel(daysFromNow: Int) -> String {
 private func relativeDateShort(daysFromNow: Int) -> String {
     let calendar = Calendar.current
     let date = calendar.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
-    let formatter = DateFormatter()
-    formatter.dateFormat = "MM/dd"
-    return formatter.string(from: date)
+    return AppDateFormatter.monthDay.string(from: date)
 }
 
 private var mockUpcomingMatchesInitial: [MyMatchItem] {
@@ -1674,11 +1673,7 @@ private struct CompletedMatchReviewSheet: View {
                             isMyReview: true,
                             rating: reviewRating,
                             comment: reviewText,
-                            date: {
-                                let f = DateFormatter()
-                                f.dateFormat = "MM/dd"
-                                return f.string(from: .now)
-                            }()
+                            date: AppDateFormatter.monthDay.string(from: .now)
                         )
                         showWriteReview = false
                     }
