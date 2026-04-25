@@ -16,7 +16,6 @@ final class LocaleManager {
         case system
         case zhHans
         case zhHant
-        case en
 
         var id: String { rawValue }
     }
@@ -34,7 +33,6 @@ final class LocaleManager {
         case .system: return .autoupdatingCurrent
         case .zhHans: return Locale(identifier: "zh-Hans")
         case .zhHant: return Locale(identifier: "zh-Hant")
-        case .en:     return Locale(identifier: "en")
         }
     }
 

@@ -239,7 +239,7 @@ struct PhoneVerificationView: View {
     private func resend() {
         code = ""
         startCountdown()
-        withAnimation { toastMessage = "驗證碼已重新發送至 \(phoneNumber)" }
+        withAnimation { toastMessage = L10n.string("驗證碼已重新發送至 \(phoneNumber)") }
     }
 }
 

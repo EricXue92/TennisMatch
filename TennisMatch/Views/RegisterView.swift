@@ -265,7 +265,7 @@ struct RegisterView: View {
                                 selectedTimeSlots.insert(slot)
                             }
                         } label: {
-                            Text(slot.displayName)
+                            Text(LocalizedStringKey(slot.displayName))
                                 .font(Typography.captionMedium)
                                 .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                                 .padding(.horizontal, Spacing.sm)
@@ -318,7 +318,7 @@ struct RegisterView: View {
 
     // MARK: - Shared Components
 
-    private func sectionHeader(title: String, badge: String, badgeBg: Color, badgeFg: Color) -> some View {
+    private func sectionHeader(title: LocalizedStringKey, badge: LocalizedStringKey, badgeBg: Color, badgeFg: Color) -> some View {
         HStack(spacing: Spacing.xs) {
             Text(title)
                 .font(Typography.button)
@@ -334,7 +334,7 @@ struct RegisterView: View {
     }
 
     private func fieldRow<Content: View>(
-        label: String,
+        label: LocalizedStringKey,
         required: Bool,
         @ViewBuilder content: () -> Content
     ) -> some View {
@@ -351,7 +351,7 @@ struct RegisterView: View {
         .padding(.vertical, Spacing.sm)
     }
 
-    private func requiredLabel(_ text: String) -> some View {
+    private func requiredLabel(_ text: LocalizedStringKey) -> some View {
         HStack(spacing: 2) {
             Text(text)
                 .font(Typography.bodyMedium)
@@ -374,7 +374,7 @@ struct RegisterView: View {
             ForEach(items) { item in
                 let isSelected = selected == item
                 Button { onSelect(item) } label: {
-                    Text(item[keyPath: label])
+                    Text(LocalizedStringKey(item[keyPath: label]))
                         .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                         .padding(.horizontal, 14)
@@ -407,7 +407,7 @@ struct RegisterView: View {
                         selected.wrappedValue.insert(item)
                     }
                 } label: {
-                    Text(item[keyPath: label])
+                    Text(LocalizedStringKey(item[keyPath: label]))
                         .font(Typography.captionMedium)
                         .foregroundColor(isSelected ? Theme.primary : Theme.chipUnselectedFg)
                         .padding(.horizontal, 14)
@@ -473,7 +473,7 @@ struct RegisterView: View {
         )
     }
 
-    private func addButton(_ title: String, action: @escaping () -> Void) -> some View {
+    private func addButton(_ title: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(title)
                 .font(Typography.smallMedium)
@@ -531,15 +531,15 @@ struct RegisterView: View {
                 showValidationError = false
                 validationMessage = ""
                 if name.trimmingCharacters(in: .whitespaces).isEmpty {
-                    validationMessage = "請輸入用戶名"
+                    validationMessage = L10n.string("請輸入用戶名")
                 } else if UserStore.reservedNames.contains(name.trimmingCharacters(in: .whitespaces)) {
-                    validationMessage = "該用戶名已被使用，請換一個"
+                    validationMessage = L10n.string("該用戶名已被使用，請換一個")
                 } else if selectedGender == nil {
-                    validationMessage = "請選擇性別"
+                    validationMessage = L10n.string("請選擇性別")
                 } else if selectedAgeRange == nil {
-                    validationMessage = "請選擇年齡段"
+                    validationMessage = L10n.string("請選擇年齡段")
                 } else if ntrpValue == nil {
-                    validationMessage = "NTRP 需在 1.0 – 7.0 之間"
+                    validationMessage = L10n.string("NTRP 需在 1.0 – 7.0 之間")
                 } else {
                     isLoading = true
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
@@ -642,7 +642,7 @@ private struct WeeklySlotPickerView: View {
                         ForEach(Weekday.allCases) { day in
                             let isSelected = selectedDay == day
                             Button { selectedDay = day } label: {
-                                Text(day.shortName)
+                                Text(LocalizedStringKey(day.shortName))
                                     .font(Typography.bodyMedium)
                                     .foregroundColor(isSelected ? .white : Theme.chipUnselectedFg)
                                     .frame(width: 52, height: 44)
@@ -1258,7 +1258,7 @@ struct CourtPickerView: View {
             VStack(spacing: 0) {
                 Picker("城市", selection: $selectedCity) {
                     ForEach(City.allCases) { city in
-                        Text(city.rawValue).tag(city)
+                        Text(LocalizedStringKey(city.rawValue)).tag(city)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -1267,7 +1267,7 @@ struct CourtPickerView: View {
 
                 List {
                     ForEach(groupedCourts, id: \.0) { district, courts in
-                        Section(district) {
+                        Section(LocalizedStringKey(district)) {
                             ForEach(courts) { court in
                                 let isSelected = selected.contains(court)
                                 Button {

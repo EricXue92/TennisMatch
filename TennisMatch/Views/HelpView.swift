@@ -107,8 +107,8 @@ struct HelpView: View {
 
 private struct FAQItem: Identifiable {
     let id = UUID()
-    let question: String
-    let answer: String
+    let question: LocalizedStringKey
+    let answer: LocalizedStringKey
 }
 
 private let faqItems: [FAQItem] = [
