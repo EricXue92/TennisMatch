@@ -48,8 +48,7 @@ struct CreateMatchView: View {
     @State private var costType: String = "AA制"
     @State private var costAmount: String = ""
     @State private var notes: String = ""
-    @State private var showCostError = false
-    @State private var validationMessage = ""
+    @State private var validationToast: String?
 
     // MARK: - Court picker bridge
     @State private var courtPickerSelection: Set<TennisCourt> = []
@@ -75,6 +74,7 @@ struct CreateMatchView: View {
             }
         }
         .background(Theme.background)
+        .toast($validationToast, icon: "exclamationmark.circle.fill")
         .navigationBarHidden(true)
         .sheet(isPresented: $showCourtPicker) {
             CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
@@ -409,7 +409,6 @@ struct CreateMatchView: View {
                 }
                 radioButton(label: "免費", isSelected: costType == "免費") {
                     costType = "免費"
-                    showCostError = false
                 }
             }
 
@@ -427,11 +426,7 @@ struct CreateMatchView: View {
                             .stroke(Theme.border, lineWidth: 1)
                     )
             }
-            if showCostError && !validationMessage.isEmpty {
-                Text(validationMessage)
-                    .font(Typography.small)
-                    .foregroundColor(Theme.requiredText)
-            }
+
         }
     }
 
@@ -461,26 +456,20 @@ struct CreateMatchView: View {
 
     private var submitButton: some View {
         Button {
-            // 必填項校驗
+            // 必填項校驗 — 失败统一通过顶部 toast 反饋
             if !dateWasEdited {
-                validationMessage = "請選擇日期"
-                showCostError = true
+                validationToast = "請選擇日期"
                 return
             } else if !startTimeEdited || !endTimeEdited {
-                validationMessage = "請選擇開始和結束時間"
-                showCostError = true
+                validationToast = "請選擇開始和結束時間"
                 return
             } else if selectedCourt == nil {
-                validationMessage = "請選擇球場"
-                showCostError = true
+                validationToast = "請選擇球場"
                 return
             } else if costType == "AA制" && (costAmount.isEmpty || Int(costAmount) ?? 0 <= 0) {
-                validationMessage = "請輸入有效的費用金額"
-                showCostError = true
+                validationToast = "請輸入有效的費用金額"
                 return
             }
-            validationMessage = ""
-            showCostError = false
             showConfirmation = true
         } label: {
             Text("發布約球")
