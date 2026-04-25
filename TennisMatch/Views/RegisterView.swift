@@ -174,6 +174,9 @@ struct RegisterView: View {
                             RoundedRectangle(cornerRadius: 8, style: .continuous)
                                 .strokeBorder(Theme.inputBorder, lineWidth: 1)
                         )
+                    Text("1.0 – 7.0")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textHint)
                 }
                 .padding(.vertical, Spacing.sm)
 
