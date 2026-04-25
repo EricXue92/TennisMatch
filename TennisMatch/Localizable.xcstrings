@@ -1868,7 +1868,16 @@
         }
       }
     },
-    "找不到答案？": {},
+    "找不到答案？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "找不到答案？"
+          }
+        }
+      }
+    },
     "技術重點：": {},
     "拉球": {
       "extractionState": "stale",
@@ -3962,6 +3971,126 @@
           "stringUnit": {
             "state": "translated",
             "value": "两次密码不一致"
+          }
+        }
+      }
+    },
+    "如何發布約球？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何发布约球？"
+          }
+        }
+      }
+    },
+    "點擊底部 Tab 欄中間的「+」按鈕，填寫約球信息後點擊「發布約球」即可。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击底部 Tab 栏中间的「+」按钮，填写约球信息后点击「发布约球」即可。"
+          }
+        }
+      }
+    },
+    "如何報名別人的約球？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何报名别人的约球？"
+          }
+        }
+      }
+    },
+    "在首頁瀏覽約球列表，點擊感興趣的約球卡片進入詳情頁，點擊「報名」按鈕確認即可。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在首页浏览约球列表，点击感兴趣的约球卡片进入详情页，点击「报名」按钮确认即可。"
+          }
+        }
+      }
+    },
+    "什麼是 NTRP？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "什么是 NTRP？"
+          }
+        }
+      }
+    },
+    "NTRP（National Tennis Rating Program）是國際通用的網球技術分級標準，從 1.0（初學者）到 7.0（世界級），幫助你找到水平匹配的對手。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NTRP（National Tennis Rating Program）是国际通用的网球技术分级标准，从 1.0（初学者）到 7.0（世界级），帮助你找到水平匹配的对手。"
+          }
+        }
+      }
+    },
+    "如何取消已報名的約球？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何取消已报名的约球？"
+          }
+        }
+      }
+    },
+    "進入「我的約球」頁面，找到你要取消的約球，點擊「取消」按鈕確認即可。取消後會通知所有參與者。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入「我的约球」页面，找到你要取消的约球，点击「取消」按钮确认即可。取消后会通知所有参与者。"
+          }
+        }
+      }
+    },
+    "如何創建賽事？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何创建赛事？"
+          }
+        }
+      }
+    },
+    "從側邊欄進入「賽事」頁面，點擊右上角「+ 建立賽事」按鈕，填寫賽事信息後發布。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "从侧边栏进入「赛事」页面，点击右上角「+ 建立赛事」按钮，填写赛事信息后发布。"
+          }
+        }
+      }
+    },
+    "如何封鎖其他用戶？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "如何封锁其他用户？"
+          }
+        }
+      }
+    },
+    "進入對方的個人主頁，點擊「封鎖」按鈕即可。被封鎖的用戶無法查看你的資料和約球，也無法向你發送私信。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进入对方的个人主页，点击「封锁」按钮即可。被封锁的用户无法查看你的资料和约球，也无法向你发送私信。"
           }
         }
       }
