@@ -1778,7 +1778,16 @@
       }
     },
     "所有打賞金額將直接用於 App 開發與伺服器維護": {},
-    "手機登入": {},
+    "手機登入": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机登入"
+          }
+        }
+      }
+    },
     "手機號碼": {
       "localizations": {
         "en": {
@@ -2247,7 +2256,16 @@
         }
       }
     },
-    "獲取驗證碼": {},
+    "獲取驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "获取验证码"
+          }
+        }
+      }
+    },
     "球場": {
       "localizations": {
         "en": {
@@ -3072,11 +3090,38 @@
     },
     "請先選擇評分": {},
     "請再次輸入密碼": {},
-    "請輸入 %@ 數字的手機號碼": {},
+    "請輸入 %@ 數字的手機號碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 %@ 数字的手机号码"
+          }
+        }
+      }
+    },
     "請輸入 6 位驗證碼": {},
     "請輸入密碼（至少 6 位）": {},
-    "請輸入您的手機號碼，我們將發送驗證碼": {},
-    "請輸入手機號碼": {},
+    "請輸入您的手機號碼，我們將發送驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入您的手机号码，我们将发送验证码"
+          }
+        }
+      }
+    },
+    "請輸入手機號碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入手机号码"
+          }
+        }
+      }
+    },
     "請輸入用戶名": {},
     "請輸入當前密碼並設定新密碼": {
       "localizations": {
@@ -3678,7 +3723,37 @@
         }
       }
     },
-    "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。": {}
+    "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。": {},
+    "%lld 位": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 位"
+          }
+        }
+      }
+    },
+    "%lld-%lld 位": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld-%lld 位"
+          }
+        }
+      }
+    },
+    "手機號碼長度不正確，%@ 號碼應為 %@ 數字": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手机号码长度不正确，%@ 号码应为 %@ 数字"
+          }
+        }
+      }
+    }
   },
   "version": "1.0"
 }

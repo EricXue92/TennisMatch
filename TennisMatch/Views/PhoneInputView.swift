@@ -34,9 +34,9 @@ struct PhoneInputView: View {
     private var lengthHint: String {
         let lengths = expectedLengths
         if lengths.count == 1 {
-            return "\(lengths[0]) 位"
+            return L10n.string("\(lengths[0]) 位")
         }
-        return "\(lengths.min()!)-\(lengths.max()!) 位"
+        return L10n.string("\(lengths.min()!)-\(lengths.max()!) 位")
     }
 
     var body: some View {
@@ -134,10 +134,10 @@ struct PhoneInputView: View {
             Button {
                 let digits = phoneNumber.filter(\.isNumber)
                 if digits.isEmpty {
-                    errorMessage = "請輸入手機號碼"
+                    errorMessage = L10n.string("請輸入手機號碼")
                     withAnimation { showError = true }
                 } else if !expectedLengths.contains(digits.count) {
-                    errorMessage = "手機號碼長度不正確，\(countryCode) 號碼應為 \(lengthHint) 數字"
+                    errorMessage = L10n.string("手機號碼長度不正確，\(countryCode) 號碼應為 \(lengthHint) 數字")
                     withAnimation { showError = true }
                 } else {
                     isLoading = true
