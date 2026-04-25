@@ -102,7 +102,7 @@ struct ChatDetailView: View {
             for msg in mockMessages {
                 messages.append(msg)
                 // After an accepted invitation, insert a system confirmation
-                if case .invitation(let date, let location) = msg.content,
+                if case .invitation(let date, let location, _, _) = msg.content,
                    isInvitationAccepted(date: date, location: location) {
                     messages.append(ChatBubble(
                         .systemMessage("🎾 約球已確認！\(date) 在\(location)，記得準時到達！")
@@ -263,8 +263,8 @@ struct ChatDetailView: View {
                         .foregroundColor(Theme.textHint)
                 }
             }
-        case .invitation(let date, let location):
-            invitationCard(messageID: message.id, date: date, location: location)
+        case .invitation(let date, let location, let start, let end):
+            invitationCard(messageID: message.id, date: date, location: location, startDate: start, endDate: end)
         case .systemMessage(let text):
             systemMessageBubble(text)
         }
@@ -398,7 +398,7 @@ struct ChatDetailView: View {
 
     // MARK: - Invitation Card
 
-    private func invitationCard(messageID: UUID, date: String, location: String) -> some View {
+    private func invitationCard(messageID: UUID, date: String, location: String, startDate: Date, endDate: Date) -> some View {
         let isAccepted = isInvitationAccepted(date: date, location: location)
         let isDeclined = declinedInvitationIDs.contains(messageID)
 
@@ -428,11 +428,8 @@ struct ChatDetailView: View {
                             let parts = date.components(separatedBy: " ")
                             let dateStr = parts.first ?? date
                             let timeStr = parts.count > 1 ? parts[1] : "10:00"
-                            let scheduleText = "\(dateStr) \(timeStr)"
-                            // Phase 2a: chat 邀请仍是字符串数据源,解析一次复用。
-                            guard let range = MatchSchedule.dateRange(text: scheduleText) else { return }
                             // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                            if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                            if let conflict = bookedSlotStore.conflict(start: startDate, end: endDate) {
                                 chatMenuToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
                                 return
                             }
@@ -442,16 +439,16 @@ struct ChatDetailView: View {
                                 dateString: dateStr,
                                 time: timeStr,
                                 location: location,
-                                startDate: range.start,
-                                endDate: range.end
+                                startDate: startDate,
+                                endDate: endDate
                             )
                             acceptedMatches.append(match)
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
-                            let label = "\(organizerName) \(scheduleText)"
+                            let label = "\(organizerName) \(dateStr) \(timeStr)"
                             bookedSlotStore.add(BookedSlot(
                                 id: match.id,
-                                start: range.start,
-                                end: range.end,
+                                start: startDate,
+                                end: endDate,
                                 label: label
                             ))
                         } label: {
@@ -634,7 +631,7 @@ private struct ChatBubble: Identifiable {
         case incoming(String)
         case outgoing(String)
         case outgoingImage(Data)
-        case invitation(date: String, location: String)
+        case invitation(date: String, location: String, startDate: Date, endDate: Date)
         case systemMessage(String)
     }
 }
