@@ -614,12 +614,12 @@ private extension HomeView {
             return
         }
 
-        let parts = match.dateTime.split(separator: " ")
-        let date = "2026/\(parts[0])"
-        let startTime = String(parts[1])
-        let startHour = Int(startTime.prefix(2)) ?? 10
-        let endHour = startHour + 2
-        let timeRange = "\(startTime) - \(String(format: "%02d:00", endHour))"
+        // Phase 2a: 显示字段直接从 startDate 派生,确保与底层 Date 一致。
+        let endDate = match.startDate.addingTimeInterval(2 * 3600)
+        let date = AppDateFormatter.yearMonthDay.string(from: match.startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+        let endTime = AppDateFormatter.hourMinute.string(from: endDate)
+        let timeRange = "\(startTime) - \(endTime)"
 
         signUpMatchId = match.id
 
@@ -639,7 +639,7 @@ private extension HomeView {
             players: playersStr,
             isFull: newCount >= match.maxPlayers,
             startDate: match.startDate,
-            endDate: match.startDate.addingTimeInterval(2 * 3600)
+            endDate: endDate
         )
     }
 
@@ -657,14 +657,12 @@ private extension HomeView {
     }
 
     func makeMatchDetail(from match: MockMatch) -> MatchDetailData {
-        // Parse dateTime "04/19 10:00" → date + timeRange
-        let parts = match.dateTime.split(separator: " ")
-        let date = "2026/\(parts[0])"
-        let startTime = String(parts[1])
-        // Estimate 2-hour session
-        let startHour = Int(startTime.prefix(2)) ?? 10
-        let endHour = startHour + 2
-        let timeRange = "\(startTime) - \(String(format: "%02d:00", endHour))"
+        // Phase 2a: 显示字段从 startDate 派生。
+        let endDate = match.startDate.addingTimeInterval(2 * 3600)
+        let date = AppDateFormatter.yearMonthDay.string(from: match.startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+        let endTime = AppDateFormatter.hourMinute.string(from: endDate)
+        let timeRange = "\(startTime) - \(endTime)"
 
         // Parse weather emoji + temp
         let temp = match.weather.replacingOccurrences(of: "☀️ ", with: "")
@@ -681,7 +679,7 @@ private extension HomeView {
             date: date,
             timeRange: timeRange,
             startDate: match.startDate,
-            endDate: match.startDate.addingTimeInterval(2 * 3600),
+            endDate: endDate,
             location: match.location,
             district: "香港",
             players: match.players.components(separatedBy: " •").first ?? match.players,
@@ -698,11 +696,11 @@ private extension HomeView {
 
     /// 报名成功后,将约球信息加入 acceptedMatches,使其显示在"我的约球"页面。
     func addToAcceptedMatches(match: MockMatch) {
-        let parts = match.dateTime.split(separator: " ")
-        let dateStr = String(parts[0]) // "04/19" — 仅用于显示
-        let startTime = parts.count > 1 ? String(parts[1]) : "\(match.hour):00"
+        // Phase 2a: 从 startDate 派生显示字段。
         let start = match.startDate
         let end = start.addingTimeInterval(2 * 3600)
+        let dateStr = AppDateFormatter.monthDay.string(from: start)
+        let startTime = AppDateFormatter.hourMinute.string(from: start)
 
         let accepted = AcceptedMatchInfo(
             organizerName: match.name,
