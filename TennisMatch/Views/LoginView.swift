@@ -146,7 +146,7 @@ struct LoginView: View {
         VStack(spacing: 12) {
             // Phone — primary CTA
             loginButton(
-                title: "手機號碼登陆",
+                title: "手機號碼登入",
                 icon: "phone.fill",
                 bg: chartreuse,
                 fg: bgTop,
@@ -156,20 +156,20 @@ struct LoginView: View {
 
             // WeChat
             loginButton(
-                title: "微信登录",
+                title: "微信登入",
                 icon: "bubble.left.fill",
                 bg: wechat,
                 fg: .white,
                 delay: 0.60,
-                action: { toastMessage = "微信登录即將支持" }
+                action: { toastMessage = L10n.string("微信登入即將支持") }
             )
 
             // Apple
-            Button(action: { toastMessage = "Apple 登录即將支持" }) {
+            Button(action: { toastMessage = L10n.string("Apple 登入即將支持") }) {
                 HStack(spacing: 10) {
                     Image(systemName: "apple.logo")
                         .font(Typography.sectionTitle)
-                    Text("Apple 登录")
+                    Text("Apple 登入")
                         .font(Typography.button)
                 }
                 .foregroundColor(.white)
@@ -190,7 +190,7 @@ struct LoginView: View {
     }
 
     private func loginButton(
-        title: String, icon: String,
+        title: LocalizedStringKey, icon: String,
         bg: Color, fg: Color, delay: Double,
         action: @escaping () -> Void = {}
     ) -> some View {
