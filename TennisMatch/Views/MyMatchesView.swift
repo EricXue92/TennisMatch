@@ -277,9 +277,18 @@ struct MyMatchesView: View {
         let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
         match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
 
-        // 3. 滿員時 status 升級
+        // 3. 滿員時 status 升級 + 登記到 BookingStore.externalSlots
+        //    (view 上的 .task 只在重建時跑一次,新確認的場次必須立刻登記,
+        //     否則用戶可能在離開重進前報名到衝突時段。registerExternal 按 id 去重。)
         if newCurrent >= mx {
             match.status = .confirmed
+            let label = "\(match.title) \(match.dateLabel) \(match.timeRange)"
+            bookingStore.registerExternal(BookedSlot(
+                id: match.id,
+                start: match.startDate,
+                end: match.endDate,
+                label: label
+            ))
         }
 
         upcomingMatches[idx] = match
