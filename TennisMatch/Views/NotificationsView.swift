@@ -128,10 +128,8 @@ struct NotificationsView: View {
     /// 每種通知類型使用不同的時間、地點、參與者，避免所有通知顯示相同資料。
     /// 生成相對於今天的日期字串（yyyy/MM/dd）
     private func relativeDate(daysFromNow: Int) -> String {
-        let fmt = DateFormatter()
-        fmt.dateFormat = "yyyy/MM/dd"
-        guard let date = Calendar.current.date(byAdding: .day, value: daysFromNow, to: Date()) else { return fmt.string(from: Date()) }
-        return fmt.string(from: date)
+        guard let date = Calendar.current.date(byAdding: .day, value: daysFromNow, to: Date()) else { return AppDateFormatter.yearMonthDay.string(from: Date()) }
+        return AppDateFormatter.yearMonthDay.string(from: date)
     }
 
     private func mockMatchDetail(for notification: MatchNotification) -> MatchDetailData {

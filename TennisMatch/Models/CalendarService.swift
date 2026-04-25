@@ -65,6 +65,7 @@ enum CalendarService {
 
     /// Parses `"YYYY/MM/dd"` + `"HH:mm - HH:mm"` into a (start, end) pair in the current timezone.
     static func parseDateTimeRange(date: String, timeRange: String) -> (start: Date, end: Date)? {
+        // TODO(Phase1.5): migrate to AppDateFormatter — has Locale(identifier: "en_US_POSIX") for strict ISO parsing; needs a dedicated posixYearMonthDay formatter
         let df = DateFormatter()
         df.dateFormat = "yyyy/MM/dd"
         df.locale = Locale(identifier: "en_US_POSIX")
@@ -123,6 +124,7 @@ enum CalendarService {
         let startStr = parts[0].trimmingCharacters(in: .whitespaces)
         let endStr = parts[1].trimmingCharacters(in: .whitespaces)
 
+        // TODO(Phase1.5): migrate to AppDateFormatter — has Locale(identifier: "en_US_POSIX") for strict ISO parsing; needs a dedicated posixYearMonthDay formatter
         let df = DateFormatter()
         df.locale = Locale(identifier: "en_US_POSIX")
         df.dateFormat = "yyyy/MM/dd"

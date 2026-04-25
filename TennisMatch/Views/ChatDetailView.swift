@@ -85,9 +85,7 @@ struct ChatDetailView: View {
 
     /// 日期分隔標籤:顯示「今天 — yyyy/MM/dd」，避免 hardcode 字串
     private func dateSeparatorLabel() -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy/MM/dd"
-        return "今天 — \(formatter.string(from: Date()))"
+        return "今天 — \(AppDateFormatter.yearMonthDay.string(from: Date()))"
     }
 
     private var allMessages: [ChatBubble] {
@@ -153,9 +151,7 @@ struct ChatDetailView: View {
             didSeedInitialMessage = true
             if let seed = initialMessage?.trimmingCharacters(in: .whitespacesAndNewlines),
                !seed.isEmpty {
-                let formatter = DateFormatter()
-                formatter.dateFormat = "HH:mm"
-                let ts = formatter.string(from: Date())
+                let ts = AppDateFormatter.hourMinute.string(from: Date())
                 sentMessages.append(ChatBubble(.outgoing(seed), timestamp: ts))
             }
         }
@@ -475,9 +471,7 @@ struct ChatDetailView: View {
                                 declinedInvitationIDs.insert(messageID)
                             }
                             // 发送系统消息告知已拒绝
-                            let formatter = DateFormatter()
-                            formatter.dateFormat = "HH:mm"
-                            let ts = formatter.string(from: Date())
+                            let ts = AppDateFormatter.hourMinute.string(from: Date())
                             sentMessages.append(ChatBubble(
                                 .systemMessage("已婉拒 \(date) 在 \(location) 的約球邀請"),
                                 timestamp: ts
@@ -517,10 +511,7 @@ struct ChatDetailView: View {
     private func sendMessage() {
         let trimmed = messageText.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
-        let now = Date()
-        let formatter = DateFormatter()
-        formatter.dateFormat = "HH:mm"
-        let ts = formatter.string(from: now)
+        let ts = AppDateFormatter.hourMinute.string(from: Date())
         sentMessages.append(ChatBubble(.outgoing(trimmed), timestamp: ts))
         messageText = ""
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
@@ -580,9 +571,7 @@ struct ChatDetailView: View {
                                 ToolbarItem(placement: .confirmationAction) {
                                     Button("發送") {
                                         // 確認發送：加入訊息列表
-                                        let formatter = DateFormatter()
-                                        formatter.dateFormat = "HH:mm"
-                                        let ts = formatter.string(from: Date())
+                                        let ts = AppDateFormatter.hourMinute.string(from: Date())
                                         sentMessages.append(ChatBubble(.outgoingImage(data), timestamp: ts))
                                         selectedPhotoData = data
                                         pendingPhotoData = nil

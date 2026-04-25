@@ -716,9 +716,7 @@ private extension HomeView {
     }
 
     func addPublishedMatch(_ info: PublishedMatchInfo) {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MM/dd"
-        let dateStr = formatter.string(from: info.date)
+        let dateStr = AppDateFormatter.monthDay.string(from: info.date)
         let dateTime = "\(dateStr) \(info.startTime)"
 
         let hourStr = info.startTime.prefix(2)
