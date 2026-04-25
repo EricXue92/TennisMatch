@@ -501,7 +501,16 @@
     "你有未儲存的內容，確定要放棄嗎？": {},
     "你的支持讓 Let'sTennis 變得更好\n我們會繼續努力開發更多功能": {},
     "你的邀請碼": {},
-    "使用郵箱地址建立帳號": {},
+    "使用郵箱地址建立帳號": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "使用邮箱地址建立账号"
+          }
+        }
+      }
+    },
     "例如：單淘汰制，三盤兩勝\n每場比賽採用三盤兩勝制\n選手需提前15分鐘到場": {},
     "例如：我會準時到！": {},
     "例如：自帶球、需要教練等": {},
@@ -2453,7 +2462,16 @@
         }
       }
     },
-    "發送驗證碼": {},
+    "發送驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "发送验证码"
+          }
+        }
+      }
+    },
     "確定要刪除此聊天記錄嗎？刪除後無法恢復。": {
       "localizations": {
         "en": {
@@ -2539,7 +2557,16 @@
     },
     "確認取消「%@」？已報名的球友將收到通知。": {},
     "確認報名": {},
-    "確認密碼": {},
+    "確認密碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "确认密码"
+          }
+        }
+      }
+    },
     "確認封鎖": {
       "localizations": {
         "en": {
@@ -3011,9 +3038,27 @@
       }
     },
     "設定個人資料": {},
-    "設定密碼": {},
+    "設定密碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设定密码"
+          }
+        }
+      }
+    },
     "設定頭像": {},
-    "註冊": {},
+    "註冊": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册"
+          }
+        }
+      }
+    },
     "評價": {
       "localizations": {
         "en": {
@@ -3116,7 +3161,16 @@
       }
     },
     "請先選擇評分": {},
-    "請再次輸入密碼": {},
+    "請再次輸入密碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请再次输入密码"
+          }
+        }
+      }
+    },
     "請輸入 %@ 數字的手機號碼": {
       "localizations": {
         "zh-Hans": {
@@ -3127,8 +3181,26 @@
         }
       }
     },
-    "請輸入 6 位驗證碼": {},
-    "請輸入密碼（至少 6 位）": {},
+    "請輸入 6 位驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入 6 位验证码"
+          }
+        }
+      }
+    },
+    "請輸入密碼（至少 6 位）": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入密码（至少 6 位）"
+          }
+        }
+      }
+    },
     "請輸入您的手機號碼，我們將發送驗證碼": {
       "localizations": {
         "zh-Hans": {
@@ -3182,7 +3254,16 @@
         }
       }
     },
-    "請輸入郵箱": {},
+    "請輸入郵箱": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入邮箱"
+          }
+        }
+      }
+    },
     "變動記錄": {},
     "負": {
       "extractionState": "stale",
@@ -3466,8 +3547,26 @@
     },
     "還沒有粉絲": {},
     "還沒有關注的球友": {},
-    "郵箱地址": {},
-    "郵箱註冊": {},
+    "郵箱地址": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邮箱地址"
+          }
+        }
+      }
+    },
+    "郵箱註冊": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邮箱注册"
+          }
+        }
+      }
+    },
     "重新發送": {
       "localizations": {
         "zh-Hans": {
@@ -3823,6 +3922,46 @@
           "stringUnit": {
             "state": "translated",
             "value": "验证码已重新发送至 %@"
+          }
+        }
+      }
+    },
+    "請輸入有效的郵箱地址": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入有效的邮箱地址"
+          }
+        }
+      }
+    },
+    "請輸入郵箱地址": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入邮箱地址"
+          }
+        }
+      }
+    },
+    "密碼至少需要 6 位": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码至少需要 6 位"
+          }
+        }
+      }
+    },
+    "兩次密碼不一致": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "两次密码不一致"
           }
         }
       }

@@ -285,7 +285,7 @@ struct EmailRegisterView: View {
 
     private func sendCode() {
         guard isValidEmail(email) else {
-            validationMessage = "請輸入有效的郵箱地址"
+            validationMessage = L10n.string("請輸入有效的郵箱地址")
             withAnimation { showValidationError = true }
             return
         }
@@ -298,15 +298,15 @@ struct EmailRegisterView: View {
 
     private func validate() {
         if email.isEmpty {
-            validationMessage = "請輸入郵箱地址"
+            validationMessage = L10n.string("請輸入郵箱地址")
         } else if !isValidEmail(email) {
-            validationMessage = "請輸入有效的郵箱地址"
+            validationMessage = L10n.string("請輸入有效的郵箱地址")
         } else if verificationCode.count != 6 {
-            validationMessage = "請輸入 6 位驗證碼"
+            validationMessage = L10n.string("請輸入 6 位驗證碼")
         } else if password.count < 6 {
-            validationMessage = "密碼至少需要 6 位"
+            validationMessage = L10n.string("密碼至少需要 6 位")
         } else if password != confirmPassword {
-            validationMessage = "兩次密碼不一致"
+            validationMessage = L10n.string("兩次密碼不一致")
         } else {
             showProfileSetup = true
             return
