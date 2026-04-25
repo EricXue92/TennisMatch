@@ -12,9 +12,13 @@
         }
       }
     },
-    ":": {},
+    ":": {
+      "shouldTranslate": false
+    },
     "· %@": {},
-    "*": {},
+    "*": {
+      "shouldTranslate": false
+    },
     "%@  %@": {
       "localizations": {
         "zh-Hant": {
@@ -90,11 +94,15 @@
     "%llds": {},
     "• %@": {},
     "+ 建立賽事": {},
-    "×": {},
+    "×": {
+      "shouldTranslate": false
+    },
     "< 60": {},
     "< 70": {},
     "~": {},
-    "▾": {},
+    "▾": {
+      "shouldTranslate": false
+    },
     "☀️ 24°C": {},
     "⛅ 天氣": {},
     "✅ 已接受": {
@@ -113,9 +121,22 @@
         }
       }
     },
-    "✉️": {},
-    "🎾": {},
-    "🎾 查看 NTRP 技術分級標準 →": {},
+    "✉️": {
+      "shouldTranslate": false
+    },
+    "🎾": {
+      "shouldTranslate": false
+    },
+    "🎾 查看 NTRP 技術分級標準 →": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🎾 查看 NTRP 技术分级标准 →"
+          }
+        }
+      }
+    },
     "🎾 約球記錄": {},
     "🎾 約球邀請": {
       "localizations": {
@@ -249,16 +270,24 @@
         }
       }
     },
-    "📱": {},
+    "📱": {
+      "shouldTranslate": false
+    },
     "🗓️ %@": {},
     "🤖": {},
     "🥇": {},
     "🥈": {},
     "🥉": {},
     "🙏": {},
-    "00": {},
-    "0.0": {},
-    "30": {},
+    "00": {
+      "shouldTranslate": false
+    },
+    "0.0": {
+      "shouldTranslate": false
+    },
+    "30": {
+      "shouldTranslate": false
+    },
     "Apple 登入": {
       "localizations": {
         "zh-Hans": {
@@ -345,7 +374,16 @@
         }
       }
     },
-    "一句話介紹自己": {},
+    "一句話介紹自己": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一句话介绍自己"
+          }
+        }
+      }
+    },
     "一鍵約球": {
       "localizations": {
         "en": {
@@ -967,8 +1005,26 @@
         }
       }
     },
-    "可用時間": {},
-    "可稍後完善": {},
+    "可用時間": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可用时间"
+          }
+        }
+      }
+    },
+    "可稍後完善": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可稍后完善"
+          }
+        }
+      }
+    },
     "單打": {
       "extractionState": "stale",
       "localizations": {
@@ -1003,7 +1059,16 @@
         }
       }
     },
-    "城市": {},
+    "城市": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "城市"
+          }
+        }
+      }
+    },
     "報名": {
       "localizations": {
         "en": {
@@ -1117,7 +1182,16 @@
     },
     "完成約球後，可在這裡給對手留下評價": {},
     "完成約球後收到的評價會顯示在這裡": {},
-    "完成設定": {},
+    "完成設定": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成设定"
+          }
+        }
+      }
+    },
     "密碼修改成功": {
       "localizations": {
         "en": {
@@ -1946,14 +2020,41 @@
     },
     "推薦": {},
     "提交評價": {},
-    "搜尋球場": {},
+    "搜尋球場": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "搜寻球场"
+          }
+        }
+      }
+    },
     "支付方式": {},
     "放棄": {},
     "放棄修改？": {},
     "放棄編輯？": {},
-    "新增": {},
+    "新增": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增"
+          }
+        }
+      }
+    },
     "新增偏好時段": {},
-    "新增時段": {},
+    "新增時段": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增时段"
+          }
+        }
+      }
+    },
     "新密碼（至少 6 位）": {
       "extractionState": "stale",
       "localizations": {
@@ -2021,7 +2122,16 @@
       }
     },
     "日期與時間": {},
-    "星期": {},
+    "星期": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "星期"
+          }
+        }
+      }
+    },
     "時間": {
       "localizations": {
         "en": {
@@ -2221,7 +2331,16 @@
     "根據你的 NTRP %@、常去球場和空閒時間為你推薦": {},
     "根據您的實際水平選擇對應的 NTRP 等級": {},
     "比賽成績": {},
-    "比賽類型": {},
+    "比賽類型": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "比赛类型"
+          }
+        }
+      }
+    },
     "永久封號": {},
     "沒有封鎖的用戶": {},
     "沒有待評價的約球": {},
@@ -2837,7 +2956,16 @@
     },
     "約球評論": {},
     "約球詳情": {},
-    "結束": {},
+    "結束": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "结束"
+          }
+        }
+      }
+    },
     "結束時間": {
       "localizations": {
         "en": {
@@ -3046,7 +3174,16 @@
         }
       }
     },
-    "設定個人資料": {},
+    "設定個人資料": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设定个人资料"
+          }
+        }
+      }
+    },
     "設定密碼": {
       "localizations": {
         "zh-Hans": {
@@ -3057,7 +3194,16 @@
         }
       }
     },
-    "設定頭像": {},
+    "設定頭像": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "设定头像"
+          }
+        }
+      }
+    },
     "註冊": {
       "localizations": {
         "zh-Hans": {
@@ -3119,7 +3265,16 @@
         }
       }
     },
-    "詳細時段": {},
+    "詳細時段": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "详细时段"
+          }
+        }
+      }
+    },
     "語言": {
       "localizations": {
         "en": {
@@ -3230,7 +3385,16 @@
         }
       }
     },
-    "請輸入用戶名": {},
+    "請輸入用戶名": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请输入用户名"
+          }
+        }
+      }
+    },
     "請輸入當前密碼並設定新密碼": {
       "localizations": {
         "en": {
@@ -3455,8 +3619,26 @@
         }
       }
     },
-    "選擇常去球場": {},
-    "選擇星期": {},
+    "選擇常去球場": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择常去球场"
+          }
+        }
+      }
+    },
+    "選擇星期": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择星期"
+          }
+        }
+      }
+    },
     "選擇球場": {
       "localizations": {
         "en": {
@@ -3602,7 +3784,16 @@
         }
       }
     },
-    "開始": {},
+    "開始": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始"
+          }
+        }
+      }
+    },
     "開始時間": {
       "localizations": {
         "en": {
@@ -3894,7 +4085,16 @@
         }
       }
     },
-    "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。": {},
+    "點擊「完成設定」即表示您提供的所有資訊均為真實且準確。": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "点击「完成设定」即表示您提供的所有资讯均为真实且准确。"
+          }
+        }
+      }
+    },
     "%lld 位": {
       "localizations": {
         "zh-Hans": {
@@ -4091,6 +4291,326 @@
           "stringUnit": {
             "state": "translated",
             "value": "进入对方的个人主页，点击「封锁」按钮即可。被封锁的用户无法查看你的资料和约球，也无法向你发送私信。"
+          }
+        }
+      }
+    },
+    "基本資料": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "基本资料"
+          }
+        }
+      }
+    },
+    "更多資料": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更多资料"
+          }
+        }
+      }
+    },
+    "必填": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "必填"
+          }
+        }
+      }
+    },
+    "選填": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选填"
+          }
+        }
+      }
+    },
+    "用戶名": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户名"
+          }
+        }
+      }
+    },
+    "年齡段": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "年龄段"
+          }
+        }
+      }
+    },
+    "技術水平": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技术水平"
+          }
+        }
+      }
+    },
+    "個人簡介": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人简介"
+          }
+        }
+      }
+    },
+    "上海": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上海"
+          }
+        }
+      }
+    },
+    "深圳": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "深圳"
+          }
+        }
+      }
+    },
+    "廣州": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "广州"
+          }
+        }
+      }
+    },
+    "週一": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周一"
+          }
+        }
+      }
+    },
+    "週二": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周二"
+          }
+        }
+      }
+    },
+    "週三": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周三"
+          }
+        }
+      }
+    },
+    "週四": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周四"
+          }
+        }
+      }
+    },
+    "週五": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周五"
+          }
+        }
+      }
+    },
+    "週六": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周六"
+          }
+        }
+      }
+    },
+    "週日": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周日"
+          }
+        }
+      }
+    },
+    "🌅 週末上午": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌅 周末上午"
+          }
+        }
+      }
+    },
+    "☀️ 週末下午": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "☀️ 周末下午"
+          }
+        }
+      }
+    },
+    "🌙 工作日晚間": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🌙 工作日晚间"
+          }
+        }
+      }
+    },
+    "📅 週末全天": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "📅 周末全天"
+          }
+        }
+      }
+    },
+    "🍱 工作日午間": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "🍱 工作日午间"
+          }
+        }
+      }
+    },
+    "該用戶名已被使用，請換一個": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "该用户名已被使用，请换一个"
+          }
+        }
+      }
+    },
+    "請選擇性別": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择性别"
+          }
+        }
+      }
+    },
+    "請選擇年齡段": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请选择年龄段"
+          }
+        }
+      }
+    },
+    "NTRP 需在 1.0 – 7.0 之間": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NTRP 需在 1.0 – 7.0 之间"
+          }
+        }
+      }
+    },
+    "香港": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "香港"
+          }
+        }
+      }
+    },
+    "14-18": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "14-18"
+          }
+        }
+      }
+    },
+    "19-35": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "19-35"
+          }
+        }
+      }
+    },
+    "36-55": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "36-55"
+          }
+        }
+      }
+    },
+    "55+": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "55+"
           }
         }
       }
