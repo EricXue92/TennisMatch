@@ -8,6 +8,27 @@
 import SwiftUI
 import PhotosUI
 
+// MARK: - DM Invitation Types
+
+/// DM 邀請的展示載荷 — 渲染外發邀請氣泡用。
+struct OutgoingInvitationPayload: Equatable {
+    let title: String        // "我發起的雙打"
+    let dateLabel: String    // "明天 · 04/26（六）"
+    let timeRange: String    // "14:00 - 16:00"
+    let location: String
+    let players: String      // "2/4 · NTRP 3.5-4.5"
+}
+
+/// MyMatchesView → ChatDetailView 傳的「待模擬」邀請。`matchID` 對應
+/// MyMatchItem.id,模擬完通過 onInviteResolved(matchID, invitee, accepted) 回拋。
+struct PendingDMInvitation {
+    let matchID: UUID
+    let invitee: FollowPlayer
+    let payload: OutgoingInvitationPayload
+    let startDate: Date
+    let endDate: Date
+}
+
 struct ChatDetailView: View {
     let chat: MockChat
     var matchContext: String? = nil
@@ -264,6 +285,8 @@ struct ChatDetailView: View {
             }
         case .invitation(let date, let location, let start, let end):
             invitationCard(messageID: message.id, date: date, location: location, startDate: start, endDate: end)
+        case .outgoingInvitation(let payload):
+            outgoingInvitationCard(payload: payload, timestamp: message.timestamp)
         case .systemMessage(let text):
             systemMessageBubble(text)
         }
@@ -496,6 +519,44 @@ struct ChatDetailView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    // MARK: - Outgoing Invitation Card
+
+    private func outgoingInvitationCard(payload: OutgoingInvitationPayload,
+                                        timestamp: String?) -> some View {
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            Spacer(minLength: 40)
+            VStack(alignment: .leading, spacing: 6) {
+                Text("🎾 你發起了約球邀請")
+                    .font(.system(size: 13, weight: .bold))
+                    .foregroundColor(.white)
+                Text(payload.title)
+                    .font(Typography.captionMedium)
+                    .foregroundColor(.white)
+                Text("📅 \(payload.dateLabel) \(payload.timeRange)")
+                    .font(Typography.fieldLabel)
+                    .foregroundColor(.white.opacity(0.92))
+                Text("📍 \(payload.location)")
+                    .font(Typography.fieldLabel)
+                    .foregroundColor(.white.opacity(0.92))
+                Text("👥 \(payload.players)")
+                    .font(Typography.fieldLabel)
+                    .foregroundColor(.white.opacity(0.92))
+                if let ts = timestamp {
+                    Text(ts)
+                        .font(Typography.micro)
+                        .foregroundColor(.white.opacity(0.7))
+                        .padding(.top, 2)
+                }
+            }
+            .padding(Spacing.md)
+            .frame(minWidth: 180, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .fill(Theme.primary)
+            )
+        }
+    }
+
     // MARK: - Input Bar
 
     private func sendMessage() {
@@ -624,6 +685,7 @@ private struct ChatBubble: Identifiable {
         case outgoing(String)
         case outgoingImage(Data)
         case invitation(date: String, location: String, startDate: Date, endDate: Date)
+        case outgoingInvitation(OutgoingInvitationPayload)
         case systemMessage(String)
     }
 }
