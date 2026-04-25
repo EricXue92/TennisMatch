@@ -10,7 +10,6 @@ import PhotosUI
 
 struct ChatDetailView: View {
     let chat: MockChat
-    @Binding var acceptedMatches: [AcceptedMatchInfo]
     var matchContext: String? = nil
     /// Seed message from the sign-up "給發起人留言" field. Sent as an
     /// outgoing bubble on first appear so the organizer sees it at the top.
@@ -19,7 +18,7 @@ struct ChatDetailView: View {
     /// 封鎖用戶時回調，參數為被封鎖者名稱
     var onBlockUser: ((String) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
-    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(BookingStore.self) private var bookingStore
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -78,7 +77,7 @@ struct ChatDetailView: View {
     private func isInvitationAccepted(date: String, location: String) -> Bool {
         let parts = date.components(separatedBy: " ")
         let dateStr = parts.first ?? date
-        return acceptedMatches.contains { m in
+        return bookingStore.accepted.contains { m in
             m.organizerName == organizerName && m.dateString == dateStr && m.location == location
         }
     }
@@ -428,11 +427,6 @@ struct ChatDetailView: View {
                             let parts = date.components(separatedBy: " ")
                             let dateStr = parts.first ?? date
                             let timeStr = parts.count > 1 ? parts[1] : "10:00"
-                            // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                            if let conflict = bookedSlotStore.conflict(start: startDate, end: endDate) {
-                                chatMenuToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
-                                return
-                            }
                             let match = AcceptedMatchInfo(
                                 organizerName: organizerName,
                                 matchType: matchTypeFromChat,
@@ -442,15 +436,13 @@ struct ChatDetailView: View {
                                 startDate: startDate,
                                 endDate: endDate
                             )
-                            acceptedMatches.append(match)
-                            UINotificationFeedbackGenerator().notificationOccurred(.success)
-                            let label = "\(organizerName) \(dateStr) \(timeStr)"
-                            bookedSlotStore.add(BookedSlot(
-                                id: match.id,
-                                start: startDate,
-                                end: endDate,
-                                label: label
-                            ))
+                            // 时段冲突拦截 + 写入已确认列表 一次完成(CLAUDE.md 边界 case #4)。
+                            switch bookingStore.acceptInvitation(match) {
+                            case .ok:
+                                UINotificationFeedbackGenerator().notificationOccurred(.success)
+                            case .conflict(let label):
+                                chatMenuToast = L10n.string("該時段已與「\(label)」衝突,請先取消已預訂的時段")
+                            }
                         } label: {
                             Text("接受")
                                 .font(.system(size: 12, weight: .bold))
@@ -658,10 +650,10 @@ private let mockMessages: [ChatBubble] = [
                 lastMessage: "謝謝你上次的比賽，打得很開心！",
                 time: "昨天",
                 unreadCount: 3
-            ),
-            acceptedMatches: .constant([])
+            )
         )
     }
+    .environment(BookingStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -672,8 +664,8 @@ private let mockMessages: [ChatBubble] = [
                 lastMessage: "謝謝你上次的比賽，打得很開心！",
                 time: "昨天",
                 unreadCount: 3
-            ),
-            acceptedMatches: .constant([])
+            )
         )
     }
+    .environment(BookingStore())
 }

@@ -380,7 +380,7 @@ struct TournamentDetailView: View {
             })
         }
         .navigationDestination(item: $dmChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: .constant([]), matchContext: dmMatchContext)
+            ChatDetailView(chat: chat, matchContext: dmMatchContext)
                 .onDisappear { dmMatchContext = nil }
         }
     }

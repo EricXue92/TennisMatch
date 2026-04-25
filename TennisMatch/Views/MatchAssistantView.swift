@@ -52,11 +52,7 @@ struct MatchAssistantView: View {
         }
         .background(Theme.background)
         .navigationDestination(item: $selectedDetail) { detail in
-            MatchDetailView(
-                match: detail,
-                acceptedMatches: .constant([]),
-                signedUpMatchIDs: .constant([])
-            )
+            MatchDetailView(match: detail)
         }
         .navigationBarBackButtonHidden(true)
         .toolbar {

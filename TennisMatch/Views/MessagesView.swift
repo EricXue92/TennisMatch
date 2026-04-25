@@ -9,7 +9,6 @@ import SwiftUI
 
 struct MessagesView: View {
     @Binding var totalUnread: Int
-    @Binding var acceptedMatches: [AcceptedMatchInfo]
     @Binding var chats: [MockChat]
     @State private var selectedChat: MockChat?
     @State private var readChatIDs: Set<UUID> = []
@@ -57,7 +56,7 @@ struct MessagesView: View {
         .background(Theme.surface)
         .onAppear { recalculateUnread() }
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, onRemoveChat: {
+            ChatDetailView(chat: chat, onRemoveChat: {
                 withAnimation {
                     chats.removeAll { $0.id == chat.id }
                 }
@@ -295,12 +294,12 @@ let mockChatsInitial: [MockChat] = [
 
 #Preview("iPhone SE") {
     NavigationStack {
-        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]), chats: .constant([]))
+        MessagesView(totalUnread: .constant(4), chats: .constant([]))
     }
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
-        MessagesView(totalUnread: .constant(4), acceptedMatches: .constant([]), chats: .constant([]))
+        MessagesView(totalUnread: .constant(4), chats: .constant([]))
     }
 }

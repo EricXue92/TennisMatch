@@ -11,8 +11,6 @@ struct NotificationsView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(NotificationStore.self) private var notificationStore
     @State private var selectedMatchDetail: MatchDetailData?
-    @State private var notificationAccepted: [AcceptedMatchInfo] = []
-    @State private var notificationSignedUp: Set<UUID> = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -62,11 +60,7 @@ struct NotificationsView: View {
             }
         }
         .navigationDestination(item: $selectedMatchDetail) { detail in
-            MatchDetailView(
-                match: detail,
-                acceptedMatches: $notificationAccepted,
-                signedUpMatchIDs: $notificationSignedUp
-            )
+            MatchDetailView(match: detail)
         }
     }
 
@@ -288,7 +282,7 @@ struct NotificationsView: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookedSlotStore())
+    .environment(BookingStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -298,5 +292,5 @@ struct NotificationsView: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookedSlotStore())
+    .environment(BookingStore())
 }

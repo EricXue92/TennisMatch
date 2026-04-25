@@ -54,7 +54,7 @@ struct PublicProfileView: View {
         }
         // 點擊「私信」按鈕後，導航到私信聊天頁面
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: .constant([]))
+            ChatDetailView(chat: chat)
         }
     }
 

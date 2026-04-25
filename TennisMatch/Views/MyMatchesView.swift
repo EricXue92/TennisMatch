@@ -8,14 +8,11 @@
 import SwiftUI
 
 struct MyMatchesView: View {
-    @Binding var acceptedMatches: [AcceptedMatchInfo]
     @Binding var sharedChats: [MockChat]
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     var onGoTournaments: (() -> Void)? = nil
-    /// Fires when a user-signed-up match is cancelled. Passes the originating HomeView match ID (or nil for mock/invitation-accept items).
-    var onMatchCancelled: ((UUID?) -> Void)? = nil
-    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
     @Environment(TournamentStore.self) private var tournamentStore
@@ -111,7 +108,7 @@ struct MyMatchesView: View {
     }
 
     private var acceptedMatchItems: [MyMatchItem] {
-        acceptedMatches.map { info in
+        bookingStore.accepted.map { info in
             let timeStr = info.time
             let startHour = Int(timeStr.prefix(2)) ?? 10
             let endHour = startHour + info.durationHours
@@ -265,7 +262,7 @@ struct MyMatchesView: View {
         }
         .background(Theme.inputBg)
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: selectedChatMatchContext)
+            ChatDetailView(chat: chat, matchContext: selectedChatMatchContext)
                 .onDisappear { selectedChatMatchContext = nil }
         }
         .alert("取消約球", isPresented: $showCancelAlert) {
@@ -277,12 +274,11 @@ struct MyMatchesView: View {
                     let hoursToStart = match.startDate.timeIntervalSince(.now) / 3600
                     withAnimation {
                         if let aid = match.acceptedMatchID {
-                            acceptedMatches.removeAll { $0.id == aid }
-                            bookedSlotStore.remove(id: aid)
+                            // BookingStore.cancel 同步处理 signedUpMatchIDs / 持久化。
+                            _ = bookingStore.cancel(acceptedID: aid)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
                     }
-                    onMatchCancelled?(match.sourceMatchID)
                     // 阶梯扣分: ≥24h → 0, 2-24h → -1, <2h → -2
                     let deduction = creditScoreStore.recordCancellation(
                         hoursBeforeStart: hoursToStart,
@@ -507,13 +503,13 @@ struct MyMatchesView: View {
             }
         }
         .task {
-            // 把 mock 中"已确认"的 upcomingMatches 登记到 BookedSlotStore,
+            // 把 mock 中"已确认"的 upcomingMatches 注入 BookingStore.externalSlots,
             // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截。
-            // BookedSlotStore.add 按 id 去重,重复 task 触发是安全的。
+            // registerExternal 按 id 去重,重复 task 触发是安全的。
             // 自动取消的约球不再登记 — 它实际未进行,不应阻塞后续报名。
             for item in upcomingMatches where item.status == .confirmed && !item.isAutoCancelled {
                 let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
-                bookedSlotStore.add(BookedSlot(
+                bookingStore.registerExternal(BookedSlot(
                     id: item.id,
                     start: item.startDate,
                     end: item.endDate,
@@ -574,7 +570,7 @@ struct MyMatchesView: View {
             }
         }
         .navigationDestination(item: $dmChat) { chat in
-            ChatDetailView(chat: chat, acceptedMatches: $acceptedMatches, matchContext: dmMatchContext)
+            ChatDetailView(chat: chat, matchContext: dmMatchContext)
                 .onDisappear { dmMatchContext = nil }
         }
     }
@@ -935,14 +931,6 @@ private extension MyMatchesView {
                 Button {
                     let dateString = invitation.details.components(separatedBy: " · ").first ?? ""
                     let location = invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
-                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                    if let conflict = bookedSlotStore.conflict(start: invitation.startDate, end: invitation.endDate) {
-                        toast = .init(
-                            kind: .warning,
-                            text: "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
-                        )
-                        return
-                    }
                     let accepted = AcceptedMatchInfo(
                         organizerName: invitation.inviterName,
                         matchType: invitation.matchType,
@@ -954,20 +942,21 @@ private extension MyMatchesView {
                         startDate: invitation.startDate,
                         endDate: invitation.endDate
                     )
-                    acceptedMatches.append(accepted)
-                    let label = "\(invitation.inviterName) \(dateString) \(invitation.time)"
-                    bookedSlotStore.add(BookedSlot(
-                        id: accepted.id,
-                        start: invitation.startDate,
-                        end: invitation.endDate,
-                        label: label
-                    ))
-                    withAnimation {
-                        persistAcceptance(invitation)
+                    // 时段冲突拦截 + 写入已确认列表 一次完成(CLAUDE.md 边界 case #4)。
+                    switch bookingStore.acceptInvitation(accepted) {
+                    case .ok:
+                        withAnimation {
+                            persistAcceptance(invitation)
+                        }
+                        acceptedInvitation = invitation
+                        showAcceptSuccess = true
+                        UINotificationFeedbackGenerator().notificationOccurred(.success)
+                    case .conflict(let label):
+                        toast = .init(
+                            kind: .warning,
+                            text: "該時段已與「\(label)」衝突,請先取消已預訂的時段"
+                        )
                     }
-                    acceptedInvitation = invitation
-                    showAcceptSuccess = true
-                    UINotificationFeedbackGenerator().notificationOccurred(.success)
                 } label: {
                     Text("接受")
                         .font(Typography.micro)
@@ -1854,14 +1843,16 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]))
+        .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
 }
 
 #Preview("iPhone 15 Pro") {
-    MyMatchesView(acceptedMatches: .constant([]), sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]))
+        .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
