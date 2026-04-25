@@ -167,3 +167,28 @@ Phase 3 — 架构与性能
 2. **乐观更新无回滚** — 当前 mock 阶段看似工作正常,但接入后端那一天就会暴雷:任何网络抖动都会让 UI 与服务端永久脱钩。
 
 **建议把 Phase 1 + Phase 2 当作"接后端前的 must-have"。**
+
+---
+
+## Phase 1 完成记录（2026-04-25）
+
+✅ **Task 1**: 删除 `.preferredColorScheme(.light)` → Dark Mode 已启用（`998b086`）
+✅ **Task 2**: 创建 `Models/AppDateFormatter.swift` 缓存 4 个 DateFormatter 单例（`d217700`）
+✅ **Task 3**: 9 处 `MM/dd` 站点迁到 `AppDateFormatter.monthDay`（`4cd8106`）
+✅ **Task 4**: 9 处 `yyyy/MM/dd` / `HH:mm` 站点迁到对应缓存单例（`39cd26f`）
+   - 3 处保留 `TODO(Phase1.5)`：`CalendarService.swift:69, 128`（`en_US_POSIX`，需新增 `posixYearMonthDay`），`MyMatchesView.swift:1128`（`zh_TW`）
+✅ **Task 5**: 7 个 Store + `LocaleManager` 全部加 `@MainActor`，`mockSeed`/`mockEntries` 标 `nonisolated` 消除 Swift 6 警告（`d07415c` + `64bf562`）
+✅ **Task 6**: `SignUpConfirmSheet` 加 `isSubmitting` 防抖 + ProgressView 加载态（`b3e1433`）
+✅ **Task 7**: `CreateMatchView` 校验反馈统一到顶部 toast（`108cdb6`）
+
+**验证**：
+- `grep "DateFormatter()" TennisMatch/` → 仅剩 3 处带 TODO 的 site
+- `grep "preferredColorScheme" TennisMatch/` → 空
+- 8 个 `@Observable` 类型全部带 `@MainActor`
+
+**下阶段**：Phase 2 — 数据流核心
+- `SignUpMatchInfo` / `MatchDetailData` 引入 `startDate: Date`，废弃字符串拼接
+- 抽 `BookingStore` 统一 `acceptedMatches` / `signedUpMatchIDs` / `bookedSlots`
+- 取消流程加 5s 撤销窗口
+- 报名/取消加 try/catch 回滚
+
