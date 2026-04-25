@@ -217,6 +217,7 @@ struct MyMatchesView: View {
         }
 
         // 約球邀請走新模擬流;賽事邀請仍走舊 matchContext 字串路徑(本次不改)。
+        let isMatchInvite: Bool
         if case .match(let id, let title, let dateLabel, let timeRange, let location, let players) = target,
            let item = upcomingMatches.first(where: { $0.id == id }) {
             pendingInvitation = PendingDMInvitation(
@@ -233,14 +234,16 @@ struct MyMatchesView: View {
                 endDate: item.endDate
             )
             selectedChatMatchContext = nil  // 不再用靜態 context 卡
+            isMatchInvite = true
         } else {
             // 賽事/兜底 — 保留舊邏輯
             selectedChatMatchContext = target.chatContext
+            isMatchInvite = false
         }
         selectedChat = chat
 
-        if pendingInvitation == nil {
-            // 賽事路徑保留舊提示
+        if !isMatchInvite {
+            // 賽事路徑保留舊提示;約球路徑由 ChatDetailView 自己 push 邀請氣泡。
             toast = .init(kind: .success, text: L10n.string("已為你開啟與 \(player.name) 的私信"))
         }
     }
