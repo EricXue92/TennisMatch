@@ -1068,11 +1068,11 @@ private struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
     let isOrganizer: Bool
-    let status: MyMatchStatus
+    var status: MyMatchStatus
     let dateLabel: String
     let location: String
     let timeRange: String
-    let players: String
+    var players: String
     let weather: String
     /// Phase 2a: 起止绝对时间。所有时间相关业务判断(过期 / 排序 / 信誉扣分 / 冲突拦截)都基于此字段,
     /// 不再从 `dateLabel + timeRange` 字符串解析。
