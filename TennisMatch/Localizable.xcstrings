@@ -76,7 +76,16 @@
       }
     },
     "%lld": {},
-    "%lld 秒後可重新發送": {},
+    "%lld 秒後可重新發送": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 秒后可重新发送"
+          }
+        }
+      }
+    },
     "%lld%%": {},
     "%llds": {},
     "• %@": {},
@@ -1694,7 +1703,16 @@
     "感謝你的打賞！": {},
     "感謝你的支持！": {},
     "成就": {},
-    "我們已將 6 位數驗證碼發送至": {},
+    "我們已將 6 位數驗證碼發送至": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们已将 6 位数验证码发送至"
+          }
+        }
+      }
+    },
     "我發起的": {
       "localizations": {
         "en": {
@@ -2189,7 +2207,16 @@
     "永久封號": {},
     "沒有封鎖的用戶": {},
     "沒有待評價的約球": {},
-    "沒有收到驗證碼？": {},
+    "沒有收到驗證碼？": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有收到验证码？"
+          }
+        }
+      }
+    },
     "沒有符合條件的約球": {
       "localizations": {
         "en": {
@@ -3244,7 +3271,16 @@
         }
       }
     },
-    "輸入驗證碼": {},
+    "輸入驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "输入验证码"
+          }
+        }
+      }
+    },
     "返回": {},
     "返回修改": {},
     "返回我的約球": {},
@@ -3432,7 +3468,16 @@
     "還沒有關注的球友": {},
     "郵箱地址": {},
     "郵箱註冊": {},
-    "重新發送": {},
+    "重新發送": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重新发送"
+          }
+        }
+      }
+    },
     "重置": {
       "localizations": {
         "en": {
@@ -3705,8 +3750,26 @@
         }
       }
     },
-    "驗證並登入": {},
-    "驗證碼": {},
+    "驗證並登入": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证并登入"
+          }
+        }
+      }
+    },
+    "驗證碼": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码"
+          }
+        }
+      }
+    },
     "高手之路": {
       "localizations": {
         "en": {
@@ -3750,6 +3813,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "手机号码长度不正确，%@ 号码应为 %@ 数字"
+          }
+        }
+      }
+    },
+    "驗證碼已重新發送至 %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证码已重新发送至 %@"
           }
         }
       }
