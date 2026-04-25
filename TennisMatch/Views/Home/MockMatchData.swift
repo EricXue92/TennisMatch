@@ -19,6 +19,9 @@ struct MockMatch: Identifiable {
     let matchType: String
     let weather: String
     let dateTime: String
+    /// Phase 2a: 起始绝对时间。后续 sortDate/isExpired 改为基于此字段;
+    /// `dateTime` 字符串过渡期保留,Phase 2a 末尾会删除。
+    let startDate: Date
     let location: String
     let fee: String
     // Structured filter fields
@@ -83,6 +86,18 @@ private func mockDayOfWeek(_ daysFromNow: Int) -> String {
     return _weekdayNames[weekday - 1]
 }
 
+/// 生成相对今天 `daysFromNow` 天后的指定 `hour:minute` 起始时间。
+/// 与 `mockDate(_:)` 共享 `_mockToday` / `_mockCalendar`,确保两者派生一致。
+private func mockStartDate(_ daysFromNow: Int, hour: Int, minute: Int = 0) -> Date {
+    guard let day = _mockCalendar.date(byAdding: .day, value: daysFromNow, to: _mockToday) else {
+        return _mockToday
+    }
+    var comps = _mockCalendar.dateComponents([.year, .month, .day], from: day)
+    comps.hour = hour
+    comps.minute = minute
+    return _mockCalendar.date(from: comps) ?? day
+}
+
 // MARK: - Mock Match Data
 
 let initialMockMatches: [MockMatch] = [
@@ -90,6 +105,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "小美", gender: .female, matchType: "雙打",
         weather: "☀️ 27°C", dateTime: "\(mockDate(-2)) 10:00",
+        startDate: mockStartDate(-2, hour: 10),
         location: "沙田公園", fee: "AA ¥80",
         ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "18-25",
         genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(-2),
@@ -98,6 +114,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "大衛", gender: .male, matchType: "雙打",
         weather: "⛅ 23°C", dateTime: "\(mockDate(-2)) 18:30",
+        startDate: mockStartDate(-2, hour: 18, minute: 30),
         location: "歌和老街公園", fee: "AA ¥180",
         ntrpLow: 4.0, ntrpHigh: 5.0, ageRange: "26-35",
         genderLabel: "男", hour: 18, dayOfWeek: mockDayOfWeek(-2),
@@ -107,6 +124,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "莎拉", gender: .female, matchType: "單打",
         weather: "☀️ 24°C", dateTime: "\(mockDate(-1)) 10:00",
+        startDate: mockStartDate(-1, hour: 10),
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "26-35",
         genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(-1),
@@ -115,6 +133,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "嘉欣", gender: .female, matchType: "單打",
         weather: "🌤 26°C", dateTime: "\(mockDate(-1)) 09:00",
+        startDate: mockStartDate(-1, hour: 9),
         location: "香港公園", fee: "AA ¥100",
         ntrpLow: 2.5, ntrpHigh: 3.5, ageRange: "18-25",
         genderLabel: "女", hour: 9, dayOfWeek: mockDayOfWeek(-1),
@@ -123,6 +142,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "俊傑", gender: .male, matchType: "雙打",
         weather: "☀️ 29°C", dateTime: "\(mockDate(-1)) 15:00",
+        startDate: mockStartDate(-1, hour: 15),
         location: "將軍澳運動場", fee: "AA ¥160",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
         genderLabel: "男", hour: 15, dayOfWeek: mockDayOfWeek(-1),
@@ -131,6 +151,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "阿杰", gender: .male, matchType: "單打",
         weather: "☀️ 25°C", dateTime: "\(mockDate(-1)) 07:00",
+        startDate: mockStartDate(-1, hour: 7),
         location: "沙田公園", fee: "AA ¥60",
         ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "18-25",
         genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(-1),
@@ -140,6 +161,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "王強", gender: .male, matchType: "雙打",
         weather: "⛅ 26°C", dateTime: "\(mockDate(0)) 14:00",
+        startDate: mockStartDate(0, hour: 14),
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
         genderLabel: "男", hour: 14, dayOfWeek: mockDayOfWeek(0),
@@ -148,6 +170,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "麗莎", gender: .female, matchType: "雙打",
         weather: "⛅ 26°C", dateTime: "\(mockDate(0)) 19:00",
+        startDate: mockStartDate(0, hour: 19),
         location: "香港網球中心", fee: "AA ¥250",
         ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "26-35",
         genderLabel: "女", hour: 19, dayOfWeek: mockDayOfWeek(0),
@@ -156,6 +179,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "老張", gender: .male, matchType: "單打",
         weather: "🌤 22°C", dateTime: "\(mockDate(0)) 07:00",
+        startDate: mockStartDate(0, hour: 7),
         location: "九龍仔公園", fee: "AA ¥200",
         ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "46-55",
         genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(0),
@@ -165,6 +189,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "小李", gender: .male, matchType: "雙打",
         weather: "⛅ 26°C", dateTime: "\(mockDate(1)) 14:00",
+        startDate: mockStartDate(1, hour: 14),
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
         genderLabel: "男", hour: 14, dayOfWeek: mockDayOfWeek(1),
@@ -174,6 +199,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "美琪", gender: .female, matchType: "單打",
         weather: "☀️ 28°C", dateTime: "\(mockDate(1)) 08:30",
+        startDate: mockStartDate(1, hour: 8, minute: 30),
         location: "九龍仔公園", fee: "AA ¥100",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "18-25",
         genderLabel: "女", hour: 8, dayOfWeek: mockDayOfWeek(1),
@@ -182,6 +208,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "志明", gender: .male, matchType: "單打",
         weather: "🌤 25°C", dateTime: "\(mockDate(1)) 16:00",
+        startDate: mockStartDate(1, hour: 16),
         location: "香港網球中心", fee: "AA ¥150",
         ntrpLow: 4.0, ntrpHigh: 4.5, ageRange: "36-45",
         genderLabel: "男", hour: 16, dayOfWeek: mockDayOfWeek(1),
@@ -190,6 +217,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "小玲", gender: .female, matchType: "單打",
         weather: "☀️ 28°C", dateTime: "\(mockDate(1)) 17:30",
+        startDate: mockStartDate(1, hour: 17, minute: 30),
         location: "將軍澳運動場", fee: "AA ¥70",
         ntrpLow: 2.0, ntrpHigh: 2.5, ageRange: "18-25",
         genderLabel: "女", hour: 17, dayOfWeek: mockDayOfWeek(1),
@@ -199,6 +227,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "林叔", gender: .male, matchType: "雙打",
         weather: "⛅ 24°C", dateTime: "\(mockDate(2)) 15:00",
+        startDate: mockStartDate(2, hour: 15),
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "55+",
         genderLabel: "男", hour: 15, dayOfWeek: mockDayOfWeek(2),
@@ -207,6 +236,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "Kelly", gender: .female, matchType: "雙打",
         weather: "☀️ 27°C", dateTime: "\(mockDate(3)) 10:30",
+        startDate: mockStartDate(3, hour: 10, minute: 30),
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
         genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(3),
@@ -215,6 +245,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "Peter", gender: .male, matchType: "單打",
         weather: "☀️ 30°C", dateTime: "\(mockDate(4)) 20:00",
+        startDate: mockStartDate(4, hour: 20),
         location: "跑馬地遊樂場", fee: "AA ¥180",
         ntrpLow: 4.5, ntrpHigh: 5.0, ageRange: "36-45",
         genderLabel: "男", hour: 20, dayOfWeek: mockDayOfWeek(4),
@@ -223,6 +254,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "陳教練", gender: .male, matchType: "單打",
         weather: "🌤 23°C", dateTime: "\(mockDate(5)) 07:30",
+        startDate: mockStartDate(5, hour: 7, minute: 30),
         location: "香港網球中心", fee: "AA ¥300",
         ntrpLow: 5.0, ntrpHigh: 6.0, ageRange: "36-45",
         genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(5),
@@ -231,6 +263,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "雅婷", gender: .female, matchType: "雙打",
         weather: "☀️ 26°C", dateTime: "\(mockDate(5)) 17:00",
+        startDate: mockStartDate(5, hour: 17),
         location: "九龍公園", fee: "AA ¥90",
         ntrpLow: 2.5, ntrpHigh: 3.0, ageRange: "18-25",
         genderLabel: "女", hour: 17, dayOfWeek: mockDayOfWeek(5),
@@ -239,6 +272,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "阿豪", gender: .male, matchType: "雙打",
         weather: "⛅ 25°C", dateTime: "\(mockDate(6)) 19:30",
+        startDate: mockStartDate(6, hour: 19, minute: 30),
         location: "歌和老街公園", fee: "AA ¥150",
         ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
         genderLabel: "男", hour: 19, dayOfWeek: mockDayOfWeek(6),
@@ -247,6 +281,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "思慧", gender: .female, matchType: "單打",
         weather: "☀️ 29°C", dateTime: "\(mockDate(6)) 09:00",
+        startDate: mockStartDate(6, hour: 9),
         location: "將軍澳運動場", fee: "AA ¥80",
         ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
         genderLabel: "女", hour: 9, dayOfWeek: mockDayOfWeek(6),
@@ -255,6 +290,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "張偉", gender: .male, matchType: "單打",
         weather: "🌤 24°C", dateTime: "\(mockDate(7)) 08:00",
+        startDate: mockStartDate(7, hour: 8),
         location: "維多利亞公園網球場", fee: "AA ¥120",
         ntrpLow: 4.0, ntrpHigh: 4.5, ageRange: "26-35",
         genderLabel: "男", hour: 8, dayOfWeek: mockDayOfWeek(7),
@@ -263,6 +299,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "詠琪", gender: .female, matchType: "雙打",
         weather: "☀️ 27°C", dateTime: "\(mockDate(7)) 15:30",
+        startDate: mockStartDate(7, hour: 15, minute: 30),
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "18-25",
         genderLabel: "女", hour: 15, dayOfWeek: mockDayOfWeek(7),
@@ -271,6 +308,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "Michael", gender: .male, matchType: "單打",
         weather: "⛅ 22°C", dateTime: "\(mockDate(8)) 18:00",
+        startDate: mockStartDate(8, hour: 18),
         location: "跑馬地遊樂場", fee: "AA ¥200",
         ntrpLow: 4.5, ntrpHigh: 5.5, ageRange: "36-45",
         genderLabel: "男", hour: 18, dayOfWeek: mockDayOfWeek(8),
@@ -279,6 +317,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "艾美", gender: .female, matchType: "雙打",
         weather: "☀️ 28°C", dateTime: "\(mockDate(9)) 10:00",
+        startDate: mockStartDate(9, hour: 10),
         location: "京士柏運動場", fee: "AA ¥130",
         ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
         genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(9),
@@ -287,6 +326,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "家明", gender: .male, matchType: "雙打",
         weather: "🌤 25°C", dateTime: "\(mockDate(9)) 16:00",
+        startDate: mockStartDate(9, hour: 16),
         location: "九龍仔公園", fee: "AA ¥160",
         ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
         genderLabel: "男", hour: 16, dayOfWeek: mockDayOfWeek(9),
@@ -295,6 +335,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "曉彤", gender: .female, matchType: "單打",
         weather: "☀️ 30°C", dateTime: "\(mockDate(10)) 11:00",
+        startDate: mockStartDate(10, hour: 11),
         location: "香港公園", fee: "AA ¥70",
         ntrpLow: 2.0, ntrpHigh: 3.0, ageRange: "14-17",
         genderLabel: "女", hour: 11, dayOfWeek: mockDayOfWeek(10),
@@ -303,6 +344,7 @@ let initialMockMatches: [MockMatch] = [
     MockMatch(
         name: "國輝", gender: .male, matchType: "單打",
         weather: "⛅ 24°C", dateTime: "\(mockDate(10)) 07:00",
+        startDate: mockStartDate(10, hour: 7),
         location: "沙田公園", fee: "AA ¥100",
         ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "55+",
         genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(10),

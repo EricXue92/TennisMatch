@@ -721,11 +721,19 @@ private extension HomeView {
 
         let hourStr = info.startTime.prefix(2)
         let hour = Int(hourStr) ?? 10
+        let minuteStr = info.startTime.dropFirst(3).prefix(2)
+        let minute = Int(minuteStr) ?? 0
 
         // Compute day of week
         let weekdayIndex = Calendar.current.component(.weekday, from: info.date)
         let dayMap = [1: "日", 2: "一", 3: "二", 4: "三", 5: "四", 6: "五", 7: "六"]
         let dayOfWeek = dayMap[weekdayIndex] ?? "一"
+
+        // Phase 2a: 组合 startDate 用于业务比较(过期 / 排序),与 dateTime 字符串并行存在。
+        var startComps = Calendar.current.dateComponents([.year, .month, .day], from: info.date)
+        startComps.hour = hour
+        startComps.minute = minute
+        let startDate = Calendar.current.date(from: startComps) ?? info.date
 
         let fee = info.costType == "免費" ? "免費" : "AA ¥\(info.costAmount)"
         let genderLabel: String
@@ -741,6 +749,7 @@ private extension HomeView {
             matchType: info.matchType,
             weather: "☀️ --°C",
             dateTime: dateTime,
+            startDate: startDate,
             location: info.courtName,
             fee: fee,
             ntrpLow: info.ntrpLow,
