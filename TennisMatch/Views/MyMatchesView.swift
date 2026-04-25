@@ -1479,17 +1479,7 @@ private struct InvitationAcceptSuccessView: View {
     }
 
     private func saveInvitationToCalendar() {
-        // 從原始 details 取日期(MM/dd),displayDetails 會插入時段導致解析失敗
-        let monthDay = invitation.details.components(separatedBy: " · ").first ?? ""
-        guard !monthDay.isEmpty,
-              let range = CalendarService.parseShortMatch(
-                monthDay: monthDay,
-                startTime: invitation.time,
-                durationHours: invitation.durationHours
-              ) else {
-            calendarToast = "無法解析約球時間"
-            return
-        }
+        // Phase 2a: 直接使用 invitation.startDate / endDate,不再回头解析字符串。
         let location = detailParts.count > 1 ? detailParts[1] : ""
         let title = "\(invitation.inviterName) 的\(invitation.matchType)"
         let notes = "\(invitation.matchType) · \(invitation.details)"
@@ -1497,8 +1487,8 @@ private struct InvitationAcceptSuccessView: View {
             do {
                 try await CalendarService.addEvent(
                     title: title,
-                    startDate: range.start,
-                    endDate: range.end,
+                    startDate: invitation.startDate,
+                    endDate: invitation.endDate,
                     location: location,
                     notes: notes
                 )
