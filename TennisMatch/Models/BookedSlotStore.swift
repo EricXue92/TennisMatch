@@ -12,16 +12,8 @@
 import Foundation
 import Observation
 
-struct BookedSlot: Identifiable, Hashable {
-    /// 与原 booking 的稳定 id 对齐:
-    /// - HomeView/MatchDetailView 报名 → MockMatch.id
-    /// - 邀请被接受(MyMatches/ChatDetail) → AcceptedMatchInfo.id
-    let id: UUID
-    let start: Date
-    let end: Date
-    /// 用于冲突 toast 的人类可读描述,如 `"莎拉 04/19 10:00"`。
-    let label: String
-}
+// `BookedSlot` 已迁移到 BookingStore.swift(Phase 2b)。
+// 本文件保留 `BookedSlotStore` 仅为过渡期兼容,完整删除见 Task 8。
 
 @Observable
 @MainActor
