@@ -54,6 +54,7 @@ struct MyMatchesView: View {
     @State private var dmMatchContext: String?
     @State private var registrantMatch: MyMatchItem?
     @State private var selectedCompletedMatch: MyMatchItem?
+    @State private var selectedRegistrantPlayer: PublicPlayerData?
 
     private var sortedUpcoming: [MyMatchItem] {
         let cancelled = cancelledMockKeys
@@ -508,39 +509,54 @@ struct MyMatchesView: View {
             NavigationStack {
                 List {
                     ForEach(Array(match.registrants.enumerated()), id: \.offset) { i, registrant in
-                        HStack(spacing: Spacing.sm) {
-                            ZStack {
-                                Circle()
-                                    .fill(Theme.avatarPlaceholder)
-                                    .frame(width: 36, height: 36)
-                                Text(String(registrant.name.suffix(1)))
-                                    .font(Typography.labelSemibold)
-                                    .foregroundColor(.white)
-                            }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(registrant.name)
-                                    .font(Typography.bodyMedium)
-                                    .foregroundColor(Theme.textPrimary)
-                                Text("NTRP \(registrant.ntrp)")
-                                    .font(Typography.small)
-                                    .foregroundColor(Theme.textSecondary)
-                            }
-                            Spacer()
-                            if registrant.isOrganizer {
-                                Text("發起人")
-                                    .font(Typography.micro)
-                                    .foregroundColor(Theme.primary)
-                                    .padding(.horizontal, Spacing.xs)
-                                    .frame(height: 20)
-                                    .background(Theme.primaryLight)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        Button {
+                            selectedRegistrantPlayer = mockPublicPlayerData(
+                                name: registrant.name,
+                                gender: registrant.gender,
+                                ntrp: registrant.ntrp
+                            )
+                        } label: {
+                            HStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Theme.avatarPlaceholder)
+                                        .frame(width: 36, height: 36)
+                                    Text(String(registrant.name.suffix(1)))
+                                        .font(Typography.labelSemibold)
+                                        .foregroundColor(.white)
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(registrant.name)
+                                        .font(Typography.bodyMedium)
+                                        .foregroundColor(Theme.textPrimary)
+                                    Text("NTRP \(registrant.ntrp)")
+                                        .font(Typography.small)
+                                        .foregroundColor(Theme.textSecondary)
+                                }
+                                Spacer()
+                                if registrant.isOrganizer {
+                                    Text("發起人")
+                                        .font(Typography.micro)
+                                        .foregroundColor(Theme.primary)
+                                        .padding(.horizontal, Spacing.xs)
+                                        .frame(height: 20)
+                                        .background(Theme.primaryLight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                }
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(Theme.textHint)
                             }
                         }
+                        .buttonStyle(.plain)
                     }
                 }
                 .listStyle(.plain)
                 .navigationTitle("報名者 (\(match.playerCounts.current)/\(match.playerCounts.max))")
                 .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(item: $selectedRegistrantPlayer) { player in
+                    PublicProfileView(player: player)
+                }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("完成") {
