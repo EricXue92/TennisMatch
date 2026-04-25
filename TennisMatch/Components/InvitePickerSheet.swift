@@ -41,6 +41,8 @@ enum InviteTarget: Identifiable {
 
 struct InvitePickerSheet: View {
     let target: InviteTarget
+    var disabledPlayerNames: Set<String> = []
+    var disabledReason: String = "已報名"
     let onPick: (FollowPlayer) -> Void
 
     @Environment(FollowStore.self) private var followStore
@@ -58,13 +60,15 @@ struct InvitePickerSheet: View {
                 } else {
                     List {
                         ForEach(mutualFollows) { player in
+                            let isDisabled = disabledPlayerNames.contains(player.name)
                             Button {
                                 onPick(player)
                                 dismiss()
                             } label: {
-                                playerRow(player)
+                                playerRow(player, disabled: isDisabled)
                             }
                             .buttonStyle(.plain)
+                            .disabled(isDisabled)
                         }
                     }
                     .listStyle(.plain)
@@ -88,7 +92,7 @@ struct InvitePickerSheet: View {
         )
     }
 
-    private func playerRow(_ player: FollowPlayer) -> some View {
+    private func playerRow(_ player: FollowPlayer, disabled: Bool) -> some View {
         HStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
@@ -102,7 +106,7 @@ struct InvitePickerSheet: View {
                 HStack(spacing: Spacing.xs) {
                     Text(player.name)
                         .font(Typography.bodyMedium)
-                        .foregroundColor(Theme.textPrimary)
+                        .foregroundColor(disabled ? Theme.textSecondary : Theme.textPrimary)
                     Text(player.gender.symbol)
                         .font(Typography.small)
                         .foregroundColor(player.gender == .female ? Theme.genderFemale : Theme.genderMale)
@@ -113,11 +117,22 @@ struct InvitePickerSheet: View {
                     .lineLimit(1)
             }
             Spacer()
-            Image(systemName: "paperplane.fill")
-                .foregroundColor(Theme.primary)
+            if disabled {
+                Text(disabledReason)
+                    .font(Typography.smallMedium)
+                    .foregroundColor(Theme.textSecondary)
+                    .padding(.horizontal, Spacing.xs)
+                    .frame(height: 22)
+                    .background(Theme.chipUnselectedBg)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+            } else {
+                Image(systemName: "paperplane.fill")
+                    .foregroundColor(Theme.primary)
+            }
         }
         .padding(.vertical, Spacing.xs)
         .frame(minHeight: 44)
         .contentShape(Rectangle())
+        .opacity(disabled ? 0.6 : 1.0)
     }
 }
