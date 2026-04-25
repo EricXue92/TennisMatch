@@ -33,7 +33,6 @@ struct TennisMatchApp: App {
                     }
                 }
             }
-            .preferredColorScheme(.light)
             .environment(\.locale, localeManager.currentLocale)
             .environment(localeManager)
             .environment(followStore)
