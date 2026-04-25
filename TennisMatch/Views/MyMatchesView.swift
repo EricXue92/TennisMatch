@@ -943,13 +943,14 @@ private extension MyMatchesView {
                 Button {
                     let dateString = invitation.details.components(separatedBy: " · ").first ?? ""
                     let location = invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
-                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
                     let scheduleText = "\(dateString) \(invitation.time)"
-                    if let range = MatchSchedule.dateRange(
+                    // Phase 2a: invitation 仍是字符串模型,按需解析一次得到 range,后续 reuse。
+                    guard let range = MatchSchedule.dateRange(
                         text: scheduleText,
                         defaultDurationHours: invitation.durationHours
-                    ),
-                       let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                    ) else { return }
+                    // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                    if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
                         toast = .init(
                             kind: .warning,
                             text: "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
@@ -963,21 +964,18 @@ private extension MyMatchesView {
                         time: invitation.time,
                         location: location,
                         sourceMatchID: nil,
-                        durationHours: invitation.durationHours
+                        durationHours: invitation.durationHours,
+                        startDate: range.start,
+                        endDate: range.end
                     )
                     acceptedMatches.append(accepted)
-                    if let range = MatchSchedule.dateRange(
-                        text: scheduleText,
-                        defaultDurationHours: invitation.durationHours
-                    ) {
-                        let label = "\(invitation.inviterName) \(scheduleText)"
-                        bookedSlotStore.add(BookedSlot(
-                            id: accepted.id,
-                            start: range.start,
-                            end: range.end,
-                            label: label
-                        ))
-                    }
+                    let label = "\(invitation.inviterName) \(scheduleText)"
+                    bookedSlotStore.add(BookedSlot(
+                        id: accepted.id,
+                        start: range.start,
+                        end: range.end,
+                        label: label
+                    ))
                     withAnimation {
                         persistAcceptance(invitation)
                     }

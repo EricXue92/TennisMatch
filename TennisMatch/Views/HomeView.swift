@@ -700,10 +700,10 @@ private extension HomeView {
     /// 报名成功后,将约球信息加入 acceptedMatches,使其显示在"我的约球"页面。
     func addToAcceptedMatches(match: MockMatch) {
         let parts = match.dateTime.split(separator: " ")
-        let dateStr = String(parts[0]) // "04/19"
+        let dateStr = String(parts[0]) // "04/19" — 仅用于显示
         let startTime = parts.count > 1 ? String(parts[1]) : "\(match.hour):00"
-        let startHour = Int(startTime.prefix(2)) ?? match.hour
-        let endHour = startHour + 2
+        let start = match.startDate
+        let end = start.addingTimeInterval(2 * 3600)
 
         let accepted = AcceptedMatchInfo(
             organizerName: match.name,
@@ -714,7 +714,9 @@ private extension HomeView {
             sourceMatchID: match.id,
             durationHours: 2,
             players: "\(match.currentPlayers)/\(match.maxPlayers)",
-            ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh)
+            ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh),
+            startDate: start,
+            endDate: end
         )
         acceptedMatches.append(accepted)
     }

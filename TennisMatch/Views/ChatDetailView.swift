@@ -428,10 +428,11 @@ struct ChatDetailView: View {
                             let parts = date.components(separatedBy: " ")
                             let dateStr = parts.first ?? date
                             let timeStr = parts.count > 1 ? parts[1] : "10:00"
-                            // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
                             let scheduleText = "\(dateStr) \(timeStr)"
-                            if let range = MatchSchedule.dateRange(text: scheduleText),
-                               let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                            // Phase 2a: chat 邀请仍是字符串数据源,解析一次复用。
+                            guard let range = MatchSchedule.dateRange(text: scheduleText) else { return }
+                            // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
+                            if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
                                 chatMenuToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
                                 return
                             }
@@ -440,19 +441,19 @@ struct ChatDetailView: View {
                                 matchType: matchTypeFromChat,
                                 dateString: dateStr,
                                 time: timeStr,
-                                location: location
+                                location: location,
+                                startDate: range.start,
+                                endDate: range.end
                             )
                             acceptedMatches.append(match)
                             UINotificationFeedbackGenerator().notificationOccurred(.success)
-                            if let range = MatchSchedule.dateRange(text: scheduleText) {
-                                let label = "\(organizerName) \(scheduleText)"
-                                bookedSlotStore.add(BookedSlot(
-                                    id: match.id,
-                                    start: range.start,
-                                    end: range.end,
-                                    label: label
-                                ))
-                            }
+                            let label = "\(organizerName) \(scheduleText)"
+                            bookedSlotStore.add(BookedSlot(
+                                id: match.id,
+                                start: range.start,
+                                end: range.end,
+                                label: label
+                            ))
                         } label: {
                             Text("接受")
                                 .font(.system(size: 12, weight: .bold))
