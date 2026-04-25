@@ -57,7 +57,21 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView(sharedChats: $sharedChats, onGoHome: { selectedTab = 0 }, onGoTournaments: { showTournaments = true })
+                case 1: MyMatchesView(
+                    sharedChats: $sharedChats,
+                    onGoHome: { selectedTab = 0 },
+                    onGoTournaments: { showTournaments = true },
+                    onMatchCancelled: { sourceMatchID in
+                        // 取消約球後遞減 MockMatch.currentPlayers,使滿員的約球重新出現在首頁。
+                        // signedUpMatchIDs 已由 BookingStore.cancel 處理,此處只動 mock 顯示欄位。
+                        guard let id = sourceMatchID,
+                              let idx = matches.firstIndex(where: { $0.id == id })
+                        else { return }
+                        if matches[idx].currentPlayers > 0 {
+                            matches[idx].currentPlayers -= 1
+                        }
+                    }
+                )
                 case 2: MatchAssistantView()
                 case 3: MessagesView(totalUnread: $chatUnreadCount, chats: $sharedChats)
                 case 4: ProfileView()
