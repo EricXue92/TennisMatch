@@ -54,7 +54,9 @@ final class FollowStore {
     }
 
     /// 种子数据与 FollowingView 的 mock 列表对齐,确保首次打开看到 12 位已关注球友。
-    private static let seedFollowing: Set<String> = [
+    /// `nonisolated` 让它能用作 init 的 default argument(default-arg 表达式
+    /// 在 caller context 计算,而 FollowStore 是 `@MainActor`)。
+    nonisolated private static let seedFollowing: Set<String> = [
         "莎莎", "王強", "小美", "志明", "大衛", "嘉欣",
         "陳教練", "艾美", "Michael", "思慧", "俊傑", "曉彤",
     ]

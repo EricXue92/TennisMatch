@@ -170,7 +170,9 @@ struct CreditScoreHistoryView: View {
 
 extension CreditScoreHistoryView {
     /// 示例數據 — demo 階段使用。
-    static let mockEntries: [CreditScoreEntry] = [
+    /// `nonisolated` 讓它能用作其他 store 的 default argument(這些 store 在
+    /// `@MainActor` 下,但 default-arg 表達式於 caller context 計算)。
+    nonisolated static let mockEntries: [CreditScoreEntry] = [
         CreditScoreEntry(date: "04/18", delta: 1, reason: "完成約球", detail: "維多利亞公園 · 單打"),
         CreditScoreEntry(date: "04/15", delta: 1, reason: "獲得好評", detail: "來自莎拉"),
         CreditScoreEntry(date: "04/12", delta: 1, reason: "完成約球", detail: "九龍公園 · 雙打"),

@@ -458,7 +458,7 @@ struct ChatDetailView: View {
 
                         Button {
                             withAnimation {
-                                declinedInvitationIDs.insert(messageID)
+                                _ = declinedInvitationIDs.insert(messageID)
                             }
                             // 发送系统消息告知已拒绝
                             let ts = AppDateFormatter.hourMinute.string(from: Date())

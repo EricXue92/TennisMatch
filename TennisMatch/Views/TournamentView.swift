@@ -861,7 +861,9 @@ struct TournamentPlayer: Hashable {
     let ntrp: String
 }
 
-let mockTournaments: [MockTournament] = [
+// 全局 let 在 Swift 6 默认 @MainActor 隔离;TournamentStore.init 的
+// default-arg 在 caller context 计算,需要显式 `nonisolated`。
+nonisolated let mockTournaments: [MockTournament] = [
     MockTournament(
         name: "香港春季網球公開賽",
         format: "淘汰賽", matchType: "單打", ntrpRange: "3.0-4.0",
