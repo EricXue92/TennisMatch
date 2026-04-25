@@ -12,6 +12,10 @@ struct MyMatchesView: View {
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     var onGoTournaments: (() -> Void)? = nil
+    /// 取消約球時回呼上層,傳入 HomeView 來源 MockMatch ID(若有)。
+    /// HomeView 用此回呼遞減 `currentPlayers`,讓被取消的約球重新出現在首頁。
+    /// `signedUpMatchIDs` 與 accepted 列表已由 BookingStore 自行同步,不在此回呼處理。
+    var onMatchCancelled: ((UUID?) -> Void)? = nil
     @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
@@ -273,11 +277,17 @@ struct MyMatchesView: View {
                 if let match = matchToCancel {
                     let hoursToStart = match.startDate.timeIntervalSince(.now) / 3600
                     withAnimation {
+                        var removedSourceID: UUID? = match.sourceMatchID
                         if let aid = match.acceptedMatchID {
                             // BookingStore.cancel 同步处理 signedUpMatchIDs / 持久化。
-                            _ = bookingStore.cancel(acceptedID: aid)
+                            // 從 store 取回 sourceMatchID 更可靠(MyMatchItem 副本可能未填)。
+                            if let removed = bookingStore.cancel(acceptedID: aid) {
+                                removedSourceID = removed.sourceMatchID ?? removedSourceID
+                            }
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
+                        // 通知 HomeView 遞減 MockMatch.currentPlayers,讓滿員的約球重新可見。
+                        onMatchCancelled?(removedSourceID)
                     }
                     // 阶梯扣分: ≥24h → 0, 2-24h → -1, <2h → -2
                     let deduction = creditScoreStore.recordCancellation(
