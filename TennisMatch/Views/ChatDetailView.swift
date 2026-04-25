@@ -38,6 +38,11 @@ struct ChatDetailView: View {
     var onRemoveChat: (() -> Void)? = nil
     /// 封鎖用戶時回調，參數為被封鎖者名稱
     var onBlockUser: ((String) -> Void)? = nil
+    /// 待模擬的 DM 邀請。若非 nil,進 view 立刻 push 外發邀請氣泡,1.6s 後查
+    /// MockFriendSchedule 模擬接受/婉拒並通過 onInviteResolved 回拋。
+    var pendingInvitation: PendingDMInvitation? = nil
+    /// 模擬結束時上拋:(matchID, invitee, accepted)。
+    var onInviteResolved: ((UUID, FollowPlayer, Bool) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(BookingStore.self) private var bookingStore
     @State private var messageText = ""
@@ -58,6 +63,8 @@ struct ChatDetailView: View {
     // Mock 階段：婉拒狀態僅保存在 @State 中，離開頁面即重置。
     // 正式版應持久化至 UserDefaults 或資料庫，注意 @AppStorage JSON 有大小限制。
     @State private var declinedInvitationIDs: Set<UUID> = []
+    /// 防止 .task(id:) 因父層 state 變動再次觸發時重跑模擬。
+    @State private var lastHandledInvitationID: UUID? = nil
 
     private var chatTitle: String {
         switch chat.type {
@@ -256,6 +263,37 @@ struct ChatDetailView: View {
             PublicProfileView(player: player)
         }
         .toast($chatMenuToast, icon: "info.circle.fill")
+        .task(id: pendingInvitation?.matchID) {
+            guard let p = pendingInvitation,
+                  p.matchID != lastHandledInvitationID else { return }
+            lastHandledInvitationID = p.matchID
+
+            // 1. 立刻 push 外發邀請氣泡
+            let outTs = AppDateFormatter.hourMinute.string(from: Date())
+            sentMessages.append(ChatBubble(
+                .outgoingInvitation(p.payload), timestamp: outTs
+            ))
+
+            // 2. 等 1.6s,讓用戶看到外發氣泡
+            try? await Task.sleep(nanoseconds: 1_600_000_000)
+            guard !Task.isCancelled else { return }
+
+            // 3. 查檔期決定接受 / 婉拒
+            let inTs = AppDateFormatter.hourMinute.string(from: Date())
+            if let conflict = MockFriendSchedule.conflict(
+                for: p.invitee.name, start: p.startDate, end: p.endDate
+            ) {
+                let body = "不好意思,那時段我已有\(conflict.label),下次再約 🙏"
+                sentMessages.append(ChatBubble(.incoming(body), timestamp: inTs))
+                onInviteResolved?(p.matchID, p.invitee, false)
+            } else {
+                sentMessages.append(ChatBubble(.incoming("好的,我接受！"), timestamp: inTs))
+                sentMessages.append(ChatBubble(.systemMessage(
+                    "🎾 約球已確認！\(p.payload.dateLabel) 在\(p.payload.location)"
+                )))
+                onInviteResolved?(p.matchID, p.invitee, true)
+            }
+        }
     }
 
     // MARK: - Message Routing
