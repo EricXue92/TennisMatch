@@ -192,3 +192,31 @@ Phase 3 — 架构与性能
 - 取消流程加 5s 撤销窗口
 - 报名/取消加 try/catch 回滚
 
+
+---
+
+## Phase 2a 完成记录（2026-04-25）
+
+**目标**：消除 `MatchSchedule` 的字符串解析作为业务逻辑真相源,所有时间相关判断改为基于 `Date`。
+
+✅ **Task 1**: `MockMatch.startDate` + `mockStartDate(daysFromNow:hour:minute:)` helper；27 个 mock 实例添加 startDate
+✅ **Task 2**: `MockMatch.isExpired` / `sortDate` 直接使用 `startDate < .now`（`d55879a`）
+✅ **Task 3**: `MatchDetailData.startDate/endDate` 字段；通知中心 4 个站点 + MatchAssistantView 派生
+✅ **Task 4**: `SignUpMatchInfo.startDate/endDate` 字段；`init(from detail:)` 透传
+✅ **Task 5**: `AcceptedMatchInfo.startDate/endDate`；MyMatchesView 邀请接受 + ChatDetailView 邀请接受合并 dateRange 调用
+✅ **Task 6**: `HomeView.matchTimeWindow` 改为非可空 `(start: Date, end: Date)`,2 处 caller 简化
+✅ **Task 7**: `MyMatchItem` / `MyMatchInvitation` 引入 startDate/endDate；10 个 mock + 3 个 invitation mock 派生；5 处 `MatchSchedule` 调用消除（`e1f91f2`）
+✅ **Task 8**: `ChatBubble.invitation` 携带 startDate/endDate；invitationCard 直接使用,无字符串再解析（`f2245ef`）
+✅ **Task 9**: HomeView 3 处 `match.dateTime` 解析改为基于 `match.startDate` 的 `AppDateFormatter` 派生；SignUpSuccessView / InvitationAcceptSuccessView 的 calendar save 直接使用 startDate/endDate（`d3f4623`）
+✅ **Task 10**: 删除 `Models/MatchSchedule.swift` + `CalendarService` 三个未使用的字符串解析器（`parseDateTimeRange` / `parseCombinedDateTime` / `parseShortMatch` + 私有 `apply` helper）
+
+**验证**：
+- `grep MatchSchedule TennisMatch/` → 空
+- `xcodebuild build` → BUILD SUCCEEDED
+- `git log feat/phase2-data-flow` → 10 个原子 commit,每步 build 绿
+
+**残留**：
+- 显示用字符串字段(`dateTime` / `dateString` / `dateLabel` / `timeRange`)仍是存储字段,其值在构造时由 `Date` 派生保持一致。后续可改为计算属性。属于 polish,不阻塞 Phase 2b。
+- `parseTournamentRange` 保留,赛事数据仍是字符串模型,迁移属于 Phase 3。
+
+**下阶段**：Phase 2b — 取消/回滚 + BookingStore 抽象

@@ -131,6 +131,8 @@ struct MyMatchesView: View {
                 timeRange: "\(timeStr) - \(endTime)",
                 players: "\(info.players) · NTRP \(info.ntrpRange)",
                 weather: "☀️ 24°C",
+                startDate: info.startDate,
+                endDate: info.endDate,
                 matchType: info.matchType,
                 acceptedMatchID: info.id,
                 sourceMatchID: info.sourceMatchID,
@@ -272,13 +274,7 @@ struct MyMatchesView: View {
             }
             Button("確認取消", role: .destructive) {
                 if let match = matchToCancel {
-                    let scheduleText = "\(match.dateLabel) \(match.timeRange)"
-                    let hoursToStart: Double = {
-                        guard let start = MatchSchedule.startDate(text: scheduleText) else {
-                            return .infinity
-                        }
-                        return start.timeIntervalSince(.now) / 3600
-                    }()
+                    let hoursToStart = match.startDate.timeIntervalSince(.now) / 3600
                     withAnimation {
                         if let aid = match.acceptedMatchID {
                             acceptedMatches.removeAll { $0.id == aid }
@@ -516,13 +512,11 @@ struct MyMatchesView: View {
             // BookedSlotStore.add 按 id 去重,重复 task 触发是安全的。
             // 自动取消的约球不再登记 — 它实际未进行,不应阻塞后续报名。
             for item in upcomingMatches where item.status == .confirmed && !item.isAutoCancelled {
-                let scheduleText = "\(item.dateLabel) \(item.timeRange)"
-                guard let range = MatchSchedule.dateRange(text: scheduleText) else { continue }
                 let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
                 bookedSlotStore.add(BookedSlot(
                     id: item.id,
-                    start: range.start,
-                    end: range.end,
+                    start: item.startDate,
+                    end: item.endDate,
                     label: label
                 ))
             }
@@ -586,9 +580,7 @@ struct MyMatchesView: View {
     }
 
     private func cancelAlertMessage(for match: MyMatchItem) -> String {
-        let scheduleText = "\(match.dateLabel) \(match.timeRange)"
-        let hoursToStart = MatchSchedule.startDate(text: scheduleText)
-            .map { $0.timeIntervalSince(.now) / 3600 } ?? Double.infinity
+        let hoursToStart = match.startDate.timeIntervalSince(.now) / 3600
 
         // 根據距開場時間計算扣分說明（簡短版）
         let penaltyLine: String
@@ -944,12 +936,7 @@ private extension MyMatchesView {
                     let dateString = invitation.details.components(separatedBy: " · ").first ?? ""
                     let location = invitation.details.components(separatedBy: " · ").dropFirst().first ?? ""
                     // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                    let scheduleText = "\(dateString) \(invitation.time)"
-                    if let range = MatchSchedule.dateRange(
-                        text: scheduleText,
-                        defaultDurationHours: invitation.durationHours
-                    ),
-                       let conflict = bookedSlotStore.conflict(start: range.start, end: range.end) {
+                    if let conflict = bookedSlotStore.conflict(start: invitation.startDate, end: invitation.endDate) {
                         toast = .init(
                             kind: .warning,
                             text: "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
@@ -963,21 +950,18 @@ private extension MyMatchesView {
                         time: invitation.time,
                         location: location,
                         sourceMatchID: nil,
-                        durationHours: invitation.durationHours
+                        durationHours: invitation.durationHours,
+                        startDate: invitation.startDate,
+                        endDate: invitation.endDate
                     )
                     acceptedMatches.append(accepted)
-                    if let range = MatchSchedule.dateRange(
-                        text: scheduleText,
-                        defaultDurationHours: invitation.durationHours
-                    ) {
-                        let label = "\(invitation.inviterName) \(scheduleText)"
-                        bookedSlotStore.add(BookedSlot(
-                            id: accepted.id,
-                            start: range.start,
-                            end: range.end,
-                            label: label
-                        ))
-                    }
+                    let label = "\(invitation.inviterName) \(dateString) \(invitation.time)"
+                    bookedSlotStore.add(BookedSlot(
+                        id: accepted.id,
+                        start: invitation.startDate,
+                        end: invitation.endDate,
+                        label: label
+                    ))
                     withAnimation {
                         persistAcceptance(invitation)
                     }
@@ -1047,6 +1031,10 @@ private struct MyMatchItem: Identifiable {
     let timeRange: String
     let players: String
     let weather: String
+    /// Phase 2a: 起止绝对时间。所有时间相关业务判断(过期 / 排序 / 信誉扣分 / 冲突拦截)都基于此字段,
+    /// 不再从 `dateLabel + timeRange` 字符串解析。
+    let startDate: Date
+    let endDate: Date
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
@@ -1063,36 +1051,14 @@ private struct MyMatchItem: Identifiable {
     }
 
     /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
-    /// `sortDate == .distantFuture` 表示无法解析日期,此时保守返回 false。
     var isAutoCancelled: Bool {
         let counts = playerCounts
         guard counts.max > 0, counts.current < counts.max else { return false }
-        guard sortDate != .distantFuture else { return false }
-        return sortDate < .now
+        return startDate < .now
     }
 
-    /// Parsed date used for chronological sorting. Pulls MM/dd from `dateLabel`
-    /// and combines it with the start hour of `timeRange` so same-day items
-    /// order by time. Items without a parseable date sort to the end.
-    var sortDate: Date {
-        let cal = Calendar.current
-        let year = cal.component(.year, from: Date())
-        var month = 0
-        var day = 0
-        if let match = dateLabel.range(of: #"(\d{1,2})/(\d{1,2})"#, options: .regularExpression) {
-            let parts = dateLabel[match].split(separator: "/")
-            month = Int(parts[0]) ?? 0
-            day = Int(parts.count > 1 ? parts[1] : "0") ?? 0
-        }
-        guard month > 0, day > 0 else { return .distantFuture }
-        let hour = Int(timeRange.prefix(2)) ?? 0
-        var components = DateComponents()
-        components.year = year
-        components.month = month
-        components.day = day
-        components.hour = hour
-        return cal.date(from: components) ?? .distantFuture
-    }
+    /// 排序键 — 直接使用绝对开始时间。
+    var sortDate: Date { startDate }
 }
 
 private struct MyMatchInvitation: Identifiable {
@@ -1103,6 +1069,9 @@ private struct MyMatchInvitation: Identifiable {
     let details: String
     let time: String            // "14:00"
     let durationHours: Int      // e.g. 2
+    /// Phase 2a: 起止绝对时间。冲突拦截 / AcceptedMatchInfo 构造均直接使用此字段。
+    let startDate: Date
+    let endDate: Date
 
     /// 显示用文本,在日期后插入时段。
     /// "04/25 · 將軍澳 · NTRP 3.5" → "04/25 18:00 - 20:00 · 將軍澳 · NTRP 3.5"
@@ -1157,8 +1126,36 @@ private func relativeDateShort(daysFromNow: Int) -> String {
     return AppDateFormatter.monthDay.string(from: date)
 }
 
+/// 根據距今天數和起止时刻生成 mock 用的 (start, end) Date pair。
+/// Phase 2a: MyMatchItem 的 startDate / endDate 由此函数派生,
+/// 与 dateLabel / timeRange 字符串字段保持语义一致。
+private func relativeMockMatchRange(
+    daysFromNow: Int,
+    startHour: Int,
+    startMinute: Int = 0,
+    endHour: Int,
+    endMinute: Int = 0
+) -> (start: Date, end: Date) {
+    let calendar = Calendar.current
+    let day = calendar.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
+    var startComps = calendar.dateComponents([.year, .month, .day], from: day)
+    startComps.hour = startHour
+    startComps.minute = startMinute
+    var endComps = startComps
+    endComps.hour = endHour
+    endComps.minute = endMinute
+    let start = calendar.date(from: startComps) ?? day
+    let end = calendar.date(from: endComps) ?? start.addingTimeInterval(2 * 3600)
+    return (start: start, end: end)
+}
+
 private var mockUpcomingMatchesInitial: [MyMatchItem] {
-    [
+    let r1 = relativeMockMatchRange(daysFromNow: 1, startHour: 10, endHour: 12)
+    let r2 = relativeMockMatchRange(daysFromNow: 3, startHour: 14, endHour: 16)
+    let r3 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, startMinute: 30, endHour: 20)
+    let r4 = relativeMockMatchRange(daysFromNow: 6, startHour: 18, endHour: 20)
+    let r5 = relativeMockMatchRange(daysFromNow: 8, startHour: 8, endHour: 10)
+    return [
         MyMatchItem(
             title: "莎拉 發起的單打",
             isOrganizer: false,
@@ -1168,6 +1165,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "10:00 - 12:00",
             players: "2/2 · NTRP 3.0-4.0",
             weather: "☀️ 24°C",
+            startDate: r1.start,
+            endDate: r1.end,
             registrants: [
                 MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: true),
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
@@ -1182,6 +1181,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "14:00 - 16:00",
             players: "2/4 · NTRP 3.5-4.5",
             weather: "⛅ 26°C",
+            startDate: r2.start,
+            endDate: r2.end,
             registrants: [
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
                 MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: false),
@@ -1196,6 +1197,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "18:30 - 20:00",
             players: "3/4 · NTRP 4.0-5.0",
             weather: "☀️ 24°C",
+            startDate: r3.start,
+            endDate: r3.end,
             matchType: "雙打",
             registrants: [
                 MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
@@ -1212,6 +1215,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "18:00 - 20:00",
             players: "2/2 · NTRP 3.0-4.0",
             weather: "☀️ 24°C",
+            startDate: r4.start,
+            endDate: r4.end,
             matchType: "雙打",
             registrants: [
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
@@ -1227,6 +1232,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             timeRange: "08:00 - 10:00",
             players: "2/2 · NTRP 4.5-5.0",
             weather: "☀️ 25°C",
+            startDate: r5.start,
+            endDate: r5.end,
             registrants: [
                 MatchRegistrant(name: "Michael", ntrp: "5.0", isOrganizer: true),
                 MatchRegistrant(name: "小李", ntrp: "4.5", isOrganizer: false),
@@ -1236,7 +1243,12 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
 }
 
 private var mockCompletedMatches: [MyMatchItem] {
-    [
+    let c1 = relativeMockMatchRange(daysFromNow: -10, startHour: 14, endHour: 16)
+    let c2 = relativeMockMatchRange(daysFromNow: -12, startHour: 9, endHour: 11)
+    let c3 = relativeMockMatchRange(daysFromNow: -16, startHour: 16, endHour: 18)
+    let c4 = relativeMockMatchRange(daysFromNow: -24, startHour: 10, endHour: 12)
+    let c5 = relativeMockMatchRange(daysFromNow: -31, startHour: 8, endHour: 10)
+    return [
         MyMatchItem(
             title: "王強 發起的雙打",
             isOrganizer: false,
@@ -1246,6 +1258,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "14:00 - 16:00",
             players: "4/4 · NTRP 3.5-4.5",
             weather: "☀️ 28°C",
+            startDate: c1.start,
+            endDate: c1.end,
             registrants: [
                 MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: true),
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
@@ -1262,6 +1276,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "09:00 - 11:00",
             players: "2/2 · NTRP 3.0-4.0",
             weather: "🌤 25°C",
+            startDate: c2.start,
+            endDate: c2.end,
             registrants: [
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
                 MatchRegistrant(name: "志明", ntrp: "3.0", isOrganizer: false),
@@ -1276,6 +1292,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "16:00 - 18:00",
             players: "4/4 · NTRP 4.0-5.0",
             weather: "☀️ 27°C",
+            startDate: c3.start,
+            endDate: c3.end,
             matchType: "雙打",
             registrants: [
                 MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
@@ -1293,6 +1311,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "10:00 - 12:00",
             players: "4/4 · NTRP 3.0-3.5",
             weather: "⛅ 23°C",
+            startDate: c4.start,
+            endDate: c4.end,
             matchType: "雙打",
             registrants: [
                 MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: true),
@@ -1310,6 +1330,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             timeRange: "08:00 - 10:00",
             players: "2/2 · NTRP 3.5-4.0",
             weather: "☀️ 22°C",
+            startDate: c5.start,
+            endDate: c5.end,
             registrants: [
                 MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
                 MatchRegistrant(name: "阿豪", ntrp: "4.0", isOrganizer: false),
@@ -1319,14 +1341,19 @@ private var mockCompletedMatches: [MyMatchItem] {
 }
 
 private var mockInvitations: [MyMatchInvitation] {
-    [
+    let i1 = relativeMockMatchRange(daysFromNow: 2, startHour: 14, endHour: 16)
+    let i2 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, endHour: 20)
+    let i3 = relativeMockMatchRange(daysFromNow: 6, startHour: 9, endHour: 11)
+    return [
         MyMatchInvitation(
             inviterName: "艾美",
             gender: .female,
             matchType: "單打",
             details: "\(relativeDateShort(daysFromNow: 2)) · 京士柏 · NTRP 3.0",   // 後天
             time: "14:00",
-            durationHours: 2
+            durationHours: 2,
+            startDate: i1.start,
+            endDate: i1.end
         ),
         MyMatchInvitation(
             inviterName: "俊傑",
@@ -1334,7 +1361,9 @@ private var mockInvitations: [MyMatchInvitation] {
             matchType: "雙打",
             details: "\(relativeDateShort(daysFromNow: 4)) · 將軍澳 · NTRP 3.5-4.5",  // 4 天後
             time: "18:00",
-            durationHours: 2
+            durationHours: 2,
+            startDate: i2.start,
+            endDate: i2.end
         ),
         MyMatchInvitation(
             inviterName: "思慧",
@@ -1342,7 +1371,9 @@ private var mockInvitations: [MyMatchInvitation] {
             matchType: "單打",
             details: "\(relativeDateShort(daysFromNow: 6)) · 香港公園 · NTRP 3.0-3.5",  // 6 天後
             time: "09:00",
-            durationHours: 2
+            durationHours: 2,
+            startDate: i3.start,
+            endDate: i3.end
         ),
     ]
 }
@@ -1448,17 +1479,7 @@ private struct InvitationAcceptSuccessView: View {
     }
 
     private func saveInvitationToCalendar() {
-        // 從原始 details 取日期(MM/dd),displayDetails 會插入時段導致解析失敗
-        let monthDay = invitation.details.components(separatedBy: " · ").first ?? ""
-        guard !monthDay.isEmpty,
-              let range = CalendarService.parseShortMatch(
-                monthDay: monthDay,
-                startTime: invitation.time,
-                durationHours: invitation.durationHours
-              ) else {
-            calendarToast = "無法解析約球時間"
-            return
-        }
+        // Phase 2a: 直接使用 invitation.startDate / endDate,不再回头解析字符串。
         let location = detailParts.count > 1 ? detailParts[1] : ""
         let title = "\(invitation.inviterName) 的\(invitation.matchType)"
         let notes = "\(invitation.matchType) · \(invitation.details)"
@@ -1466,8 +1487,8 @@ private struct InvitationAcceptSuccessView: View {
             do {
                 try await CalendarService.addEvent(
                     title: title,
-                    startDate: range.start,
-                    endDate: range.end,
+                    startDate: invitation.startDate,
+                    endDate: invitation.endDate,
                     location: location,
                     notes: notes
                 )

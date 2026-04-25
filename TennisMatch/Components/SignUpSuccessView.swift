@@ -128,18 +128,8 @@ struct SignUpSuccessView: View {
     }
 
     private func saveMatchToCalendar() {
-        // 当有独立的 date/timeRange 时使用 parseDateTimeRange，否则用 parseCombinedDateTime
-        let range: (start: Date, end: Date)? = {
-            if let date = match.date, let timeRange = match.timeRange {
-                return CalendarService.parseDateTimeRange(date: date, timeRange: timeRange)
-            }
-            return CalendarService.parseCombinedDateTime(match.dateTime)
-        }()
-        guard let range else {
-            calendarToast = "無法解析約球時間"
-            return
-        }
-        // 来自详情页时用"·"分隔，首页用"的"
+        // Phase 2a: 直接使用 SignUpMatchInfo.startDate / endDate,不再回头解析字符串。
+        // 来自详情页时用"·"分隔,首页用"的"
         let title = match.date != nil
             ? "\(match.organizerName) · \(match.matchType)"
             : "\(match.organizerName) 的\(match.matchType)"
@@ -148,8 +138,8 @@ struct SignUpSuccessView: View {
             do {
                 try await CalendarService.addEvent(
                     title: title,
-                    startDate: range.start,
-                    endDate: range.end,
+                    startDate: match.startDate,
+                    endDate: match.endDate,
                     location: match.location,
                     notes: notes
                 )

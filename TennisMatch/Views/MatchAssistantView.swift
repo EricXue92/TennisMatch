@@ -193,8 +193,25 @@ private struct RecommendedMatch: Identifiable {
         let dateStr = parts.first ?? dateTime
         let timeStr = parts.count > 1 ? parts[1] : "10:00"
         // 防止結束時間超過 24:00（隔天 00:00）
-        let endHour = min((Int(timeStr.prefix(2)) ?? 10) + 2, 24)
+        let startHour = Int(timeStr.prefix(2)) ?? 10
+        let startMinute = Int(timeStr.dropFirst(3).prefix(2)) ?? 0
+        let endHour = min(startHour + 2, 24)
         let timeRange = endHour == 24 ? "\(timeStr) - 00:00(隔天)" : "\(timeStr) - \(String(format: "%02d:00", endHour))"
+
+        // Phase 2a: 由 "MM/dd" + 当前年 + HH:mm 派生 startDate/endDate
+        let cal = Calendar.current
+        let dateParts = dateStr.split(separator: "/")
+        let month = dateParts.count >= 1 ? Int(dateParts[0]) ?? 1 : 1
+        let day = dateParts.count >= 2 ? Int(dateParts[1]) ?? 1 : 1
+        var startComps = DateComponents()
+        startComps.year = cal.component(.year, from: Date())
+        startComps.month = month
+        startComps.day = day
+        startComps.hour = startHour
+        startComps.minute = startMinute
+        let start = cal.date(from: startComps) ?? Date()
+        let end = start.addingTimeInterval(2 * 3600)
+
         return MatchDetailData(
             name: name,
             gender: gender,
@@ -203,6 +220,8 @@ private struct RecommendedMatch: Identifiable {
             matchType: matchType,
             date: "2026/\(dateStr)",
             timeRange: timeRange,
+            startDate: start,
+            endDate: end,
             location: "\(location)網球場",
             district: "香港",
             players: "1/2 人",

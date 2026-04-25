@@ -258,6 +258,9 @@ struct AcceptedMatchInfo: Identifiable {
     var durationHours: Int = 2
     var players: String = "2/2"
     var ntrpRange: String = "3.0-4.0"
+    /// Phase 2a: 起止绝对时间。所有"过期判断 / 加入日历 / 倒计时"基于此字段。
+    let startDate: Date
+    let endDate: Date
 }
 
 // 模擬初始聊天列表，提供預設資料讓介面不顯示空白

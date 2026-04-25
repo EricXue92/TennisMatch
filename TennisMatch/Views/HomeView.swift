@@ -608,18 +608,18 @@ private extension HomeView {
 
         // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
         // 这里查询的是全局 BookedSlotStore,涵盖其它已报名 + 已接受邀请。
-        if let range = matchTimeWindow(for: match),
-           let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
+        let range = matchTimeWindow(for: match)
+        if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
             conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
             return
         }
 
-        let parts = match.dateTime.split(separator: " ")
-        let date = "2026/\(parts[0])"
-        let startTime = String(parts[1])
-        let startHour = Int(startTime.prefix(2)) ?? 10
-        let endHour = startHour + 2
-        let timeRange = "\(startTime) - \(String(format: "%02d:00", endHour))"
+        // Phase 2a: 显示字段直接从 startDate 派生,确保与底层 Date 一致。
+        let endDate = match.startDate.addingTimeInterval(2 * 3600)
+        let date = AppDateFormatter.yearMonthDay.string(from: match.startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+        let endTime = AppDateFormatter.hourMinute.string(from: endDate)
+        let timeRange = "\(startTime) - \(endTime)"
 
         signUpMatchId = match.id
 
@@ -637,33 +637,32 @@ private extension HomeView {
             fee: match.fee,
             notes: "自帶球拍和球",
             players: playersStr,
-            isFull: newCount >= match.maxPlayers
+            isFull: newCount >= match.maxPlayers,
+            startDate: match.startDate,
+            endDate: endDate
         )
     }
 
-    /// 解析 `MockMatch.dateTime` 起止窗口。`hour` 字段作为 fallback,
-    /// 防止 dateTime 偶尔缺少 HH:mm 导致整个冲突检测被绕过。
-    func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date)? {
-        MatchSchedule.dateRange(text: match.dateTime, hourFallback: match.hour)
+    /// 取 `MockMatch` 的起止时间窗口(默认 2 小时);Phase 2a 之后直接基于 `startDate`。
+    func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date) {
+        (start: match.startDate, end: match.startDate.addingTimeInterval(2 * 3600))
     }
 
     /// 报名成功后向 BookedSlotStore 登记该时段,
     /// 后续在其它入口(MyMatches 接受邀请 / ChatDetail)拦截冲突。
     func registerBookedSlot(for match: MockMatch) {
-        guard let range = matchTimeWindow(for: match) else { return }
+        let range = matchTimeWindow(for: match)
         let label = "\(match.name) \(match.dateTime)"
         bookedSlotStore.add(BookedSlot(id: match.id, start: range.start, end: range.end, label: label))
     }
 
     func makeMatchDetail(from match: MockMatch) -> MatchDetailData {
-        // Parse dateTime "04/19 10:00" → date + timeRange
-        let parts = match.dateTime.split(separator: " ")
-        let date = "2026/\(parts[0])"
-        let startTime = String(parts[1])
-        // Estimate 2-hour session
-        let startHour = Int(startTime.prefix(2)) ?? 10
-        let endHour = startHour + 2
-        let timeRange = "\(startTime) - \(String(format: "%02d:00", endHour))"
+        // Phase 2a: 显示字段从 startDate 派生。
+        let endDate = match.startDate.addingTimeInterval(2 * 3600)
+        let date = AppDateFormatter.yearMonthDay.string(from: match.startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+        let endTime = AppDateFormatter.hourMinute.string(from: endDate)
+        let timeRange = "\(startTime) - \(endTime)"
 
         // Parse weather emoji + temp
         let temp = match.weather.replacingOccurrences(of: "☀️ ", with: "")
@@ -679,6 +678,8 @@ private extension HomeView {
             matchType: match.matchType,
             date: date,
             timeRange: timeRange,
+            startDate: match.startDate,
+            endDate: endDate,
             location: match.location,
             district: "香港",
             players: match.players.components(separatedBy: " •").first ?? match.players,
@@ -695,11 +696,11 @@ private extension HomeView {
 
     /// 报名成功后,将约球信息加入 acceptedMatches,使其显示在"我的约球"页面。
     func addToAcceptedMatches(match: MockMatch) {
-        let parts = match.dateTime.split(separator: " ")
-        let dateStr = String(parts[0]) // "04/19"
-        let startTime = parts.count > 1 ? String(parts[1]) : "\(match.hour):00"
-        let startHour = Int(startTime.prefix(2)) ?? match.hour
-        let endHour = startHour + 2
+        // Phase 2a: 从 startDate 派生显示字段。
+        let start = match.startDate
+        let end = start.addingTimeInterval(2 * 3600)
+        let dateStr = AppDateFormatter.monthDay.string(from: start)
+        let startTime = AppDateFormatter.hourMinute.string(from: start)
 
         let accepted = AcceptedMatchInfo(
             organizerName: match.name,
@@ -710,7 +711,9 @@ private extension HomeView {
             sourceMatchID: match.id,
             durationHours: 2,
             players: "\(match.currentPlayers)/\(match.maxPlayers)",
-            ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh)
+            ntrpRange: String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh),
+            startDate: start,
+            endDate: end
         )
         acceptedMatches.append(accepted)
     }
@@ -721,11 +724,19 @@ private extension HomeView {
 
         let hourStr = info.startTime.prefix(2)
         let hour = Int(hourStr) ?? 10
+        let minuteStr = info.startTime.dropFirst(3).prefix(2)
+        let minute = Int(minuteStr) ?? 0
 
         // Compute day of week
         let weekdayIndex = Calendar.current.component(.weekday, from: info.date)
         let dayMap = [1: "日", 2: "一", 3: "二", 4: "三", 5: "四", 6: "五", 7: "六"]
         let dayOfWeek = dayMap[weekdayIndex] ?? "一"
+
+        // Phase 2a: 组合 startDate 用于业务比较(过期 / 排序),与 dateTime 字符串并行存在。
+        var startComps = Calendar.current.dateComponents([.year, .month, .day], from: info.date)
+        startComps.hour = hour
+        startComps.minute = minute
+        let startDate = Calendar.current.date(from: startComps) ?? info.date
 
         let fee = info.costType == "免費" ? "免費" : "AA ¥\(info.costAmount)"
         let genderLabel: String
@@ -741,6 +752,7 @@ private extension HomeView {
             matchType: info.matchType,
             weather: "☀️ --°C",
             dateTime: dateTime,
+            startDate: startDate,
             location: info.courtName,
             fee: fee,
             ntrpLow: info.ntrpLow,
