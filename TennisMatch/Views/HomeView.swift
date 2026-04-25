@@ -637,7 +637,9 @@ private extension HomeView {
             fee: match.fee,
             notes: "自帶球拍和球",
             players: playersStr,
-            isFull: newCount >= match.maxPlayers
+            isFull: newCount >= match.maxPlayers,
+            startDate: match.startDate,
+            endDate: match.startDate.addingTimeInterval(2 * 3600)
         )
     }
 

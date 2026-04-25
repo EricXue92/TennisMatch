@@ -23,6 +23,9 @@ struct SignUpMatchInfo: Identifiable {
     var date: String? = nil
     /// 独立的时间范围字段（来自 MatchDetailData），用于日历解析
     var timeRange: String? = nil
+    /// Phase 2a: 起止绝对时间(全部场景必填,用于"加入日历"等)。
+    let startDate: Date
+    let endDate: Date
 
     /// 从 MatchDetailData 构造，便于 MatchDetailView 复用共享报名组件
     init(from detail: MatchDetailData) {
@@ -38,11 +41,14 @@ struct SignUpMatchInfo: Identifiable {
         self.isFull = detail.isFull
         self.date = detail.date
         self.timeRange = detail.timeRange
+        self.startDate = detail.startDate
+        self.endDate = detail.endDate
     }
 
     init(organizerName: String, organizerGender: Gender, dateTime: String,
          location: String, matchType: String, ntrpRange: String,
-         fee: String, notes: String, players: String, isFull: Bool) {
+         fee: String, notes: String, players: String, isFull: Bool,
+         startDate: Date, endDate: Date) {
         self.organizerName = organizerName
         self.organizerGender = organizerGender
         self.dateTime = dateTime
@@ -53,5 +59,7 @@ struct SignUpMatchInfo: Identifiable {
         self.notes = notes
         self.players = players
         self.isFull = isFull
+        self.startDate = startDate
+        self.endDate = endDate
     }
 }
