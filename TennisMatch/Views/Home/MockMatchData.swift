@@ -42,18 +42,15 @@ struct MockMatch: Identifiable {
 
     var isFull: Bool { currentPlayers >= maxPlayers }
 
-    /// 起始时间已过(根据 `dateTime` 中的 MM/dd HH:mm,与当前年组合)。
-    /// 解析失败时返回 `false`,避免误把数据当成过期。
-    var isExpired: Bool { MatchSchedule.isExpired(text: dateTime, hourFallback: hour) }
+    /// 起始时间已过 — 直接基于 `startDate` 比较。
+    var isExpired: Bool { startDate < .now }
 
     /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
     /// 即使用户已报名,该约球实际未进行,UI 应优先展示"已自動取消"覆盖"已報名"。
     var isAutoCancelled: Bool { isExpired && !isFull }
 
     /// 用于首页按时间排序 — 最近的时间在最上面。
-    var sortDate: Date {
-        MatchSchedule.startDate(text: dateTime, hourFallback: hour) ?? .distantFuture
-    }
+    var sortDate: Date { startDate }
 
     /// 显示用的完整时段字符串,如 "04/23 09:00 - 11:00"。
     var dateTimeDisplay: String {
