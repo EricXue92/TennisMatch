@@ -13,7 +13,7 @@ struct TennisMatchApp: App {
     @State private var localeManager = LocaleManager.shared
     @State private var followStore = FollowStore()
     @State private var userStore = UserStore()
-    @State private var bookedSlotStore = BookedSlotStore()
+    @State private var bookingStore = BookingStore()
     @State private var notificationStore = NotificationStore()
     @State private var creditScoreStore = CreditScoreStore()
     @State private var ratingFeedbackStore = RatingFeedbackStore()
@@ -41,7 +41,7 @@ struct TennisMatchApp: App {
             .environment(localeManager)
             .environment(followStore)
             .environment(userStore)
-            .environment(bookedSlotStore)
+            .environment(bookingStore)
             .environment(notificationStore)
             .environment(creditScoreStore)
             .environment(ratingFeedbackStore)

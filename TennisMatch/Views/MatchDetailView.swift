@@ -9,10 +9,6 @@ import SwiftUI
 
 struct MatchDetailView: View {
     let match: MatchDetailData
-    @Binding var acceptedMatches: [AcceptedMatchInfo]
-    /// IDs of matches the user has signed up for. Bound to HomeView so
-    /// signing up here keeps the card and the detail in sync.
-    @Binding var signedUpMatchIDs: Set<UUID>
     /// Called when the user confirms sign-up, so the caller can bump the
     /// underlying match's `currentPlayers`. Receives the match id.
     var onSignUp: (UUID) -> Void = { _ in }
@@ -20,7 +16,7 @@ struct MatchDetailView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
-    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(BookingStore.self) private var bookingStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
@@ -42,7 +38,7 @@ struct MatchDetailView: View {
 
     private var hasSignedUp: Bool {
         guard let mid = match.matchId else { return false }
-        return signedUpMatchIDs.contains(mid)
+        return bookingStore.isSignedUp(matchID: mid)
     }
 
     private var playersDisplay: String {
@@ -395,7 +391,7 @@ private extension MatchDetailView {
 
                 Button {
                     // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                    if let conflict = bookedSlotStore.conflict(
+                    if let conflict = bookingStore.conflict(
                         start: match.startDate,
                         end: match.endDate,
                         excluding: match.matchId
@@ -443,9 +439,19 @@ private extension MatchDetailView {
                         isOrganizer: false
                     )
                 )
-                // Parent: mark signed up + bump underlying match.
+                // Parent: register sign-up with store + bump underlying match.
                 if let mid = match.matchId {
-                    signedUpMatchIDs.insert(mid)
+                    let accepted = makeAcceptedMatchInfo(matchID: mid)
+                    switch bookingStore.signUp(matchID: mid, info: accepted) {
+                    case .ok, .alreadySignedUp:
+                        break
+                    case .conflict(let label):
+                        conflictToast = "該時段已與「\(label)」衝突,請先取消已預訂的時段"
+                        // Roll back local count bump.
+                        localPlayerCurrent = (localPlayerCurrent ?? counts.current) - 1
+                        if !participants.isEmpty { participants.removeLast() }
+                        return
+                    }
                     onSignUp(mid)
                 }
                 showSignUpSuccess = true
@@ -471,11 +477,34 @@ private extension MatchDetailView {
                     time: "now",
                     unreadCount: 0
                 ),
-                acceptedMatches: $acceptedMatches,
                 matchContext: "🎾 約球已確認\n📅 \(match.date) \(match.timeRange)\n📍 \(match.location)\n🏸 \(match.matchType) · NTRP \(match.ntrpRange)\n💰 \(match.fee)",
                 initialMessage: signUpMessage.isEmpty ? nil : signUpMessage
             )
         }
+    }
+
+    /// 由 `MatchDetailData` 构造写入 BookingStore 的 AcceptedMatchInfo。
+    private func makeAcceptedMatchInfo(matchID: UUID) -> AcceptedMatchInfo {
+        let counts = match.playerCounts
+        let current = localPlayerCurrent ?? counts.current
+        let playersStr = counts.max > 0 ? "\(current)/\(counts.max)" : match.players
+        let durationHours = max(1, Int(match.endDate.timeIntervalSince(match.startDate) / 3600))
+        let dateStr = AppDateFormatter.monthDay.string(from: match.startDate)
+        let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+
+        return AcceptedMatchInfo(
+            organizerName: match.name,
+            matchType: match.matchType,
+            dateString: dateStr,
+            time: startTime,
+            location: match.location,
+            sourceMatchID: matchID,
+            durationHours: durationHours,
+            players: playersStr,
+            ntrpRange: match.ntrpRange,
+            startDate: match.startDate,
+            endDate: match.endDate
+        )
     }
 }
 
@@ -653,28 +682,20 @@ private let inviteContacts: [InviteContact] = [
 
 #Preview("iPhone SE") {
     NavigationStack {
-        MatchDetailView(
-            match: previewMatchDetail,
-            acceptedMatches: .constant([]),
-            signedUpMatchIDs: .constant([])
-        )
+        MatchDetailView(match: previewMatchDetail)
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookedSlotStore())
+    .environment(BookingStore())
 }
 
 #Preview("iPhone 15 Pro") {
     NavigationStack {
-        MatchDetailView(
-            match: previewMatchDetail,
-            acceptedMatches: .constant([]),
-            signedUpMatchIDs: .constant([])
-        )
+        MatchDetailView(match: previewMatchDetail)
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookedSlotStore())
+    .environment(BookingStore())
 }
 
 private let previewMatchDetail = MatchDetailData(

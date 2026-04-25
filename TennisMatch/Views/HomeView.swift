@@ -12,7 +12,7 @@ import SwiftUI
 struct HomeView: View {
     @Environment(UserStore.self) private var userStore
     @Environment(FollowStore.self) private var followStore
-    @Environment(BookedSlotStore.self) private var bookedSlotStore
+    @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var showDrawer = false
@@ -37,13 +37,11 @@ struct HomeView: View {
     @State private var signUpMatchId: UUID?
     @State private var chatUnreadCount = 0
     @State private var sharedChats: [MockChat] = mockChatsInitial
-    @State private var acceptedMatches: [AcceptedMatchInfo] = []
     @State private var drawerNav: DrawerDestination?
     @State private var pendingDMOrganizer: SignUpMatchInfo?
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
     @State private var dmInitialMessage: String?
-    @State private var signedUpMatchIDs: Set<UUID> = []
     /// Sign-up留言 captured on confirm — carried to dmChat when user
     /// chooses "聯繫發起人" from the success screen.
     @State private var pendingSignUpMessage: String = ""
@@ -59,20 +57,9 @@ struct HomeView: View {
             Group {
                 switch selectedTab {
                 case 0: homeTab
-                case 1: MyMatchesView(acceptedMatches: $acceptedMatches, sharedChats: $sharedChats, onGoHome: { selectedTab = 0 }, onGoTournaments: { showTournaments = true }, onMatchCancelled: { sourceMatchID in
-                    // Decrement player count and clear the "已報名" flag for the originating HomeView match.
-                    // sourceMatchID is nil for mock upcoming items / invitation-accept flows, which correctly no-op.
-                    guard let id = sourceMatchID,
-                          let idx = matches.firstIndex(where: { $0.id == id })
-                    else { return }
-                    if matches[idx].currentPlayers > 0 {
-                        matches[idx].currentPlayers -= 1
-                    }
-                    signedUpMatchIDs.remove(id)
-                    bookedSlotStore.remove(id: id)
-                })
+                case 1: MyMatchesView(sharedChats: $sharedChats, onGoHome: { selectedTab = 0 }, onGoTournaments: { showTournaments = true })
                 case 2: MatchAssistantView()
-                case 3: MessagesView(totalUnread: $chatUnreadCount, acceptedMatches: $acceptedMatches, chats: $sharedChats)
+                case 3: MessagesView(totalUnread: $chatUnreadCount, chats: $sharedChats)
                 case 4: ProfileView()
                 default: homeTab
                 }
@@ -111,14 +98,22 @@ struct HomeView: View {
         }
         .sheet(item: $signUpMatch) { info in
             SignUpConfirmSheet(match: info) { message in
-                // Increment player count in the match
                 if let matchId = signUpMatchId,
                    let idx = matches.firstIndex(where: { $0.id == matchId }) {
                     matches[idx].currentPlayers += 1
-                    signedUpMatchIDs.insert(matchId)
-                    registerBookedSlot(for: matches[idx])
-                    // 报名成功后加入"我的约球"列表
-                    addToAcceptedMatches(match: matches[idx])
+                    let accepted = makeAcceptedMatchInfo(for: matches[idx])
+                    // showSignUp 已先做过 conflict 检查;这里 signUp 二次校验属防御性。
+                    switch bookingStore.signUp(matchID: matchId, info: accepted) {
+                    case .ok, .alreadySignedUp:
+                        break
+                    case .conflict(let label):
+                        // 极少触发(只有先后异步注入的 externalSlots 才会到这一步)。
+                        conflictToast = L10n.string("該時段已與「\(label)」衝突,請先取消已預訂的時段")
+                        if matches[idx].currentPlayers > 0 {
+                            matches[idx].currentPlayers -= 1
+                        }
+                        return
+                    }
                 }
                 pendingSignUpMessage = message
                 successMatch = info
@@ -155,12 +150,9 @@ struct HomeView: View {
         .navigationDestination(item: $selectedMatchDetail) { detail in
             MatchDetailView(
                 match: detail,
-                acceptedMatches: $acceptedMatches,
-                signedUpMatchIDs: $signedUpMatchIDs,
                 onSignUp: { matchId in
                     if let idx = matches.firstIndex(where: { $0.id == matchId }) {
                         matches[idx].currentPlayers += 1
-                        registerBookedSlot(for: matches[idx])
                     }
                 }
             )
@@ -184,7 +176,6 @@ struct HomeView: View {
         .navigationDestination(item: $dmChat) { chat in
             ChatDetailView(
                 chat: chat,
-                acceptedMatches: $acceptedMatches,
                 matchContext: dmMatchContext,
                 initialMessage: dmInitialMessage
             )
@@ -195,17 +186,6 @@ struct HomeView: View {
         }
         .overlay(alignment: .top) {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
-        }
-        .onAppear {
-            if let data = UserDefaults.standard.data(forKey: "signedUpMatchIDs"),
-               let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) {
-                signedUpMatchIDs = ids
-            }
-        }
-        .onChange(of: signedUpMatchIDs) { _, newValue in
-            if let data = try? JSONEncoder().encode(newValue) {
-                UserDefaults.standard.set(data, forKey: "signedUpMatchIDs")
-            }
         }
     }
 
@@ -287,7 +267,7 @@ private extension HomeView {
                 // Stats cards
                 HStack(spacing: Spacing.xs) {
                     statCard(label: "信譽積分", value: "\(creditScoreStore.score)")
-                    statCard(label: "場次", value: "\(signedUpMatchIDs.count)")
+                    statCard(label: "場次", value: "\(bookingStore.signedUpMatchIDs.count)")
                     statCard(label: "NTRP", value: userStore.ntrpText)
                 }
                 .padding(.horizontal, Spacing.md)
@@ -405,7 +385,7 @@ private extension HomeView {
             // 首页只显示未来可约的信息,过期/自动取消的不展示
             if match.isExpired { return false }
             // 已报名的约球不再显示在首页,已移至"我的约球"
-            if signedUpMatchIDs.contains(match.id) { return false }
+            if bookingStore.isSignedUp(matchID: match.id) { return false }
             // Hide full matches (but always show own)
             if match.isFull && !match.isOwnMatch { return false }
             // Match type filter
@@ -549,7 +529,7 @@ private extension HomeView {
 
                 if !match.isOwnMatch {
                     let autoCancelled = match.isAutoCancelled
-                    let alreadySignedUp = !autoCancelled && signedUpMatchIDs.contains(match.id)
+                    let alreadySignedUp = !autoCancelled && bookingStore.isSignedUp(matchID: match.id)
                     // Precedence: auto-cancel > already-signed-up > expired > full > open for sign-up.
                     // - Auto-cancelled (expired & under capacity) wins over 已報名 because the match never ran.
                     // - Already-signed-up wins next: the slot is genuinely booked.
@@ -604,12 +584,12 @@ private extension HomeView {
     func showSignUp(_ match: MockMatch) {
         guard !match.isFull else { return }
         guard !match.isExpired else { return }
-        guard !signedUpMatchIDs.contains(match.id) else { return }
+        guard !bookingStore.isSignedUp(matchID: match.id) else { return }
 
         // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-        // 这里查询的是全局 BookedSlotStore,涵盖其它已报名 + 已接受邀请。
+        // 查询统一从 BookingStore.conflict 走,涵盖 accepted + externalSlots。
         let range = matchTimeWindow(for: match)
-        if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
+        if let conflict = bookingStore.conflict(start: range.start, end: range.end, excluding: match.id) {
             conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
             return
         }
@@ -646,14 +626,6 @@ private extension HomeView {
     /// 取 `MockMatch` 的起止时间窗口(默认 2 小时);Phase 2a 之后直接基于 `startDate`。
     func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date) {
         (start: match.startDate, end: match.startDate.addingTimeInterval(2 * 3600))
-    }
-
-    /// 报名成功后向 BookedSlotStore 登记该时段,
-    /// 后续在其它入口(MyMatches 接受邀请 / ChatDetail)拦截冲突。
-    func registerBookedSlot(for match: MockMatch) {
-        let range = matchTimeWindow(for: match)
-        let label = "\(match.name) \(match.dateTime)"
-        bookedSlotStore.add(BookedSlot(id: match.id, start: range.start, end: range.end, label: label))
     }
 
     func makeMatchDetail(from match: MockMatch) -> MatchDetailData {
@@ -694,15 +666,15 @@ private extension HomeView {
         )
     }
 
-    /// 报名成功后,将约球信息加入 acceptedMatches,使其显示在"我的约球"页面。
-    func addToAcceptedMatches(match: MockMatch) {
-        // Phase 2a: 从 startDate 派生显示字段。
+    /// 由 `MockMatch` 构造写入 BookingStore 的 AcceptedMatchInfo。
+    /// Phase 2a:显示字段从 `startDate` 派生,与底层 Date 一致。
+    func makeAcceptedMatchInfo(for match: MockMatch) -> AcceptedMatchInfo {
         let start = match.startDate
         let end = start.addingTimeInterval(2 * 3600)
         let dateStr = AppDateFormatter.monthDay.string(from: start)
         let startTime = AppDateFormatter.hourMinute.string(from: start)
 
-        let accepted = AcceptedMatchInfo(
+        return AcceptedMatchInfo(
             organizerName: match.name,
             matchType: match.matchType,
             dateString: dateStr,
@@ -715,7 +687,6 @@ private extension HomeView {
             startDate: start,
             endDate: end
         )
-        acceptedMatches.append(accepted)
     }
 
     func addPublishedMatch(_ info: PublishedMatchInfo) {
