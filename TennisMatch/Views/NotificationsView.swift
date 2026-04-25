@@ -132,6 +132,21 @@ struct NotificationsView: View {
         return AppDateFormatter.yearMonthDay.string(from: date)
     }
 
+    /// Phase 2a: 给 mock notification 详情构造一个 (startDate, endDate) 元组。
+    private func relativeRange(daysFromNow: Int, startHour: Int, startMinute: Int = 0, endHour: Int, endMinute: Int = 0) -> (start: Date, end: Date) {
+        let cal = Calendar.current
+        let day = cal.date(byAdding: .day, value: daysFromNow, to: Date()) ?? Date()
+        var startComps = cal.dateComponents([.year, .month, .day], from: day)
+        startComps.hour = startHour
+        startComps.minute = startMinute
+        let start = cal.date(from: startComps) ?? day
+        var endComps = startComps
+        endComps.hour = endHour
+        endComps.minute = endMinute
+        let end = cal.date(from: endComps) ?? start.addingTimeInterval(2 * 3600)
+        return (start, end)
+    }
+
     private func mockMatchDetail(for notification: MatchNotification) -> MatchDetailData {
         let matchType = notification.body.contains("雙打") ? "雙打" : "單打"
         // 嘗試從通知 body 的括號內提取日期（「MM/dd」格式）
@@ -140,11 +155,13 @@ struct NotificationsView: View {
         switch notification.type {
         case .signUp:
             // 有人報名了自己發起的約球：顯示自己的約球詳情
+            let signUpRange = relativeRange(daysFromNow: 0, startHour: 14, endHour: 16)
             return MatchDetailData(
                 name: extractName(from: notification.body) ?? "球友",
                 gender: .male, ntrp: "3.5", reputation: 88,
                 matchType: matchType,
                 date: dateStr ?? relativeDate(daysFromNow: 0), timeRange: "14:00 - 16:00",
+                startDate: signUpRange.start, endDate: signUpRange.end,
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
                 district: "香港銅鑼灣",
                 players: "2/4 人", ntrpRange: "3.0-4.5", fee: "AA ¥100",
@@ -160,11 +177,13 @@ struct NotificationsView: View {
         case .accepted:
             // 自己報名被接受：顯示發起人的約球詳情
             let name = extractOrganizerName(from: notification.body) ?? "球友"
+            let acceptedRange = relativeRange(daysFromNow: -1, startHour: 10, endHour: 12)
             return MatchDetailData(
                 name: name,
                 gender: .female, ntrp: "3.5", reputation: 90,
                 matchType: matchType,
                 date: dateStr ?? relativeDate(daysFromNow: -1), timeRange: "10:00 - 12:00",
+                startDate: acceptedRange.start, endDate: acceptedRange.end,
                 location: extractLocation(from: notification.body) ?? "維多利亞公園網球場",
                 district: "香港銅鑼灣",
                 players: "2/2 人", ntrpRange: "3.0-4.0", fee: "AA ¥120",
@@ -178,11 +197,13 @@ struct NotificationsView: View {
         case .cancelled:
             // 約球被取消通知：顯示已取消的約球詳情
             let name = extractName(from: notification.body) ?? "球友"
+            let cancelledRange = relativeRange(daysFromNow: -1, startHour: 9, endHour: 11)
             return MatchDetailData(
                 name: name,
                 gender: .female, ntrp: "3.0", reputation: 85,
                 matchType: matchType,
                 date: dateStr ?? relativeDate(daysFromNow: -1), timeRange: "09:00 - 11:00",
+                startDate: cancelledRange.start, endDate: cancelledRange.end,
                 location: extractLocation(from: notification.body) ?? "沙田公園網球場",
                 district: "新界沙田",
                 players: "1/4 人", ntrpRange: "2.5-4.0", fee: "AA ¥80",
@@ -195,11 +216,13 @@ struct NotificationsView: View {
         case .updated:
             // 約球資訊更新通知：顯示更新後的約球詳情
             let name = extractName(from: notification.body) ?? "球友"
+            let updatedRange = relativeRange(daysFromNow: 1, startHour: 16, startMinute: 30, endHour: 18, endMinute: 30)
             return MatchDetailData(
                 name: name,
                 gender: .male, ntrp: "4.5", reputation: 92,
                 matchType: matchType,
                 date: dateStr ?? relativeDate(daysFromNow: 1), timeRange: "16:30 - 18:30",
+                startDate: updatedRange.start, endDate: updatedRange.end,
                 location: extractLocation(from: notification.body) ?? "跑馬地運動場",
                 district: "香港灣仔",
                 players: "2/2 人", ntrpRange: "3.5-5.0", fee: "AA ¥150",

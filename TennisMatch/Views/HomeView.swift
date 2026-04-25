@@ -679,6 +679,8 @@ private extension HomeView {
             matchType: match.matchType,
             date: date,
             timeRange: timeRange,
+            startDate: match.startDate,
+            endDate: match.startDate.addingTimeInterval(2 * 3600),
             location: match.location,
             district: "香港",
             players: match.players.components(separatedBy: " •").first ?? match.players,

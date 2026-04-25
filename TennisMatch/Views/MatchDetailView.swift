@@ -395,13 +395,11 @@ private extension MatchDetailView {
 
                 Button {
                     // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
-                    let scheduleText = "\(match.date) \(match.timeRange)"
-                    if let range = MatchSchedule.dateRange(text: scheduleText),
-                       let conflict = bookedSlotStore.conflict(
-                           start: range.start,
-                           end: range.end,
-                           excluding: match.matchId
-                       ) {
+                    if let conflict = bookedSlotStore.conflict(
+                        start: match.startDate,
+                        end: match.endDate,
+                        excluding: match.matchId
+                    ) {
                         conflictToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
                         return
                     }
@@ -496,6 +494,9 @@ struct MatchDetailData: Identifiable, Hashable {
     let matchType: String
     let date: String
     let timeRange: String
+    /// Phase 2a: 起止绝对时间。`isExpired` / 加日历等业务依赖此字段。
+    let startDate: Date
+    let endDate: Date
     let location: String
     let district: String
     let players: String
@@ -522,11 +523,8 @@ struct MatchDetailData: Identifiable, Hashable {
         return c.max > 0 && c.current >= c.max
     }
 
-    /// 起始时间已过(由 `date` 中的 MM/dd 与 `timeRange` 起始 HH:mm 组合)。
-    /// 解析失败时返回 `false`,避免误把数据当成过期。
-    var isExpired: Bool {
-        MatchSchedule.isExpired(text: "\(date) \(timeRange)")
-    }
+    /// 起始时间已过 — 直接基于 `startDate` 比较。
+    var isExpired: Bool { startDate < .now }
 
     /// 起始时间已过且未满员 — 视为"人员不足,自动取消"(CLAUDE.md 边界 case #2)。
     var isAutoCancelled: Bool { isExpired && !isFull }
@@ -682,6 +680,8 @@ private let inviteContacts: [InviteContact] = [
 private let previewMatchDetail = MatchDetailData(
     name: "莎拉", gender: .female, ntrp: "3.5", reputation: 90,
     matchType: "單打", date: "2026/04/19", timeRange: "10:00 - 12:00",
+    startDate: Date().addingTimeInterval(86400),
+    endDate: Date().addingTimeInterval(86400 + 2 * 3600),
     location: "維多利亞公園網球場", district: "香港銅鑼灣",
     players: "1/2 人", ntrpRange: "3.0-4.0", fee: "AA ¥120",
     notes: "自帶球拍和球",
