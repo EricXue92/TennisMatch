@@ -150,8 +150,8 @@ struct MyMatchesView: View {
             // 至少包含發起人與當前用戶(小李) — 確保「查看報名者」不會是空列表
             let ntrpMid = ntrpMidpoint(range: info.ntrpRange)
             let registrants: [MatchRegistrant] = [
-                MatchRegistrant(name: info.organizerName, ntrp: ntrpMid, isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: ntrpMid, isOrganizer: false),
+                MatchRegistrant(name: info.organizerName, gender: .male, ntrp: ntrpMid, isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: ntrpMid, isOrganizer: false),
             ]
             return MyMatchItem(
                 title: "\(info.organizerName) 發起的\(info.matchType)",
@@ -1059,6 +1059,7 @@ private enum MatchActionStyle {
 
 private struct MatchRegistrant {
     let name: String
+    let gender: Gender
     let ntrp: String
     let isOrganizer: Bool
 }
@@ -1210,8 +1211,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r1.start,
             endDate: r1.end,
             registrants: [
-                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "莎拉", gender: .female, ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1226,8 +1227,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r2.start,
             endDate: r2.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "王強", gender: .male, ntrp: "4.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1243,9 +1244,9 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             endDate: r3.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
-                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "大衛", gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "4.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1261,8 +1262,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             endDate: r4.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "艾美", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "艾美", gender: .female, ntrp: "3.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1277,8 +1278,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r5.start,
             endDate: r5.end,
             registrants: [
-                MatchRegistrant(name: "Michael", ntrp: "5.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "Michael", gender: .male, ntrp: "5.0", isOrganizer: true),
+                MatchRegistrant(name: "小李",    gender: .male, ntrp: "4.5", isOrganizer: false),
             ]
         ),
     ]
@@ -1303,10 +1304,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c1.start,
             endDate: c1.end,
             registrants: [
-                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
-                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "王強", gender: .male,   ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "莎拉", gender: .female, ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1321,8 +1322,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c2.start,
             endDate: c2.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "志明", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "志明", gender: .male, ntrp: "3.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1338,10 +1339,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             endDate: c3.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "美琪", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "俊傑", ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "大衛", gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "美琪", gender: .female, ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "俊傑", gender: .male,   ntrp: "4.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1357,10 +1358,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             endDate: c4.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.0", isOrganizer: false),
-                MatchRegistrant(name: "小美", ntrp: "3.0", isOrganizer: false),
-                MatchRegistrant(name: "雅婷", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小美", gender: .female, ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "雅婷", gender: .female, ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1375,8 +1376,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c5.start,
             endDate: c5.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "阿豪", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "阿豪", gender: .male, ntrp: "4.0", isOrganizer: false),
             ]
         ),
     ]
