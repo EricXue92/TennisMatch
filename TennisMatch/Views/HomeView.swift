@@ -608,8 +608,8 @@ private extension HomeView {
 
         // 时段冲突拦截:同一时间不能重复报名(CLAUDE.md 边界 case #4)。
         // 这里查询的是全局 BookedSlotStore,涵盖其它已报名 + 已接受邀请。
-        if let range = matchTimeWindow(for: match),
-           let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
+        let range = matchTimeWindow(for: match)
+        if let conflict = bookedSlotStore.conflict(start: range.start, end: range.end, excluding: match.id) {
             conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
             return
         }
@@ -643,16 +643,15 @@ private extension HomeView {
         )
     }
 
-    /// 解析 `MockMatch.dateTime` 起止窗口。`hour` 字段作为 fallback,
-    /// 防止 dateTime 偶尔缺少 HH:mm 导致整个冲突检测被绕过。
-    func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date)? {
-        MatchSchedule.dateRange(text: match.dateTime, hourFallback: match.hour)
+    /// 取 `MockMatch` 的起止时间窗口(默认 2 小时);Phase 2a 之后直接基于 `startDate`。
+    func matchTimeWindow(for match: MockMatch) -> (start: Date, end: Date) {
+        (start: match.startDate, end: match.startDate.addingTimeInterval(2 * 3600))
     }
 
     /// 报名成功后向 BookedSlotStore 登记该时段,
     /// 后续在其它入口(MyMatches 接受邀请 / ChatDetail)拦截冲突。
     func registerBookedSlot(for match: MockMatch) {
-        guard let range = matchTimeWindow(for: match) else { return }
+        let range = matchTimeWindow(for: match)
         let label = "\(match.name) \(match.dateTime)"
         bookedSlotStore.add(BookedSlot(id: match.id, start: range.start, end: range.end, label: label))
     }
