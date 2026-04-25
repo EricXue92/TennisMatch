@@ -91,7 +91,7 @@ final class NotificationStore {
 
     /// 与原 NotificationsView 中 mock 数据等价,统一在 store 内维护。
     /// 日期使用相對計算，確保 mock 數據永不過期。
-    static let mockSeed: [MatchNotification] = {
+    nonisolated static let mockSeed: [MatchNotification] = {
         func d(_ offset: Int) -> String {
             guard let date = Calendar.current.date(byAdding: .day, value: offset, to: Date()) else { return "01/01" }
             return AppDateFormatter.monthDay.string(from: date)

@@ -110,7 +110,7 @@ final class RatingFeedbackStore {
 
     /// Mock seed:5 條球友評價,平均約 2.9 — 對應預設自評 3.5,
     /// 偏差 0.6 > 0.5 閾值,首次打開 Profile 即可看到校準提示。
-    static let mockEntries: [PeerRatingEntry] = [
+    nonisolated static let mockEntries: [PeerRatingEntry] = [
         PeerRatingEntry(reviewer: "莎拉", ntrpEstimate: 3.0, date: "04/19"),
         PeerRatingEntry(reviewer: "王強", ntrpEstimate: 2.5, date: "04/15"),
         PeerRatingEntry(reviewer: "小美", ntrpEstimate: 3.0, date: "04/10"),
