@@ -8,6 +8,7 @@ struct SignUpConfirmSheet: View {
     var onConfirm: (String) -> Void
     @Environment(\.dismiss) private var dismiss
     @State private var message = ""
+    @State private var isSubmitting = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
@@ -43,23 +44,37 @@ struct SignUpConfirmSheet: View {
                         RoundedRectangle(cornerRadius: 8, style: .continuous)
                             .stroke(Theme.inputBorder, lineWidth: 1)
                     )
+                    .disabled(isSubmitting)
             }
 
             Spacer()
 
             Button {
+                guard !isSubmitting else { return }
+                isSubmitting = true
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
+                let messageSnapshot = message
+                // dismiss + onConfirm 必须在同一帧,但 isSubmitting 已经把按钮 disable
                 dismiss()
-                onConfirm(message)
+                onConfirm(messageSnapshot)
             } label: {
-                Text("確認報名")
-                    .font(Typography.button)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 48)
-                    .background(Theme.primary)
-                    .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                ZStack {
+                    Text("確認報名")
+                        .font(Typography.button)
+                        .foregroundColor(.white)
+                        .opacity(isSubmitting ? 0 : 1)
+
+                    if isSubmitting {
+                        ProgressView()
+                            .tint(.white)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .frame(height: 48)
+                .background(isSubmitting ? Theme.primary.opacity(0.6) : Theme.primary)
+                .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
             }
+            .disabled(isSubmitting)
         }
         .padding(.horizontal, Spacing.lg)
         .padding(.top, Spacing.lg)
