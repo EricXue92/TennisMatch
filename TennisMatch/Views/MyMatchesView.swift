@@ -21,6 +21,8 @@ struct MyMatchesView: View {
     /// 邀請被接受時回拋給 HomeView,讓首頁 MockMatch.currentPlayers +1。
     /// sourceMatchID == nil(種子假資料)時 HomeView no-op。
     var onInviteAccepted: ((UUID, FollowPlayer, UUID?) -> Void)? = nil
+    /// Undo Accept 時觸發,用於同步首頁 MockMatch.currentPlayers -1。
+    var onInviteUndoAccepted: ((UUID, UUID?) -> Void)? = nil
     @Environment(BookingStore.self) private var bookingStore
     @Environment(InviteStore.self) private var inviteStore
     @Environment(NotificationStore.self) private var notificationStore
@@ -304,9 +306,7 @@ struct MyMatchesView: View {
         }
         upcomingMatches[idx] = match
 
-        // Task 9 會新增 onInviteUndoAccepted callback 接收這條;暫時也走 onInviteAccepted 觸發
-        // (caller 會在 Task 9 區分 +1 / −1 路徑)
-        onInviteAccepted?(invite.matchID, FollowPlayer.from(invite: invite), match.sourceMatchID)
+        onInviteUndoAccepted?(invite.matchID, match.sourceMatchID)
     }
 
     var body: some View {

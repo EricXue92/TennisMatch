@@ -15,6 +15,7 @@ struct HomeView: View {
     @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
+    @Environment(InviteStore.self) private var inviteStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -67,15 +68,24 @@ struct HomeView: View {
                         handleMyMatchCancellation(payload)
                     },
                     onInviteAccepted: { _, _, sourceMatchID in
-                        // 種子假資料無 sourceMatchID → 首頁無對應 MockMatch,no-op
                         guard let id = sourceMatchID,
-                              let idx = matches.firstIndex(where: { $0.id == id })
-                        else { return }
+                              let idx = matches.firstIndex(where: { $0.id == id }) else { return }
                         matches[idx].currentPlayers += 1
+                    },
+                    onInviteUndoAccepted: { _, sourceMatchID in
+                        guard let id = sourceMatchID,
+                              let idx = matches.firstIndex(where: { $0.id == id }),
+                              matches[idx].currentPlayers > 0 else { return }
+                        matches[idx].currentPlayers -= 1
                     }
                 )
                 case 2: MatchAssistantView()
-                case 3: MessagesView(totalUnread: $chatUnreadCount, chats: $sharedChats)
+                case 3: MessagesView(
+                    totalUnread: $chatUnreadCount,
+                    chats: $sharedChats,
+                    matchActions: makeMessagesActions(),
+                    matchLookup: { id in upcomingMatches.first(where: { $0.id == id }) }
+                )
                 case 4: ProfileView()
                 default: homeTab
                 }
@@ -703,6 +713,74 @@ private extension HomeView {
             startDate: start,
             endDate: end
         )
+    }
+
+    private func makeMessagesActions() -> InviteMatchActions {
+        InviteMatchActions(
+            acceptInvite: { invite in
+                applyInviteAcceptInHome(invite)
+            },
+            undoAcceptInvite: { invite in
+                applyInviteUndoAcceptInHome(invite)
+            }
+        )
+    }
+
+    /// 用戶從「聊天」tab 接受邀請時的 home 端副作用 —— 同步寫 upcomingMatches
+    /// 與首頁 matches.currentPlayers,行為與 MyMatchesView.applyInviteAccept 對齊。
+    private func applyInviteAcceptInHome(_ invite: InviteStore.Invite) {
+        guard let idx = upcomingMatches.firstIndex(where: { $0.id == invite.matchID }) else { return }
+        var match = upcomingMatches[idx]
+        guard !match.registrants.contains(where: { $0.name == invite.inviteeName }) else { return }
+        match.registrants.append(MatchRegistrant(
+            name: invite.inviteeName,
+            gender: invite.inviteeGender,
+            ntrp: invite.inviteeNTRP,
+            isOrganizer: false
+        ))
+        let (cur, mx) = match.playerCounts
+        let newCurrent = cur + 1
+        let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
+        match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
+        if newCurrent >= mx {
+            match.status = .confirmed
+            let label = "\(match.title) \(match.dateLabel) \(match.timeRange)"
+            bookingStore.registerExternal(BookedSlot(
+                id: match.id,
+                start: match.startDate,
+                end: match.endDate,
+                label: label
+            ))
+        }
+        upcomingMatches[idx] = match
+
+        // 同步首頁 MockMatch.currentPlayers
+        if let src = match.sourceMatchID,
+           let mIdx = matches.firstIndex(where: { $0.id == src }) {
+            matches[mIdx].currentPlayers += 1
+        }
+    }
+
+    private func applyInviteUndoAcceptInHome(_ invite: InviteStore.Invite) {
+        guard let idx = upcomingMatches.firstIndex(where: { $0.id == invite.matchID }) else { return }
+        var match = upcomingMatches[idx]
+        guard let rIdx = match.registrants.firstIndex(where: { $0.name == invite.inviteeName }) else { return }
+        match.registrants.remove(at: rIdx)
+        let (cur, mx) = match.playerCounts
+        let newCurrent = max(0, cur - 1)
+        let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
+        match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
+        if cur >= mx {
+            match.status = .pending
+            bookingStore.removeExternal(id: match.id)
+        }
+        upcomingMatches[idx] = match
+
+        if let src = match.sourceMatchID,
+           let mIdx = matches.firstIndex(where: { $0.id == src }),
+           matches[mIdx].currentPlayers > 0 {
+            matches[mIdx].currentPlayers -= 1
+        }
     }
 
     /// 處理「我的約球」取消操作對首頁的副作用。

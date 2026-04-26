@@ -10,6 +10,8 @@ import SwiftUI
 struct MessagesView: View {
     @Binding var totalUnread: Int
     @Binding var chats: [MockChat]
+    var matchActions: InviteMatchActions = .noop
+    var matchLookup: (UUID) -> MyMatchItem? = { _ in nil }
     @State private var selectedChat: MockChat?
     @State private var readChatIDs: Set<UUID> = []
     @State private var chatToDelete: MockChat?
@@ -63,7 +65,7 @@ struct MessagesView: View {
                 recalculateUnread()
             }, onBlockUser: { name in
                 blockToast = L10n.string("已封鎖「\(name)」")
-            })
+            }, matchLookup: matchLookup, matchActions: matchActions)
         }
         .onChange(of: selectedChat) { _, newChat in
             guard let chat = newChat, !readChatIDs.contains(chat.id) else { return }
