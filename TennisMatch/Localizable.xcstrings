@@ -53,6 +53,12 @@
         }
       }
     },
+    "%@ 婉拒了邀請" : {
+
+    },
+    "%@ 已接受邀請" : {
+
+    },
     "%@ 邀請你打%@" : {
       "localizations" : {
         "zh-Hant" : {
@@ -235,6 +241,9 @@
     "🎾" : {
       "shouldTranslate" : false
     },
+    "🎾 你發起了約球邀請" : {
+
+    },
     "🎾 查看 NTRP 技術分級標準 →" : {
       "localizations" : {
         "zh-Hans" : {
@@ -318,6 +327,9 @@
         }
       }
     },
+    "👥 %@" : {
+
+    },
     "💡 根據人數，推薦「%@」" : {
 
     },
@@ -352,6 +364,16 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "📅 %1$@  📍 %2$@"
+          }
+        }
+      }
+    },
+    "📅 %@ %@" : {
+      "localizations" : {
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "📅 %1$@ %2$@"
           }
         }
       }
@@ -650,6 +672,9 @@
           }
         }
       }
+    },
+    "上一個邀請還在處理中" : {
+
     },
     "上海" : {
       "extractionState" : "stale",
@@ -1816,6 +1841,12 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已报名"
+          }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已報名"
           }
         }
       }

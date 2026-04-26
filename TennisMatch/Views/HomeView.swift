@@ -63,6 +63,13 @@ struct HomeView: View {
                     onGoTournaments: { showTournaments = true },
                     onMatchCancelled: { payload in
                         handleMyMatchCancellation(payload)
+                    },
+                    onInviteAccepted: { _, _, sourceMatchID in
+                        // 種子假資料無 sourceMatchID → 首頁無對應 MockMatch,no-op
+                        guard let id = sourceMatchID,
+                              let idx = matches.firstIndex(where: { $0.id == id })
+                        else { return }
+                        matches[idx].currentPlayers += 1
                     }
                 )
                 case 2: MatchAssistantView()

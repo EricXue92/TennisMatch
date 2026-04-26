@@ -17,6 +17,9 @@ struct MyMatchesView: View {
     /// 時用 payload 在首頁合成一筆 MockMatch,讓種子假資料 / 邀請接受的取消也能讓
     /// 空出的名額對其他球友可見。`signedUpMatchIDs` 與 accepted 已由 BookingStore 處理。
     var onMatchCancelled: ((CancelledMatchPayload) -> Void)? = nil
+    /// 邀請被接受時回拋給 HomeView,讓首頁 MockMatch.currentPlayers +1。
+    /// sourceMatchID == nil(種子假資料)時 HomeView no-op。
+    var onInviteAccepted: ((UUID, FollowPlayer, UUID?) -> Void)? = nil
     @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
@@ -54,6 +57,9 @@ struct MyMatchesView: View {
     @State private var dmMatchContext: String?
     @State private var registrantMatch: MyMatchItem?
     @State private var selectedCompletedMatch: MyMatchItem?
+    /// 在 1.6s 模擬期內鎖住,防止用戶連發兩個邀請彼此覆蓋。
+    /// .onDisappear / handleInviteResolved 會清掉。
+    @State private var pendingInvitation: PendingDMInvitation?
 
     private var sortedUpcoming: [MyMatchItem] {
         let cancelled = cancelledMockKeys
@@ -150,8 +156,8 @@ struct MyMatchesView: View {
             // 至少包含發起人與當前用戶(小李) — 確保「查看報名者」不會是空列表
             let ntrpMid = ntrpMidpoint(range: info.ntrpRange)
             let registrants: [MatchRegistrant] = [
-                MatchRegistrant(name: info.organizerName, ntrp: ntrpMid, isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: ntrpMid, isOrganizer: false),
+                MatchRegistrant(name: info.organizerName, gender: .male, ntrp: ntrpMid, isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: ntrpMid, isOrganizer: false),
             ]
             return MyMatchItem(
                 title: "\(info.organizerName) 發起的\(info.matchType)",
@@ -180,6 +186,12 @@ struct MyMatchesView: View {
     }
 
     private func handleInvitePicked(player: FollowPlayer, target: InviteTarget) {
+        // 並發保護 — 上一個邀請尚在 1.6s 模擬中,拒絕新發起。
+        if pendingInvitation != nil {
+            toast = .init(kind: .info, text: L10n.string("上一個邀請還在處理中"))
+            return
+        }
+
         // 若已有與此球友的私信,重用現有 chat;否則新建。
         let existing = sharedChats.first { chat in
             if case .personal(let name, _, _) = chat.type, name == player.name { return true }
@@ -202,9 +214,89 @@ struct MyMatchesView: View {
             sharedChats.insert(newChat, at: 0)
             chat = newChat
         }
-        selectedChatMatchContext = target.chatContext
+
+        // 約球邀請走新模擬流;賽事邀請仍走舊 matchContext 字串路徑(本次不改)。
+        let isMatchInvite: Bool
+        if case .match(let id, let title, let dateLabel, let timeRange, let location, let players) = target,
+           let item = upcomingMatches.first(where: { $0.id == id }) {
+            pendingInvitation = PendingDMInvitation(
+                matchID: id,
+                invitee: player,
+                payload: OutgoingInvitationPayload(
+                    title: title,
+                    dateLabel: dateLabel,
+                    timeRange: timeRange,
+                    location: location,
+                    players: players
+                ),
+                startDate: item.startDate,
+                endDate: item.endDate
+            )
+            selectedChatMatchContext = nil  // 不再用靜態 context 卡
+            isMatchInvite = true
+        } else {
+            // 賽事/兜底 — 保留舊邏輯
+            selectedChatMatchContext = target.chatContext
+            isMatchInvite = false
+        }
         selectedChat = chat
-        toast = .init(kind: .success, text: L10n.string("已為你開啟與 \(player.name) 的私信"))
+
+        if !isMatchInvite {
+            // 賽事路徑保留舊提示;約球路徑由 ChatDetailView 自己 push 邀請氣泡。
+            toast = .init(kind: .success, text: L10n.string("已為你開啟與 \(player.name) 的私信"))
+        }
+    }
+
+    /// ChatDetailView 模擬完成後回拋。接受 → registrants +1, players ++,
+    /// 滿員時 status 升 .confirmed。婉拒 → toast。無論成敗釋放並發鎖。
+    private func handleInviteResolved(matchID: UUID, friend: FollowPlayer, accepted: Bool) {
+        defer { pendingInvitation = nil }
+
+        guard accepted else {
+            toast = .init(kind: .warning, text: L10n.string("\(friend.name) 婉拒了邀請"))
+            return
+        }
+        guard let idx = upcomingMatches.firstIndex(where: { $0.id == matchID }) else { return }
+        var match = upcomingMatches[idx]
+
+        // 防重 +1(InvitePickerSheet 已禁用,這是兜底)
+        guard !match.registrants.contains(where: { $0.name == friend.name }) else { return }
+
+        // 1. registrants +1
+        match.registrants.append(MatchRegistrant(
+            name: friend.name,
+            gender: friend.gender,
+            ntrp: friend.ntrp,
+            isOrganizer: false
+        ))
+
+        // 2. players 字串 currentPlayers +1
+        let (cur, mx) = match.playerCounts
+        let newCurrent = cur + 1
+        let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
+        match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
+
+        // 3. 滿員時 status 升級 + 登記到 BookingStore.externalSlots
+        //    (view 上的 .task 只在重建時跑一次,新確認的場次必須立刻登記,
+        //     否則用戶可能在離開重進前報名到衝突時段。registerExternal 按 id 去重。)
+        if newCurrent >= mx {
+            match.status = .confirmed
+            let label = "\(match.title) \(match.dateLabel) \(match.timeRange)"
+            bookingStore.registerExternal(BookedSlot(
+                id: match.id,
+                start: match.startDate,
+                end: match.endDate,
+                label: label
+            ))
+        }
+
+        upcomingMatches[idx] = match
+
+        // 4. 同步 HomeView(若有 sourceMatchID)
+        onInviteAccepted?(matchID, friend, match.sourceMatchID)
+
+        toast = .init(kind: .success, text: L10n.string("\(friend.name) 已接受邀請"))
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
     }
 
     var body: some View {
@@ -296,8 +388,18 @@ struct MyMatchesView: View {
         }
         .background(Theme.inputBg)
         .navigationDestination(item: $selectedChat) { chat in
-            ChatDetailView(chat: chat, matchContext: selectedChatMatchContext)
-                .onDisappear { selectedChatMatchContext = nil }
+            ChatDetailView(
+                chat: chat,
+                matchContext: selectedChatMatchContext,
+                pendingInvitation: pendingInvitation,
+                onInviteResolved: handleInviteResolved
+            )
+            .onDisappear {
+                selectedChatMatchContext = nil
+                // 用戶在 1.6s 內退出 → onInviteResolved 沒被調 → 兜底清 pending,
+                // 避免 pendingInvitation 永久卡住,後續邀請被並發鎖擋。
+                pendingInvitation = nil
+            }
         }
         .alert("取消約球", isPresented: $showCancelAlert) {
             Button("再想想", role: .cancel) {
@@ -393,15 +495,17 @@ struct MyMatchesView: View {
             Button("關閉報名") {
                 toast = .init(kind: .info, text: L10n.string("關閉報名功能即將推出"))
             }
-            Button("私信邀請球友") {
-                inviteTarget = .match(
-                    id: match.id,
-                    title: match.title,
-                    dateLabel: match.dateLabel,
-                    timeRange: match.timeRange,
-                    location: match.location,
-                    players: match.players
-                )
+            if match.playerCounts.current < match.playerCounts.max {
+                Button("私信邀請球友") {
+                    inviteTarget = .match(
+                        id: match.id,
+                        title: match.title,
+                        dateLabel: match.dateLabel,
+                        timeRange: match.timeRange,
+                        location: match.location,
+                        players: match.players
+                    )
+                }
             }
             Button("取消約球", role: .destructive) {
                 matchToCancel = match
@@ -508,32 +612,38 @@ struct MyMatchesView: View {
             NavigationStack {
                 List {
                     ForEach(Array(match.registrants.enumerated()), id: \.offset) { i, registrant in
-                        HStack(spacing: Spacing.sm) {
-                            ZStack {
-                                Circle()
-                                    .fill(Theme.avatarPlaceholder)
-                                    .frame(width: 36, height: 36)
-                                Text(String(registrant.name.suffix(1)))
-                                    .font(Typography.labelSemibold)
-                                    .foregroundColor(.white)
-                            }
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(registrant.name)
-                                    .font(Typography.bodyMedium)
-                                    .foregroundColor(Theme.textPrimary)
-                                Text("NTRP \(registrant.ntrp)")
-                                    .font(Typography.small)
-                                    .foregroundColor(Theme.textSecondary)
-                            }
-                            Spacer()
-                            if registrant.isOrganizer {
-                                Text("發起人")
-                                    .font(Typography.micro)
-                                    .foregroundColor(Theme.primary)
-                                    .padding(.horizontal, Spacing.xs)
-                                    .frame(height: 20)
-                                    .background(Theme.primaryLight)
-                                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                        NavigationLink(value: mockPublicPlayerData(
+                            name: registrant.name,
+                            gender: registrant.gender,
+                            ntrp: registrant.ntrp
+                        )) {
+                            HStack(spacing: Spacing.sm) {
+                                ZStack {
+                                    Circle()
+                                        .fill(Theme.avatarPlaceholder)
+                                        .frame(width: 36, height: 36)
+                                    Text(String(registrant.name.suffix(1)))
+                                        .font(Typography.labelSemibold)
+                                        .foregroundColor(.white)
+                                }
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(registrant.name)
+                                        .font(Typography.bodyMedium)
+                                        .foregroundColor(Theme.textPrimary)
+                                    Text("NTRP \(registrant.ntrp)")
+                                        .font(Typography.small)
+                                        .foregroundColor(Theme.textSecondary)
+                                }
+                                Spacer()
+                                if registrant.isOrganizer {
+                                    Text("發起人")
+                                        .font(Typography.micro)
+                                        .foregroundColor(Theme.primary)
+                                        .padding(.horizontal, Spacing.xs)
+                                        .frame(height: 20)
+                                        .background(Theme.primaryLight)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                }
                             }
                         }
                     }
@@ -541,6 +651,9 @@ struct MyMatchesView: View {
                 .listStyle(.plain)
                 .navigationTitle("報名者 (\(match.playerCounts.current)/\(match.playerCounts.max))")
                 .navigationBarTitleDisplayMode(.inline)
+                .navigationDestination(for: PublicPlayerData.self) { player in
+                    PublicProfileView(player: player)
+                }
                 .toolbar {
                     ToolbarItem(placement: .topBarTrailing) {
                         Button("完成") {
@@ -551,7 +664,18 @@ struct MyMatchesView: View {
             }
         }
         .sheet(item: $inviteTarget) { target in
-            InvitePickerSheet(target: target) { player in
+            let disabled: Set<String> = {
+                if case .match(let id, _, _, _, _, _) = target,
+                   let item = upcomingMatches.first(where: { $0.id == id }) {
+                    return Set(item.registrants.map { $0.name })
+                }
+                return []
+            }()
+            InvitePickerSheet(
+                target: target,
+                disabledPlayerNames: disabled,
+                disabledReason: L10n.string("已報名")
+            ) { player in
                 handleInvitePicked(player: player, target: target)
             }
         }
@@ -1059,6 +1183,7 @@ private enum MatchActionStyle {
 
 private struct MatchRegistrant {
     let name: String
+    let gender: Gender
     let ntrp: String
     let isOrganizer: Bool
 }
@@ -1067,11 +1192,11 @@ private struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
     let isOrganizer: Bool
-    let status: MyMatchStatus
+    var status: MyMatchStatus
     let dateLabel: String
     let location: String
     let timeRange: String
-    let players: String
+    var players: String
     let weather: String
     /// Phase 2a: 起止绝对时间。所有时间相关业务判断(过期 / 排序 / 信誉扣分 / 冲突拦截)都基于此字段,
     /// 不再从 `dateLabel + timeRange` 字符串解析。
@@ -1210,8 +1335,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r1.start,
             endDate: r1.end,
             registrants: [
-                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "莎拉", gender: .female, ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1226,8 +1351,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r2.start,
             endDate: r2.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "王強", gender: .male, ntrp: "4.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1243,9 +1368,9 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             endDate: r3.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
-                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "大衛", gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "4.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1261,8 +1386,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             endDate: r4.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "艾美", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "艾美", gender: .female, ntrp: "3.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1277,8 +1402,8 @@ private var mockUpcomingMatchesInitial: [MyMatchItem] {
             startDate: r5.start,
             endDate: r5.end,
             registrants: [
-                MatchRegistrant(name: "Michael", ntrp: "5.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "Michael", gender: .male, ntrp: "5.0", isOrganizer: true),
+                MatchRegistrant(name: "小李",    gender: .male, ntrp: "4.5", isOrganizer: false),
             ]
         ),
     ]
@@ -1303,10 +1428,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c1.start,
             endDate: c1.end,
             registrants: [
-                MatchRegistrant(name: "王強", ntrp: "4.0", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: false),
-                MatchRegistrant(name: "莎拉", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "王強", gender: .male,   ntrp: "4.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "莎拉", gender: .female, ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1321,8 +1446,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c2.start,
             endDate: c2.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "志明", ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "志明", gender: .male, ntrp: "3.0", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1338,10 +1463,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             endDate: c3.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "大衛", ntrp: "4.5", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "美琪", ntrp: "4.0", isOrganizer: false),
-                MatchRegistrant(name: "俊傑", ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "大衛", gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "美琪", gender: .female, ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "俊傑", gender: .male,   ntrp: "4.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1357,10 +1482,10 @@ private var mockCompletedMatches: [MyMatchItem] {
             endDate: c4.end,
             matchType: "雙打",
             registrants: [
-                MatchRegistrant(name: "嘉欣", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "小李", ntrp: "3.0", isOrganizer: false),
-                MatchRegistrant(name: "小美", ntrp: "3.0", isOrganizer: false),
-                MatchRegistrant(name: "雅婷", ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "嘉欣", gender: .female, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "小美", gender: .female, ntrp: "3.0", isOrganizer: false),
+                MatchRegistrant(name: "雅婷", gender: .female, ntrp: "3.5", isOrganizer: false),
             ]
         ),
         MyMatchItem(
@@ -1375,8 +1500,8 @@ private var mockCompletedMatches: [MyMatchItem] {
             startDate: c5.start,
             endDate: c5.end,
             registrants: [
-                MatchRegistrant(name: "小李", ntrp: "3.5", isOrganizer: true),
-                MatchRegistrant(name: "阿豪", ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "阿豪", gender: .male, ntrp: "4.0", isOrganizer: false),
             ]
         ),
     ]
