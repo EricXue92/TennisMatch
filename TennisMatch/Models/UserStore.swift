@@ -30,6 +30,11 @@ final class UserStore {
     /// 所在地区。
     var region: String
 
+    /// 年齡範圍(自選的桶,值域與 `MockMatch.ageRange` 對齊)。
+    /// 編輯資料時跟著名字、性別等個人身份字段一起寫回;發起的約球渲染卡片時會
+    /// 從這裡實時讀取(via `MockMatch.isOwnMatch` fallback)。
+    var ageRange: String
+
     /// 偏好球場（多選，最多 3 個，按 `allCourts` 顺序保存以便稳定显示）。
     var selectedCourts: [TennisCourt]
 
@@ -48,6 +53,7 @@ final class UserStore {
         bio: String = "熱愛網球，週末經常打球",
         ntrpLevel: Double = 3.5,
         region: String = "香港",
+        ageRange: String = "26-35",
         selectedCourts: [TennisCourt] = [],
         partnerLevelLow: Double = 3.0,
         partnerLevelHigh: Double = 4.5,
@@ -58,11 +64,20 @@ final class UserStore {
         self.bio = bio
         self.ntrpLevel = ntrpLevel
         self.region = region
+        self.ageRange = ageRange
         self.selectedCourts = selectedCourts
         self.partnerLevelLow = partnerLevelLow
         self.partnerLevelHigh = partnerLevelHigh
         self.preferredSlots = preferredSlots
     }
+
+    // MARK: - 年齡範圍選項
+
+    /// 年齡範圍可選桶 — 與 `MockMatch.ageRange` 對齊,確保發布的約球能命中首頁
+    /// 「年齡」篩選器。改變桶時要同步調整 `MatchFilterPanelView` 的選項。
+    static let ageRangeOptions: [String] = [
+        "14-17", "18-25", "26-35", "36-45", "46-55", "55+",
+    ]
 
     // MARK: - 名称唯一性检查
 

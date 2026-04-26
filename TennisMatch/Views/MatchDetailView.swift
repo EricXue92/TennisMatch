@@ -102,6 +102,16 @@ struct MatchDetailView: View {
 // MARK: - Creator & Info Card
 
 private extension MatchDetailView {
+    /// 自己發起的約球頭部資訊跟隨 `UserStore` 實時值,避免詳情頁打開期間用戶改名/改性別後
+    /// 還顯示舊快照。非自己發起的場次仍讀 `match` 字段(其他用戶身份的快照)。
+    var hostName: String {
+        match.isOwnMatch ? userStore.displayName : match.name
+    }
+
+    var hostGender: Gender {
+        match.isOwnMatch ? userStore.gender : match.gender
+    }
+
     var creatorCard: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Creator info
@@ -112,20 +122,20 @@ private extension MatchDetailView {
                         Circle()
                             .fill(Theme.avatarPlaceholder)
                             .frame(width: 56, height: 56)
-                        Text(String(match.name.prefix(1)))
+                        Text(String(hostName.prefix(1)))
                             .font(Typography.title)
                             .foregroundColor(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 4) {
-                            Text(match.name)
+                            Text(hostName)
                                 .font(.system(size: 17, weight: .semibold))
                                 .foregroundColor(Theme.textPrimary)
                                 .lineLimit(1)
-                            Text(match.gender.symbol)
+                            Text(hostGender.symbol)
                                 .font(.system(size: 17))
-                                .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                                .foregroundColor(hostGender == .female ? Theme.genderFemale : Theme.genderMale)
                         }
                         Text("NTRP \(match.ntrp) · 信譽分 \(match.reputation)")
                             .font(Typography.caption)
@@ -134,15 +144,15 @@ private extension MatchDetailView {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    selectedPlayer = mockPublicPlayerData(name: match.name, gender: match.gender, ntrp: match.ntrp)
+                    selectedPlayer = mockPublicPlayerData(name: hostName, gender: hostGender, ntrp: match.ntrp)
                 }
 
                 Spacer()
 
                 Button {
-                    withAnimation { followStore.toggle(match.name) }
+                    withAnimation { followStore.toggle(hostName) }
                 } label: {
-                    let following = followStore.isFollowing(match.name)
+                    let following = followStore.isFollowing(hostName)
                     // 未關注 → 綠色實心(與 HomeView 推薦卡片一致);已關注 → 透明邊框
                     Text(following ? "已關注" : "關注")
                         .font(Typography.captionMedium)
@@ -289,25 +299,29 @@ private extension MatchDetailView {
                 .foregroundColor(Theme.textPrimary)
 
             ForEach(participants) { p in
+                // 自己發起的場次:把 organizer 條目的名字/性別改讀 UserStore,
+                // 用戶在詳情頁開著時改資料也能即時反映。
+                let pName = (p.isOrganizer && match.isOwnMatch) ? userStore.displayName : p.name
+                let pGender = (p.isOrganizer && match.isOwnMatch) ? userStore.gender : p.gender
                 HStack(spacing: Spacing.sm) {
                     ZStack {
                         Circle()
                             .fill(Theme.avatarPlaceholder)
                             .frame(width: 36, height: 36)
-                        Text(String(p.name.prefix(1)))
+                        Text(String(pName.prefix(1)))
                             .font(Typography.labelSemibold)
                             .foregroundColor(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 1) {
                         HStack(spacing: 4) {
-                            Text(p.name)
+                            Text(pName)
                                 .font(Typography.bodyMedium)
                                 .foregroundColor(Theme.textPrimary)
                                 .lineLimit(1)
-                            Text(p.gender.symbol)
+                            Text(pGender.symbol)
                                 .font(Typography.bodyMedium)
-                                .foregroundColor(p.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                                .foregroundColor(pGender == .female ? Theme.genderFemale : Theme.genderMale)
                         }
                         Text("NTRP \(p.ntrp)")
                             .font(Typography.small)
@@ -330,7 +344,7 @@ private extension MatchDetailView {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture {
-                    selectedPlayer = mockPublicPlayerData(name: p.name, gender: p.gender, ntrp: p.ntrp)
+                    selectedPlayer = mockPublicPlayerData(name: pName, gender: pGender, ntrp: p.ntrp)
                 }
             }
         }
