@@ -412,8 +412,8 @@ private extension HomeView {
             if match.isExpired { return false }
             // 已报名的约球不再显示在首页,已移至"我的约球"
             if bookingStore.isSignedUp(matchID: match.id) { return false }
-            // Hide full matches (but always show own)
-            if match.isFull && !match.isOwnMatch { return false }
+            // 滿員約球從首頁消失(包括自己發起的)— 已轉移到「我的約球 → 即將到來」管理
+            if match.isFull { return false }
             // Match type filter
             if selectedFilter != "全部" && match.matchType != selectedFilter {
                 return false
