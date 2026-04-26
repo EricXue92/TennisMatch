@@ -12,9 +12,50 @@ import Foundation
 @MainActor
 final class TournamentStore {
     var tournaments: [MockTournament]
+    /// 我已報名的「別人發起」賽事 ID。自己發起的看 `MockTournament.isOwnTournament`。
+    private(set) var joinedIDs: Set<UUID> = []
 
     init(initial: [MockTournament] = mockTournaments) {
         self.tournaments = initial
+    }
+
+    // MARK: - 報名 / 取消
+
+    func signUp(id: UUID) {
+        joinedIDs.insert(id)
+    }
+
+    func cancelSignUp(id: UUID) {
+        joinedIDs.remove(id)
+    }
+
+    func isJoined(id: UUID) -> Bool {
+        joinedIDs.contains(id)
+    }
+
+    /// 我有「參與關係」的賽事 — 自己發起 + 我已報名。冲突检测的扫描源。
+    var myTournaments: [MockTournament] {
+        tournaments.filter { $0.isOwnTournament || joinedIDs.contains($0.id) }
+    }
+
+    // MARK: - 衝突檢測
+
+    struct ConflictHit {
+        let id: UUID
+        let label: String
+    }
+
+    /// 區間 `[start, end)` 是否與我參與的賽事日程重疊。
+    /// 重疊判定:`s1 < e2 && s2 < e1`(與 BookingStore 一致)。
+    /// `excluding`:重新登記同一賽事時排除自身。
+    func conflict(start: Date, end: Date, excluding: UUID? = nil) -> ConflictHit? {
+        for t in myTournaments where t.id != excluding {
+            guard let range = CalendarService.parseTournamentRange(t.dateRange) else { continue }
+            if range.start < end && start < range.end {
+                return ConflictHit(id: t.id, label: t.name)
+            }
+        }
+        return nil
     }
 
     /// 加入一場新發布的賽事 — 當前用戶為發起人。

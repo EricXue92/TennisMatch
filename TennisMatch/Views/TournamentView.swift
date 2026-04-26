@@ -296,9 +296,12 @@ struct TournamentDetailView: View {
     let tournament: MockTournament
     @Environment(\.dismiss) private var dismiss
     @Environment(FollowStore.self) private var followStore
-    @State private var isSignedUp = false
+    @Environment(TournamentStore.self) private var tournamentStore
+    /// 報名狀態跟 store 走 — 否則切換頁面就丟、HomeView 也讀不到參與列表(P2-#3b)。
+    private var isSignedUp: Bool { tournamentStore.isJoined(id: tournament.id) }
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
+    @State private var showCancelSignUpAlert = false
     @State private var pendingContactOrganizer = false
     @State private var dmChat: MockChat?
     @State private var dmMatchContext: String?
@@ -344,7 +347,7 @@ struct TournamentDetailView: View {
         .sheet(isPresented: $showSignUpConfirm) {
             TournamentSignUpSheet(tournament: tournament) {
                 guard !isSignedUp else { return }
-                isSignedUp = true
+                tournamentStore.signUp(id: tournament.id)
                 showSignUpSuccess = true
                 // 更新參賽人數顯示
                 if let slash = displayParticipants.firstIndex(of: "/") {
@@ -382,6 +385,14 @@ struct TournamentDetailView: View {
         .navigationDestination(item: $dmChat) { chat in
             ChatDetailView(chat: chat, matchContext: dmMatchContext)
                 .onDisappear { dmMatchContext = nil }
+        }
+        .alert("取消報名", isPresented: $showCancelSignUpAlert) {
+            Button("再想想", role: .cancel) { }
+            Button("確認取消", role: .destructive) {
+                performCancelSignUp()
+            }
+        } message: {
+            Text("確定要取消報名「\(tournament.name)」嗎?取消後同時段可重新約球。")
         }
     }
 }
@@ -604,20 +615,35 @@ private extension TournamentDetailView {
     var bottomBar: some View {
         if !isCompleted {
             VStack {
-                Button {
-                    if !isSignedUp {
-                        showSignUpConfirm = true
+                // 自己發起的賽事走 MyMatchesView「管理賽事 → 取消賽事」,這裡只處理「我已報名別人賽事」的退報名。
+                if isSignedUp && !tournament.isOwnTournament {
+                    Button(role: .destructive) {
+                        showCancelSignUpAlert = true
+                    } label: {
+                        Text("取消報名")
+                            .font(Typography.button)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(Color.red)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
                     }
-                } label: {
-                    Text(isSignedUp ? "已報名" : "立即報名 · \(tournament.fee)")
-                        .font(Typography.button)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(isSignedUp ? Theme.chipUnselectedBg : Theme.primaryEmerald)
-                        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                } else {
+                    Button {
+                        if !isSignedUp {
+                            showSignUpConfirm = true
+                        }
+                    } label: {
+                        Text(isSignedUp ? "已報名" : "立即報名 · \(tournament.fee)")
+                            .font(Typography.button)
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 14)
+                            .background(isSignedUp ? Theme.chipUnselectedBg : Theme.primaryEmerald)
+                            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+                    }
+                    .disabled(isSignedUp)
                 }
-                .disabled(isSignedUp)
             }
             .padding(.horizontal, Spacing.md)
             .padding(.top, Spacing.sm)
@@ -628,6 +654,22 @@ private extension TournamentDetailView {
                     .shadow(color: .black.opacity(0.06), radius: 4, y: -2)
                     .ignoresSafeArea(edges: .bottom)
             )
+        }
+    }
+
+    private func performCancelSignUp() {
+        tournamentStore.cancelSignUp(id: tournament.id)
+        // 同步參賽人數顯示 — 與 signUp 時的 +1 對稱。
+        if let slash = displayParticipants.firstIndex(of: "/") {
+            let currentStr = String(displayParticipants[displayParticipants.startIndex..<slash])
+            if let current = Int(currentStr), current > 0 {
+                let rest = String(displayParticipants[slash...])
+                displayParticipants = "\(current - 1)\(rest)"
+            }
+        }
+        // 移除 signUp 時 append 的 mock player(name == "小李")。
+        if let idx = displayPlayerList.lastIndex(where: { $0.name == "小李" }) {
+            displayPlayerList.remove(at: idx)
         }
     }
 }

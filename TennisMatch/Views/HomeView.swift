@@ -13,6 +13,7 @@ struct HomeView: View {
     @Environment(UserStore.self) private var userStore
     @Environment(FollowStore.self) private var followStore
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(TournamentStore.self) private var tournamentStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(InviteStore.self) private var inviteStore
     @State private var showDrawer = false
@@ -659,6 +660,11 @@ private extension HomeView {
         let range = matchTimeWindow(for: match)
         if let conflict = bookingStore.conflict(start: range.start, end: range.end, excluding: match.id) {
             conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
+            return
+        }
+        // 賽事冲突拦截:涵盖自己發起 + 已報名的 tournament(P2-#3b)。
+        if let tConflict = tournamentStore.conflict(start: range.start, end: range.end) {
+            conflictToast = L10n.string("該時段已與賽事「\(tConflict.label)」衝突,請先取消賽事報名")
             return
         }
 

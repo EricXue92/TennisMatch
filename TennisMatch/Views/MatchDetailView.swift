@@ -17,6 +17,7 @@ struct MatchDetailView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(TournamentStore.self) private var tournamentStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
     @State private var showSignUpSuccess = false
@@ -411,6 +412,14 @@ private extension MatchDetailView {
                         excluding: match.matchId
                     ) {
                         conflictToast = "該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段"
+                        return
+                    }
+                    // 賽事冲突拦截:自己發起 + 已報名 tournament(P2-#3b)。
+                    if let tConflict = tournamentStore.conflict(
+                        start: match.startDate,
+                        end: match.endDate
+                    ) {
+                        conflictToast = "該時段已與賽事「\(tConflict.label)」衝突,請先取消賽事報名"
                         return
                     }
                     showSignUpConfirm = true
