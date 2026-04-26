@@ -35,6 +35,12 @@ struct MockMatch: Identifiable {
     var currentPlayers: Int
     var maxPlayers: Int
     var isOwnMatch: Bool = false
+    /// 球局发起人 ID(对应 UserStore.id)。mock seed 写死;真后端从 host 关系拉。
+    var hostID: UUID = UUID()
+    /// 发起人是否要求审核报名者。默认关 — 兼容现有「自动通过」体验。
+    var requiresApproval: Bool = false
+    /// 自动接受触发时间。发布时一次算定,nil 表示不需要审核或 lead time 太短。
+    var approvalDeadline: Date? = nil
 
     var players: String {
         "\(currentPlayers)/\(maxPlayers) • \(String(format: "%.1f-%.1f", ntrpLow, ntrpHigh))"
