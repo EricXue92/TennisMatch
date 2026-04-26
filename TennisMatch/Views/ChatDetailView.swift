@@ -71,6 +71,8 @@ struct ChatDetailView: View {
     @State private var declinedInvitationIDs: Set<UUID> = []
     /// 防止 .task(id:) 因父層 state 變動再次觸發時重跑模擬。
     @State private var lastHandledInvitationID: UUID? = nil
+    /// 點已決定的灰卡 → confirmationDialog 詢問是否撤回。
+    @State private var undoTarget: InviteStore.Invite?
 
     private var chatTitle: String {
         switch chat.type {
@@ -278,6 +280,23 @@ struct ChatDetailView: View {
             PublicProfileView(player: player)
         }
         .toast($chatMenuToast, icon: "info.circle.fill")
+        .confirmationDialog(
+            Text(undoTarget.map { "撤回\($0.inviteeName)的決定?" } ?? ""),
+            isPresented: Binding(
+                get: { undoTarget != nil },
+                set: { if !$0 { undoTarget = nil } }
+            ),
+            presenting: undoTarget
+        ) { invite in
+            Button("撤回", role: .destructive) {
+                handleUndo(invite)
+            }
+            Button("取消", role: .cancel) {}
+        } message: { invite in
+            Text(invite.status == .accepted
+                 ? "撤回後,該球友將從報名列表移除,約球可能恢復至「招募中」"
+                 : "撤回後,可重新讓該球友考慮")
+        }
         .task(id: pendingInvitation?.matchID) {
             guard let p = pendingInvitation,
                   p.matchID != lastHandledInvitationID else { return }
@@ -659,12 +678,7 @@ struct ChatDetailView: View {
                 .padding(Spacing.md)
 
                 Divider()
-
-                // Task 7 將替換為 actionRow(...)
-                Text("(actions)")
-                    .font(Typography.small)
-                    .foregroundColor(Theme.textHint)
-                    .padding(Spacing.sm)
+                actionRow(invite: invite, display: display)
             }
             .background(Theme.surface)
             .overlay(
@@ -675,6 +689,118 @@ struct ChatDetailView: View {
             .padding(.horizontal, Spacing.md)
             .opacity(display.isMuted ? 0.7 : 1.0)
         }
+    }
+
+    @ViewBuilder
+    private func actionRow(invite: InviteStore.Invite,
+                           display: InviteCardDisplay) -> some View {
+        switch display {
+        case .actionable:
+            HStack(spacing: Spacing.sm) {
+                Button {
+                    handleDecline(invite)
+                } label: {
+                    Text("拒絕")
+                        .font(Typography.bodyMedium)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    handleAccept(invite)
+                } label: {
+                    Text("接受")
+                        .font(Typography.bodyMedium)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.primary)
+            }
+            .padding(Spacing.sm)
+
+        case .accepted(let at):
+            decidedRow(
+                text: "✅ \(invite.inviteeName)已接受 · \(AppDateFormatter.hourMinute.string(from: at))",
+                color: Theme.accentGreen,
+                invite: invite
+            )
+
+        case .declined(let at):
+            decidedRow(
+                text: "❌ \(invite.inviteeName)已拒絕 · \(AppDateFormatter.hourMinute.string(from: at))",
+                color: Theme.textSecondary,
+                invite: invite
+            )
+
+        case .expired(let reason):
+            Text(expiredText(reason))
+                .font(Typography.smallMedium)
+                .foregroundColor(Theme.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
+                .padding(Spacing.sm)
+        }
+    }
+
+    private func decidedRow(text: String,
+                            color: Color,
+                            invite: InviteStore.Invite) -> some View {
+        Button {
+            undoTarget = invite
+        } label: {
+            HStack {
+                Text(text)
+                    .font(Typography.smallMedium)
+                    .foregroundColor(color)
+                Spacer()
+                Text("撤回")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textHint)
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.textHint)
+            }
+            .padding(Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func expiredText(_ reason: InviteCardDisplay.ExpireReason) -> String {
+        switch reason {
+        case .full(let cur, let mx):
+            return "🎾 已約到球友 (\(cur)/\(mx))"
+        case .cancelled:
+            return "約球已取消"
+        case .timePassed:
+            return "已過開賽時間"
+        }
+    }
+
+    // MARK: - DM Invite Handlers
+
+    private func handleAccept(_ invite: InviteStore.Invite) {
+        inviteStore.setStatus(.accepted, for: invite.id)
+        matchActions.acceptInvite(invite)
+        sentMessages.append(ChatBubble(.systemMessage(
+            "🎾 約球已確認！\(invite.payload.dateLabel) 在\(invite.payload.location)"
+        )))
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    private func handleDecline(_ invite: InviteStore.Invite) {
+        inviteStore.setStatus(.declined, for: invite.id)
+        sentMessages.append(ChatBubble(.systemMessage(
+            "\(invite.inviteeName)婉拒了邀請"
+        )))
+    }
+
+    private func handleUndo(_ invite: InviteStore.Invite) {
+        let was = invite.status
+        inviteStore.setStatus(.pending, for: invite.id)
+        if was == .accepted {
+            matchActions.undoAcceptInvite(invite)
+        }
+        // Undo Decline 純狀態翻轉,無副作用。
     }
 
     // MARK: - Display State Derivation
