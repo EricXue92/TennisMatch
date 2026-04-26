@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MyMatchesView: View {
     @Binding var sharedChats: [MockChat]
+    @Binding var upcomingMatches: [MyMatchItem]
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     var onGoTournaments: (() -> Void)? = nil
@@ -49,7 +50,6 @@ struct MyMatchesView: View {
     /// MyMatchesView 在切換 tab 時會被銷毀重建,@State 的 upcomingMatches 隨之重置 ——
     /// 若不持久化「已取消」,用戶可以對同一個種子假資料反覆取消,首頁也會堆出多張合成卡。
     @AppStorage("cancelledMockUpcomingKeys") private var cancelledMockKeysJSON: String = "[]"
-    @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
     @State private var pendingDMContact: MyMatchInvitation?
@@ -1316,7 +1316,7 @@ private func relativeMockMatchRange(
     return (start: start, end: end)
 }
 
-private var mockUpcomingMatchesInitial: [MyMatchItem] {
+var mockUpcomingMatchesInitial: [MyMatchItem] {
     let r1 = relativeMockMatchRange(daysFromNow: 1, startHour: 10, endHour: 12)
     let r2 = relativeMockMatchRange(daysFromNow: 3, startHour: 14, endHour: 16)
     let r3 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, startMinute: 30, endHour: 20)
@@ -2021,7 +2021,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    MyMatchesView(sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
         .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())
@@ -2030,7 +2030,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 }
 
 #Preview("iPhone 15 Pro") {
-    MyMatchesView(sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
         .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())

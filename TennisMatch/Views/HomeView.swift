@@ -34,6 +34,7 @@ struct HomeView: View {
     @State private var signUpMatch: SignUpMatchInfo?
     @State private var successMatch: SignUpMatchInfo?
     @State private var matches: [MockMatch] = initialMockMatches
+    @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var signUpMatchId: UUID?
     @State private var chatUnreadCount = 0
     @State private var sharedChats: [MockChat] = mockChatsInitial
@@ -59,6 +60,7 @@ struct HomeView: View {
                 case 0: homeTab
                 case 1: MyMatchesView(
                     sharedChats: $sharedChats,
+                    upcomingMatches: $upcomingMatches,
                     onGoHome: { selectedTab = 0 },
                     onGoTournaments: { showTournaments = true },
                     onMatchCancelled: { payload in
