@@ -159,10 +159,19 @@ struct MyMatchesView: View {
                 MatchRegistrant(name: info.organizerName, gender: .male, ntrp: ntrpMid, isOrganizer: true),
                 MatchRegistrant(name: "小李", gender: .male, ntrp: ntrpMid, isOrganizer: false),
             ]
+            // 滿員 → .confirmed(已成局);未滿員 → .pending(等待中,首頁仍接受報名)。
+            // info.players 形如 "3/4";解析失敗(舊默認值或非首頁來源)按 .confirmed 處理。
+            let isFull: Bool = {
+                let parts = info.players.split(separator: "/")
+                guard parts.count == 2,
+                      let cur = Int(parts[0]),
+                      let max = Int(parts[1]) else { return true }
+                return cur >= max
+            }()
             return MyMatchItem(
                 title: "\(info.organizerName) 發起的\(info.matchType)",
                 isOrganizer: false,
-                status: .confirmed,
+                status: isFull ? .confirmed : .pending,
                 dateLabel: "\(info.dateString)",
                 location: "\(info.location)網球場",
                 timeRange: "\(timeStr) - \(endTime)",
@@ -287,8 +296,9 @@ struct MyMatchesView: View {
         onInviteAccepted?(invite.matchID, FollowPlayer.from(invite: invite), match.sourceMatchID)
     }
 
-    /// Undo Accept 的副作用:remove registrant,players -1,若原本滿員則 status 回 .pending,
-    /// 從 BookingStore.externalSlots 移除。
+    /// Undo Accept 的副作用:remove registrant,players -1,若原本滿員則 status 回 .pending。
+    /// 注意:externalSlots 不在這裡移除 —— 招募中(pending)的我方約球同樣占用時段,
+    /// 真正釋放時段的時機只有「用戶取消」。
     private func applyInviteUndoAccept(_ invite: InviteStore.Invite) {
         guard let idx = upcomingMatches.firstIndex(where: { $0.id == invite.matchID }) else { return }
         var match = upcomingMatches[idx]
@@ -300,10 +310,9 @@ struct MyMatchesView: View {
         let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
         match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
 
-        // 撤回後若曾經滿員 → 退回 pending,並從 BookingStore.externalSlots 移除
+        // 撤回後若曾經滿員 → 退回 pending(externalSlot 保留,pending 仍占用時段)。
         if cur >= mx {
             match.status = .pending
-            bookingStore.removeExternal(id: match.id)
         }
         upcomingMatches[idx] = match
 
@@ -695,11 +704,15 @@ struct MyMatchesView: View {
             }
         }
         .task {
-            // 把 mock 中"已确认"的 upcomingMatches 注入 BookingStore.externalSlots,
-            // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截。
-            // registerExternal 按 id 去重,重复 task 触发是安全的。
-            // 自动取消的约球不再登记 — 它实际未进行,不应阻塞后续报名。
-            for item in upcomingMatches where item.status == .confirmed && !item.isAutoCancelled {
+            // 把所有「即將到來」的 upcomingMatches(無論 confirmed/pending)注入 externalSlots,
+            // 供 HomeView/MatchDetail/ChatDetail 的报名流程做冲突拦截 —— 同一時段不能重複約兩場球。
+            // - 自動取消(過期未滿員)不登記:該場實際未進行,不應阻塞後續報名。
+            // - 用戶手動取消的種子假資料(cancelledMockKeys)不登記:跨 app 重啟時 upcomingMatches
+            //   會由 mockUpcomingMatchesInitial 重置回來,若不過濾會把已取消時段重新登記成衝突源。
+            // registerExternal 按 id 去重,重複 task 觸發是安全的。
+            let cancelled = cancelledMockKeys
+            for item in upcomingMatches
+                where !item.isAutoCancelled && !cancelled.contains(cancelKey(for: item)) {
                 let label = "\(item.title) \(item.dateLabel) \(item.timeRange)"
                 bookingStore.registerExternal(BookedSlot(
                     id: item.id,

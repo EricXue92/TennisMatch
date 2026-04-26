@@ -437,9 +437,9 @@ private extension HomeView {
         let filtered = matches.filter { match in
             // 首页只显示未来可约的信息,过期/自动取消的不展示
             if match.isExpired { return false }
-            // 已报名的约球不再显示在首页,已移至"我的约球"
-            if bookingStore.isSignedUp(matchID: match.id) { return false }
-            // 滿員約球從首頁消失(包括自己發起的)— 已轉移到「我的約球 → 即將到來」管理
+            // 滿員約球從首頁消失 — 已轉移到「我的約球 → 即將到來」管理。
+            // 注意:已報名但未滿員的約球仍要留在首頁繼續接受其他人報名(card 上按鈕顯示「已報名」disabled),
+            // 同步在「我的約球 → 即將到來」以 .pending 狀態顯示。
             if match.isFull { return false }
             // Match type filter
             if selectedFilter != "全部" && match.matchType != selectedFilter {
@@ -821,9 +821,10 @@ private extension HomeView {
         let newCurrent = max(0, cur - 1)
         let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
         match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
+        // 撤回後若曾經滿員 → 退回 pending。externalSlot 保留,pending 仍占用時段,
+        // 與 MyMatchesView.applyInviteUndoAccept 一致 —— 真正釋放時段的時機只有「用戶取消」。
         if cur >= mx {
             match.status = .pending
-            bookingStore.removeExternal(id: match.id)
         }
         upcomingMatches[idx] = match
 
