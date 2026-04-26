@@ -30,8 +30,8 @@ final class UserStore {
     /// 所在地区。
     var region: String
 
-    /// 偏好球场。
-    var selectedCourt: TennisCourt?
+    /// 偏好球場（多選，最多 3 個，按 `allCourts` 顺序保存以便稳定显示）。
+    var selectedCourts: [TennisCourt]
 
     /// 球友水平偏好範圍。
     var partnerLevelLow: Double
@@ -48,7 +48,7 @@ final class UserStore {
         bio: String = "熱愛網球，週末經常打球",
         ntrpLevel: Double = 3.5,
         region: String = "香港",
-        selectedCourt: TennisCourt? = nil,
+        selectedCourts: [TennisCourt] = [],
         partnerLevelLow: Double = 3.0,
         partnerLevelHigh: Double = 4.5,
         preferredSlots: [PreferredTimeSlot] = []
@@ -58,7 +58,7 @@ final class UserStore {
         self.bio = bio
         self.ntrpLevel = ntrpLevel
         self.region = region
-        self.selectedCourt = selectedCourt
+        self.selectedCourts = selectedCourts
         self.partnerLevelLow = partnerLevelLow
         self.partnerLevelHigh = partnerLevelHigh
         self.preferredSlots = preferredSlots

@@ -21,9 +21,11 @@ struct EditProfileView: View {
     @State private var selectedGender: Gender = .male
     @State private var bio: String = ""
     @State private var ntrpLevel: Double = 3.5
-    @State private var selectedCourt: TennisCourt? = allCourts.first { $0.id == "vp" }
+    @State private var selectedCourts: [TennisCourt] = []
     @State private var showCourtPicker = false
     @State private var courtPickerSelection: Set<TennisCourt> = []
+    /// 偏好球場最多可選的數量。
+    private let maxPreferredCourts = 3
     @State private var partnerLevelLow: Double = 3.0
     @State private var partnerLevelHigh: Double = 4.5
     @State private var region: String = "香港"
@@ -55,7 +57,7 @@ struct EditProfileView: View {
         bio != userStore.bio ||
         ntrpLevel != userStore.ntrpLevel ||
         region != userStore.region ||
-        selectedCourt?.id != userStore.selectedCourt?.id ||
+        selectedCourts.map(\.id) != userStore.selectedCourts.map(\.id) ||
         partnerLevelLow != userStore.partnerLevelLow ||
         partnerLevelHigh != userStore.partnerLevelHigh ||
         slotsChanged
@@ -93,21 +95,22 @@ struct EditProfileView: View {
                 bio = userStore.bio
                 ntrpLevel = userStore.ntrpLevel
                 region = userStore.region
-                if let court = userStore.selectedCourt {
-                    selectedCourt = court
-                }
+                selectedCourts = userStore.selectedCourts
                 partnerLevelLow = userStore.partnerLevelLow
                 partnerLevelHigh = userStore.partnerLevelHigh
                 preferredSlots = userStore.preferredSlots
             }
         }
         .sheet(isPresented: $showCourtPicker) {
-            CourtPickerView(selected: $courtPickerSelection, singleSelect: true)
-                .onDisappear {
-                    if let court = courtPickerSelection.first {
-                        selectedCourt = court
-                    }
-                }
+            CourtPickerView(
+                selected: $courtPickerSelection,
+                singleSelect: false,
+                maxSelection: maxPreferredCourts
+            )
+            .onDisappear {
+                // 按 allCourts 原始順序排，避免 Set 順序不穩
+                selectedCourts = allCourts.filter { courtPickerSelection.contains($0) }
+            }
         }
         .sheet(isPresented: $showAddSlot) {
             AddPreferredSlotSheet { slot in
@@ -214,17 +217,21 @@ struct EditProfileView: View {
             ntrpSliderSection
             formDivider
 
-            // 偏好球場
+            // 偏好球場（最多 3 個）
             formRow(label: "偏好球場") {
                 Button {
-                    courtPickerSelection = selectedCourt.map { Set([$0]) } ?? []
+                    courtPickerSelection = Set(selectedCourts)
                     showCourtPicker = true
                 } label: {
                     HStack {
-                        Text(selectedCourt?.name ?? "選擇球場")
+                        Text(selectedCourts.isEmpty
+                             ? "選擇球場"
+                             : selectedCourts.map(\.name).joined(separator: "、"))
                             .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textBody)
-                        Spacer()
+                            .lineLimit(2)
+                            .multilineTextAlignment(.trailing)
+                        Spacer(minLength: Spacing.xs)
                         Image(systemName: "chevron.right")
                             .font(Typography.smallMedium)
                             .foregroundColor(Theme.textSecondary)
@@ -352,7 +359,7 @@ struct EditProfileView: View {
                 userStore.bio = bio
                 userStore.ntrpLevel = ntrpLevel
                 userStore.region = region
-                userStore.selectedCourt = selectedCourt
+                userStore.selectedCourts = selectedCourts
                 userStore.partnerLevelLow = partnerLevelLow
                 userStore.partnerLevelHigh = partnerLevelHigh
                 userStore.preferredSlots = preferredSlots
