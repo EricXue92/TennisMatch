@@ -66,3 +66,6 @@ fastlane/test_output
 .env.local
 .worktreeinclude
 config/secrets.json
+
+# Worktrees
+.worktrees/
