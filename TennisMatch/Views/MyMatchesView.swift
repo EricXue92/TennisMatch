@@ -2026,6 +2026,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
+        .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -2034,4 +2035,5 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
+        .environment(InviteStore())
 }

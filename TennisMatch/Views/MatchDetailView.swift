@@ -687,6 +687,7 @@ private let inviteContacts: [InviteContact] = [
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore())
+    .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -696,6 +697,7 @@ private let inviteContacts: [InviteContact] = [
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore())
+    .environment(InviteStore())
 }
 
 private let previewMatchDetail = MatchDetailData(

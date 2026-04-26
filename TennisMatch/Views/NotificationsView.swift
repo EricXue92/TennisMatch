@@ -283,6 +283,7 @@ struct NotificationsView: View {
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore())
+    .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -293,4 +294,5 @@ struct NotificationsView: View {
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore())
+    .environment(InviteStore())
 }

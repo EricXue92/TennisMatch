@@ -859,6 +859,7 @@ private extension HomeView {
         .environment(FollowStore())
         .environment(UserStore())
         .environment(CreditScoreStore())
+        .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -866,4 +867,5 @@ private extension HomeView {
         .environment(FollowStore())
         .environment(UserStore())
         .environment(CreditScoreStore())
+        .environment(InviteStore())
 }

@@ -754,6 +754,7 @@ private let mockMessages: [ChatBubble] = [
         )
     }
     .environment(BookingStore())
+    .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -768,4 +769,5 @@ private let mockMessages: [ChatBubble] = [
         )
     }
     .environment(BookingStore())
+    .environment(InviteStore())
 }
