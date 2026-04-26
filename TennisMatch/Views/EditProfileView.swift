@@ -19,6 +19,7 @@ struct EditProfileView: View {
 
     @State private var name: String = ""
     @State private var selectedGender: Gender = .male
+    @State private var ageRange: String = "26-35"
     @State private var bio: String = ""
     @State private var ntrpLevel: Double = 3.5
     @State private var selectedCourts: [TennisCourt] = []
@@ -54,6 +55,7 @@ struct EditProfileView: View {
     private var hasUnsavedChanges: Bool {
         name != userStore.displayName ||
         selectedGender != userStore.gender ||
+        ageRange != userStore.ageRange ||
         bio != userStore.bio ||
         ntrpLevel != userStore.ntrpLevel ||
         region != userStore.region ||
@@ -92,6 +94,7 @@ struct EditProfileView: View {
             if name.isEmpty {
                 name = userStore.displayName
                 selectedGender = userStore.gender
+                ageRange = userStore.ageRange
                 bio = userStore.bio
                 ntrpLevel = userStore.ntrpLevel
                 region = userStore.region
@@ -202,6 +205,19 @@ struct EditProfileView: View {
                     }
                     Spacer()
                 }
+            }
+            formDivider
+
+            // 年齡
+            formRow(label: "年齡") {
+                Picker("", selection: $ageRange) {
+                    ForEach(UserStore.ageRangeOptions, id: \.self) { range in
+                        Text(range).tag(range)
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(Theme.textBody)
+                Spacer()
             }
             formDivider
 
@@ -356,6 +372,7 @@ struct EditProfileView: View {
                 UINotificationFeedbackGenerator().notificationOccurred(.success)
                 userStore.displayName = trimmed
                 userStore.gender = selectedGender
+                userStore.ageRange = ageRange
                 userStore.bio = bio
                 userStore.ntrpLevel = ntrpLevel
                 userStore.region = region

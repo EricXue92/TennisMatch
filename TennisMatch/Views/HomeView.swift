@@ -490,6 +490,17 @@ private extension HomeView {
         .padding(.bottom, Spacing.xl)
     }
 
+    /// 自己發起的約球(`isOwnMatch == true`)的展示名 / 性別跟隨 `UserStore` 實時值,
+    /// 而非創建時寫進 `MockMatch` 的快照。改名後首頁卡片立刻同步,接後端時這套邏輯
+    /// 自然演進為 `host.userId == currentUser.userId` 的判斷。
+    private func hostDisplayName(for match: MockMatch) -> String {
+        match.isOwnMatch ? userStore.displayName : match.name
+    }
+
+    private func hostDisplayGender(for match: MockMatch) -> Gender {
+        match.isOwnMatch ? userStore.gender : match.gender
+    }
+
     func matchCard(_ match: MockMatch) -> some View {
         Button {
             navigateToDetail(match)
@@ -503,13 +514,14 @@ private extension HomeView {
 
                 VStack(alignment: .leading, spacing: 0) {
                     HStack(spacing: 4) {
-                        Text(match.name)
+                        Text(hostDisplayName(for: match))
                             .font(Typography.bodyMedium)
                             .foregroundColor(Theme.textPrimary)
                             .lineLimit(1)
-                        Text(match.gender.symbol)
+                        let hostGender = hostDisplayGender(for: match)
+                        Text(hostGender.symbol)
                             .font(Typography.bodyMedium)
-                            .foregroundColor(match.gender == .female ? Theme.genderFemale : Theme.genderMale)
+                            .foregroundColor(hostGender == .female ? Theme.genderFemale : Theme.genderMale)
 
                         Text(match.matchType)
                             .font(Typography.micro)
@@ -667,10 +679,13 @@ private extension HomeView {
             .replacingOccurrences(of: "⛅ ", with: "")
             .replacingOccurrences(of: "🌤 ", with: "")
 
+        let hostName = hostDisplayName(for: match)
+        let hostGender = hostDisplayGender(for: match)
+
         return MatchDetailData(
             matchId: match.id,
-            name: match.name,
-            gender: match.gender,
+            name: hostName,
+            gender: hostGender,
             ntrp: String(format: "%.1f", (match.ntrpLow + match.ntrpHigh) / 2),
             reputation: [85, 88, 90, 92, 78, 95][abs(match.name.hashValue) % 6],
             matchType: match.matchType,
@@ -686,7 +701,7 @@ private extension HomeView {
             notes: "自帶球拍和球，準時到達",
             weather: MatchWeather(temp: temp, humidity: "65%", uv: "6", wind: "10"),
             participantList: [
-                MatchParticipant(name: match.name, gender: match.gender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
+                MatchParticipant(name: hostName, gender: hostGender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
             ],
             isOwnMatch: match.isOwnMatch
         )

@@ -28,6 +28,7 @@ struct MyMatchesView: View {
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
     @Environment(TournamentStore.self) private var tournamentStore
+    @Environment(UserStore.self) private var userStore
     @State private var selectedFilter = "即將到來"
     @State private var selectedChat: MockChat?
     @State private var selectedChatMatchContext: String?
@@ -618,9 +619,13 @@ struct MyMatchesView: View {
             NavigationStack {
                 List {
                     ForEach(Array(match.registrants.enumerated()), id: \.offset) { i, registrant in
+                        // 自己發起的場次:organizer 條目改讀 UserStore,跟隨當前用戶名/性別。
+                        let isCurrentUserOrganizer = match.isOrganizer && registrant.isOrganizer
+                        let displayName = isCurrentUserOrganizer ? userStore.displayName : registrant.name
+                        let displayGender = isCurrentUserOrganizer ? userStore.gender : registrant.gender
                         NavigationLink(value: mockPublicPlayerData(
-                            name: registrant.name,
-                            gender: registrant.gender,
+                            name: displayName,
+                            gender: displayGender,
                             ntrp: registrant.ntrp
                         )) {
                             HStack(spacing: Spacing.sm) {
@@ -628,12 +633,12 @@ struct MyMatchesView: View {
                                     Circle()
                                         .fill(Theme.avatarPlaceholder)
                                         .frame(width: 36, height: 36)
-                                    Text(String(registrant.name.suffix(1)))
+                                    Text(String(displayName.suffix(1)))
                                         .font(Typography.labelSemibold)
                                         .foregroundColor(.white)
                                 }
                                 VStack(alignment: .leading, spacing: 2) {
-                                    Text(registrant.name)
+                                    Text(displayName)
                                         .font(Typography.bodyMedium)
                                         .foregroundColor(Theme.textPrimary)
                                     Text("NTRP \(registrant.ntrp)")
