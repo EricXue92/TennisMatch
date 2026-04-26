@@ -43,6 +43,8 @@ enum MockFriendSchedule {
             "嘉欣":  [slot(daysFromNow: 6, startHour: 9, endHour: 11, label: "雙打")],
             // 大衛 — 第 4 天 18:30-20:30 與已有約球同
             "大衛":  [slot(daysFromNow: 4, startHour: 18, startMinute: 30, endHour: 20, endMinute: 30, label: "雙打")],
+            // 小美 — 第 3 天 14:00-16:00 與「我發起的雙打 跑馬地」一致 → 邀她該場必衝突婉拒
+            "小美":  [slot(daysFromNow: 3, startHour: 14, endHour: 16, label: "教練課")],
             // 其餘互關好友視為空閒
         ]
     }
