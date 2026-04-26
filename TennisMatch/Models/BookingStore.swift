@@ -87,6 +87,38 @@ final class BookingStore {
         return app
     }
 
+    // MARK: - Host actions
+
+    func approve(applicationID: UUID, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == applicationID }) else { return }
+        guard applications[idx].status.canTransition(to: .approved) else { return }
+        applications[idx].status = .approved
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        persist()
+    }
+
+    func reject(applicationID: UUID, note: String? = nil, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == applicationID }) else { return }
+        guard applications[idx].status.canTransition(to: .rejected) else { return }
+        applications[idx].status = .rejected
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        applications[idx].note = note
+        persist()
+    }
+
+    // MARK: - Applicant actions
+
+    func cancelApplication(_ id: UUID, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == id }) else { return }
+        guard applications[idx].status.canTransition(to: .cancelledBySelf) else { return }
+        applications[idx].status = .cancelledBySelf
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        persist()
+    }
+
     // MARK: - Queries
 
     func myApplication(for matchID: UUID) -> MatchApplication? {
@@ -257,3 +289,15 @@ extension BookingStore {
     @available(*, deprecated, message: "Use myApprovedMatches 或 isSignedUp(matchID:)")
     var signedUpMatchIDs: Set<UUID> { Set(myApprovedMatches) }
 }
+
+// MARK: - Test seams
+
+#if DEBUG
+extension BookingStore {
+    /// 仅供单元测试插入 MatchApplication。生产代码勿用。
+    func _testInsert(_ app: MatchApplication) {
+        applications.append(app)
+        persist()
+    }
+}
+#endif

@@ -41,4 +41,52 @@ final class BookingStoreApprovalTests: XCTestCase {
         XCTAssertEqual(dup.status, .pendingReview, "重复申请应返回现有条目")
         XCTAssertEqual(store.applications.count, 1, "不应新增")
     }
+
+    func test_approve_transitionsToApproved() {
+        let match = MockBuilders.match(hostID: userID)
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: userID)
+        store._testInsert(app)
+
+        store.approve(applicationID: app.id, now: MockBuilders.fixedNow)
+
+        XCTAssertEqual(store.applications.first?.status, .approved)
+        XCTAssertEqual(store.applications.first?.resolvedBy, userID)
+        XCTAssertNotNil(store.applications.first?.resolvedAt)
+    }
+
+    func test_reject_transitionsToRejectedWithNote() {
+        let match = MockBuilders.match(hostID: userID)
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: userID)
+        store._testInsert(app)
+
+        store.reject(applicationID: app.id, note: "水平不匹配", now: MockBuilders.fixedNow)
+
+        XCTAssertEqual(store.applications.first?.status, .rejected)
+        XCTAssertEqual(store.applications.first?.note, "水平不匹配")
+    }
+
+    func test_cancelApplication_pendingNoCreditPenalty() {
+        let match = MockBuilders.match()
+        store.registerMatch(match)
+        _ = store.apply(to: match, now: MockBuilders.fixedNow)
+        let app = store.myApplication(for: match.id)!
+
+        store.cancelApplication(app.id, now: MockBuilders.fixedNow)
+
+        XCTAssertEqual(store.applications.first?.status, .cancelledBySelf)
+        XCTAssertEqual(store.applications.first?.resolvedBy, userID)
+    }
+
+    func test_approve_illegalFromTerminal_noop() {
+        let match = MockBuilders.match(hostID: userID)
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: userID, status: .approved)
+        store._testInsert(app)
+
+        store.approve(applicationID: app.id, now: MockBuilders.fixedNow)
+
+        XCTAssertEqual(store.applications.first?.status, .approved)
+    }
 }
