@@ -1155,7 +1155,7 @@ private extension MyMatchesView {
 
 // MARK: - Data
 
-private enum MyMatchStatus: String {
+enum MyMatchStatus: String {
     case confirmed = "已確認"
     case pending = "等待中"
     case completed = "已完成"
@@ -1181,14 +1181,14 @@ private enum MatchActionStyle {
     case filled, outlined
 }
 
-private struct MatchRegistrant {
+struct MatchRegistrant {
     let name: String
     let gender: Gender
     let ntrp: String
     let isOrganizer: Bool
 }
 
-private struct MyMatchItem: Identifiable {
+struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
     let isOrganizer: Bool
