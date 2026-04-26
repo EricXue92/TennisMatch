@@ -942,7 +942,7 @@ private let mockMessages: [ChatBubble] = [
             )
         )
     }
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }
 
@@ -957,6 +957,6 @@ private let mockMessages: [ChatBubble] = [
             )
         )
     }
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }

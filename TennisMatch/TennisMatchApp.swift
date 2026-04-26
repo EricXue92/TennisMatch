@@ -13,7 +13,8 @@ struct TennisMatchApp: App {
     @State private var localeManager = LocaleManager.shared
     @State private var followStore = FollowStore()
     @State private var userStore = UserStore()
-    @State private var bookingStore = BookingStore()
+    @State private var bookingStore = BookingStore(currentUserID: UUID())
+    // TODO(Task 21): wire BookingStore(currentUserID: userStore.id) — requires AppStorage binding
     @State private var notificationStore = NotificationStore()
     @State private var creditScoreStore = CreditScoreStore()
     @State private var ratingFeedbackStore = RatingFeedbackStore()

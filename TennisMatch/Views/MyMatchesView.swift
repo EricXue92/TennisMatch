@@ -2257,7 +2257,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 
 #Preview("iPhone SE") {
     MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
-        .environment(BookingStore())
+        .environment(BookingStore(currentUserID: UUID()))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
@@ -2266,7 +2266,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 
 #Preview("iPhone 15 Pro") {
     MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
-        .environment(BookingStore())
+        .environment(BookingStore(currentUserID: UUID()))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())

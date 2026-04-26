@@ -282,7 +282,7 @@ struct NotificationsView: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }
 
@@ -293,6 +293,6 @@ struct NotificationsView: View {
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }

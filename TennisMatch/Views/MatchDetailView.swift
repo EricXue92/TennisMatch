@@ -709,7 +709,7 @@ private let inviteContacts: [InviteContact] = [
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }
 
@@ -719,7 +719,7 @@ private let inviteContacts: [InviteContact] = [
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
     .environment(InviteStore())
 }
 
