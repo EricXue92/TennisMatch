@@ -19,16 +19,6 @@ struct OutgoingInvitationPayload: Equatable {
     let players: String      // "2/4 · NTRP 3.5-4.5"
 }
 
-/// MyMatchesView → ChatDetailView 傳的「待模擬」邀請。`matchID` 對應
-/// MyMatchItem.id,模擬完通過 onInviteResolved(matchID, invitee, accepted) 回拋。
-struct PendingDMInvitation {
-    let matchID: UUID
-    let invitee: FollowPlayer
-    let payload: OutgoingInvitationPayload
-    let startDate: Date
-    let endDate: Date
-}
-
 struct ChatDetailView: View {
     let chat: MockChat
     var matchContext: String? = nil
@@ -38,13 +28,14 @@ struct ChatDetailView: View {
     var onRemoveChat: (() -> Void)? = nil
     /// 封鎖用戶時回調，參數為被封鎖者名稱
     var onBlockUser: ((String) -> Void)? = nil
-    /// 待模擬的 DM 邀請。若非 nil,進 view 立刻 push 外發邀請氣泡,1.6s 後查
-    /// MockFriendSchedule 模擬接受/婉拒並通過 onInviteResolved 回拋。
-    var pendingInvitation: PendingDMInvitation? = nil
-    /// 模擬結束時上拋:(matchID, invitee, accepted)。
-    var onInviteResolved: ((UUID, FollowPlayer, Bool) -> Void)? = nil
+    /// 由 HomeView 提供,讓 actionRow 能查詢「該約球當前的 (current, max) / 是否取消」。
+    /// nil → 視為已取消(渲染 .expired(.cancelled))。
+    var matchLookup: (UUID) -> MyMatchItem? = { _ in nil }
+    /// 接受/反悔的副作用 — 由 HomeView 寫 upcomingMatches/matches。
+    var matchActions: InviteMatchActions = .noop
     @Environment(\.dismiss) private var dismiss
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(InviteStore.self) private var inviteStore
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -63,8 +54,8 @@ struct ChatDetailView: View {
     // Mock 階段：婉拒狀態僅保存在 @State 中，離開頁面即重置。
     // 正式版應持久化至 UserDefaults 或資料庫，注意 @AppStorage JSON 有大小限制。
     @State private var declinedInvitationIDs: Set<UUID> = []
-    /// 防止 .task(id:) 因父層 state 變動再次觸發時重跑模擬。
-    @State private var lastHandledInvitationID: UUID? = nil
+    /// 點已決定的灰卡 → confirmationDialog 詢問是否撤回。
+    @State private var undoTarget: InviteStore.Invite?
 
     private var chatTitle: String {
         switch chat.type {
@@ -138,6 +129,15 @@ struct ChatDetailView: View {
             }
         }
         messages.append(contentsOf: sentMessages)
+
+        // DM 邀請卡 — 從 InviteStore 動態合併,讓接受/拒絕/反悔即時反映
+        if case .personal(let name, _, _) = chat.type {
+            for invite in inviteStore.invitesForChat(name) {
+                let ts = AppDateFormatter.hourMinute.string(from: invite.createdAt)
+                messages.append(ChatBubble(.dmInvitation(invite.id), timestamp: ts))
+            }
+        }
+
         return messages
     }
 
@@ -263,36 +263,22 @@ struct ChatDetailView: View {
             PublicProfileView(player: player)
         }
         .toast($chatMenuToast, icon: "info.circle.fill")
-        .task(id: pendingInvitation?.matchID) {
-            guard let p = pendingInvitation,
-                  p.matchID != lastHandledInvitationID else { return }
-            lastHandledInvitationID = p.matchID
-
-            // 1. 立刻 push 外發邀請氣泡
-            let outTs = AppDateFormatter.hourMinute.string(from: Date())
-            sentMessages.append(ChatBubble(
-                .outgoingInvitation(p.payload), timestamp: outTs
-            ))
-
-            // 2. 等 1.6s,讓用戶看到外發氣泡
-            try? await Task.sleep(nanoseconds: 1_600_000_000)
-            guard !Task.isCancelled else { return }
-
-            // 3. 查檔期決定接受 / 婉拒
-            let inTs = AppDateFormatter.hourMinute.string(from: Date())
-            if let conflict = MockFriendSchedule.conflict(
-                for: p.invitee.name, start: p.startDate, end: p.endDate
-            ) {
-                let body = "不好意思,那時段我已有\(conflict.label),下次再約 🙏"
-                sentMessages.append(ChatBubble(.incoming(body), timestamp: inTs))
-                onInviteResolved?(p.matchID, p.invitee, false)
-            } else {
-                sentMessages.append(ChatBubble(.incoming("好的,我接受！"), timestamp: inTs))
-                sentMessages.append(ChatBubble(.systemMessage(
-                    "🎾 約球已確認！\(p.payload.dateLabel) 在\(p.payload.location)"
-                )))
-                onInviteResolved?(p.matchID, p.invitee, true)
+        .confirmationDialog(
+            Text(undoTarget.map { "撤回\($0.inviteeName)的決定?" } ?? ""),
+            isPresented: Binding(
+                get: { undoTarget != nil },
+                set: { if !$0 { undoTarget = nil } }
+            ),
+            presenting: undoTarget
+        ) { invite in
+            Button("撤回", role: .destructive) {
+                handleUndo(invite)
             }
+            Button("取消", role: .cancel) {}
+        } message: { invite in
+            Text(invite.status == .accepted
+                 ? "撤回後,該球友將從報名列表移除,約球可能恢復至「招募中」"
+                 : "撤回後,可重新讓該球友考慮")
         }
     }
 
@@ -325,6 +311,8 @@ struct ChatDetailView: View {
             invitationCard(messageID: message.id, date: date, location: location, startDate: start, endDate: end)
         case .outgoingInvitation(let payload):
             outgoingInvitationCard(payload: payload, timestamp: message.timestamp)
+        case .dmInvitation(let inviteID):
+            dmInvitationCard(inviteID: inviteID)
         case .systemMessage(let text):
             systemMessageBubble(text)
         }
@@ -595,6 +583,206 @@ struct ChatDetailView: View {
         }
     }
 
+    // MARK: - DM Invitation Card (interactive)
+
+    @ViewBuilder
+    private func dmInvitationCard(inviteID: UUID) -> some View {
+        if let invite = inviteStore.invites.first(where: { $0.id == inviteID }) {
+            let match = matchLookup(invite.matchID)
+            let busy = MockFriendSchedule.conflict(
+                for: invite.inviteeName,
+                start: invite.startDate,
+                end: invite.endDate
+            )
+            let display = displayState(for: invite, match: match, friendBusy: busy)
+
+            VStack(spacing: 0) {
+                if case .actionable(true, let label?) = display {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("\(invite.inviteeName)那時段已有\(label)")
+                    }
+                    .font(Typography.small)
+                    .foregroundColor(Theme.warningText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Spacing.sm)
+                    .background(Theme.warningBg)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("🎾 約球邀請")
+                        .font(Typography.captionMedium)
+                        .foregroundColor(Theme.textSecondary)
+                    Text(invite.payload.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+                    Text("📅 \(invite.payload.dateLabel) \(invite.payload.timeRange)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                    Text("📍 \(invite.payload.location)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                    Text("👥 \(invite.payload.players)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Spacing.md)
+
+                Divider()
+                actionRow(invite: invite, display: display)
+            }
+            .background(Theme.surface)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.inputBorder, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, Spacing.md)
+            .opacity(display.isMuted ? 0.7 : 1.0)
+        }
+    }
+
+    @ViewBuilder
+    private func actionRow(invite: InviteStore.Invite,
+                           display: InviteCardDisplay) -> some View {
+        switch display {
+        case .actionable:
+            HStack(spacing: Spacing.sm) {
+                Button {
+                    handleDecline(invite)
+                } label: {
+                    Text("拒絕")
+                        .font(Typography.bodyMedium)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    handleAccept(invite)
+                } label: {
+                    Text("接受")
+                        .font(Typography.bodyMedium)
+                        .frame(maxWidth: .infinity, minHeight: 36)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.primary)
+            }
+            .padding(Spacing.sm)
+
+        case .accepted(let at):
+            decidedRow(
+                text: "✅ \(invite.inviteeName)已接受 · \(AppDateFormatter.hourMinute.string(from: at))",
+                color: Theme.accentGreen,
+                invite: invite
+            )
+
+        case .declined(let at):
+            decidedRow(
+                text: "❌ \(invite.inviteeName)已拒絕 · \(AppDateFormatter.hourMinute.string(from: at))",
+                color: Theme.textSecondary,
+                invite: invite
+            )
+
+        case .expired(let reason):
+            Text(expiredText(reason))
+                .font(Typography.smallMedium)
+                .foregroundColor(Theme.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 36, alignment: .center)
+                .padding(Spacing.sm)
+        }
+    }
+
+    private func decidedRow(text: String,
+                            color: Color,
+                            invite: InviteStore.Invite) -> some View {
+        Button {
+            undoTarget = invite
+        } label: {
+            HStack {
+                Text(text)
+                    .font(Typography.smallMedium)
+                    .foregroundColor(color)
+                Spacer()
+                Text("撤回")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textHint)
+                Image(systemName: "arrow.uturn.backward")
+                    .font(.system(size: 11))
+                    .foregroundColor(Theme.textHint)
+            }
+            .padding(Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func expiredText(_ reason: InviteCardDisplay.ExpireReason) -> String {
+        switch reason {
+        case .full(let cur, let mx):
+            return "🎾 已約到球友 (\(cur)/\(mx))"
+        case .cancelled:
+            return "約球已取消"
+        case .timePassed:
+            return "已過開賽時間"
+        }
+    }
+
+    // MARK: - DM Invite Handlers
+
+    private func handleAccept(_ invite: InviteStore.Invite) {
+        inviteStore.setStatus(.accepted, for: invite.id)
+        matchActions.acceptInvite(invite)
+        sentMessages.append(ChatBubble(.systemMessage(
+            "🎾 約球已確認！\(invite.payload.dateLabel) 在\(invite.payload.location)"
+        )))
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    }
+
+    private func handleDecline(_ invite: InviteStore.Invite) {
+        inviteStore.setStatus(.declined, for: invite.id)
+        sentMessages.append(ChatBubble(.systemMessage(
+            "\(invite.inviteeName)婉拒了邀請"
+        )))
+    }
+
+    private func handleUndo(_ invite: InviteStore.Invite) {
+        let was = invite.status
+        inviteStore.setStatus(.pending, for: invite.id)
+        if was == .accepted {
+            matchActions.undoAcceptInvite(invite)
+        }
+        // Undo Decline 純狀態翻轉,無副作用。
+    }
+
+    // MARK: - Display State Derivation
+
+    private func displayState(for invite: InviteStore.Invite,
+                              match: MyMatchItem?,
+                              friendBusy: FriendBusySlot?) -> InviteCardDisplay {
+        switch invite.status {
+        case .accepted:
+            return .accepted(at: invite.decidedAt ?? invite.createdAt)
+        case .declined:
+            return .declined(at: invite.decidedAt ?? invite.createdAt)
+        case .pending:
+            guard let m = match else {
+                return .expired(reason: .cancelled)
+            }
+            if m.startDate < Date() {
+                return .expired(reason: .timePassed)
+            }
+            let (cur, mx) = m.playerCounts
+            if cur >= mx {
+                return .expired(reason: .full(current: cur, max: mx))
+            }
+            return .actionable(
+                hasConflict: friendBusy != nil,
+                conflictLabel: friendBusy?.label
+            )
+        }
+    }
+
     // MARK: - Input Bar
 
     private func sendMessage() {
@@ -724,6 +912,7 @@ private struct ChatBubble: Identifiable {
         case outgoingImage(Data)
         case invitation(date: String, location: String, startDate: Date, endDate: Date)
         case outgoingInvitation(OutgoingInvitationPayload)
+        case dmInvitation(UUID)
         case systemMessage(String)
     }
 }
@@ -754,6 +943,7 @@ private let mockMessages: [ChatBubble] = [
         )
     }
     .environment(BookingStore())
+    .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
@@ -768,4 +958,5 @@ private let mockMessages: [ChatBubble] = [
         )
     }
     .environment(BookingStore())
+    .environment(InviteStore())
 }

@@ -9,6 +9,7 @@ import SwiftUI
 
 struct MyMatchesView: View {
     @Binding var sharedChats: [MockChat]
+    @Binding var upcomingMatches: [MyMatchItem]
     /// 點擊「去首頁看看」時觸發，由父層 HomeView 切換到 Tab 0。
     var onGoHome: (() -> Void)? = nil
     var onGoTournaments: (() -> Void)? = nil
@@ -20,7 +21,10 @@ struct MyMatchesView: View {
     /// 邀請被接受時回拋給 HomeView,讓首頁 MockMatch.currentPlayers +1。
     /// sourceMatchID == nil(種子假資料)時 HomeView no-op。
     var onInviteAccepted: ((UUID, FollowPlayer, UUID?) -> Void)? = nil
+    /// Undo Accept 時觸發,用於同步首頁 MockMatch.currentPlayers -1。
+    var onInviteUndoAccepted: ((UUID, UUID?) -> Void)? = nil
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(InviteStore.self) private var inviteStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(CreditScoreStore.self) private var creditScoreStore
     @Environment(TournamentStore.self) private var tournamentStore
@@ -49,7 +53,6 @@ struct MyMatchesView: View {
     /// MyMatchesView 在切換 tab 時會被銷毀重建,@State 的 upcomingMatches 隨之重置 ——
     /// 若不持久化「已取消」,用戶可以對同一個種子假資料反覆取消,首頁也會堆出多張合成卡。
     @AppStorage("cancelledMockUpcomingKeys") private var cancelledMockKeysJSON: String = "[]"
-    @State private var upcomingMatches: [MyMatchItem] = mockUpcomingMatchesInitial
     @State private var acceptedInvitation: MyMatchInvitation?
     @State private var showAcceptSuccess = false
     @State private var pendingDMContact: MyMatchInvitation?
@@ -57,10 +60,6 @@ struct MyMatchesView: View {
     @State private var dmMatchContext: String?
     @State private var registrantMatch: MyMatchItem?
     @State private var selectedCompletedMatch: MyMatchItem?
-    /// 在 1.6s 模擬期內鎖住,防止用戶連發兩個邀請彼此覆蓋。
-    /// .onDisappear / handleInviteResolved 會清掉。
-    @State private var pendingInvitation: PendingDMInvitation?
-
     private var sortedUpcoming: [MyMatchItem] {
         let cancelled = cancelledMockKeys
         let visible = upcomingMatches.filter { !cancelled.contains(cancelKey(for: $0)) }
@@ -186,13 +185,7 @@ struct MyMatchesView: View {
     }
 
     private func handleInvitePicked(player: FollowPlayer, target: InviteTarget) {
-        // 並發保護 — 上一個邀請尚在 1.6s 模擬中,拒絕新發起。
-        if pendingInvitation != nil {
-            toast = .init(kind: .info, text: L10n.string("上一個邀請還在處理中"))
-            return
-        }
-
-        // 若已有與此球友的私信,重用現有 chat;否則新建。
+        // 找/建 chat with player(沿用既有邏輯)
         let existing = sharedChats.first { chat in
             if case .personal(let name, _, _) = chat.type, name == player.name { return true }
             return false
@@ -215,13 +208,15 @@ struct MyMatchesView: View {
             chat = newChat
         }
 
-        // 約球邀請走新模擬流;賽事邀請仍走舊 matchContext 字串路徑(本次不改)。
-        let isMatchInvite: Bool
+        // 約球邀請寫入 InviteStore;賽事邀請仍走舊 matchContext 字串路徑(本次不改)
         if case .match(let id, let title, let dateLabel, let timeRange, let location, let players) = target,
            let item = upcomingMatches.first(where: { $0.id == id }) {
-            pendingInvitation = PendingDMInvitation(
+            let invite = InviteStore.Invite(
+                id: UUID(),
                 matchID: id,
-                invitee: player,
+                inviteeName: player.name,
+                inviteeGender: player.gender,
+                inviteeNTRP: player.ntrp,
                 payload: OutgoingInvitationPayload(
                     title: title,
                     dateLabel: dateLabel,
@@ -230,55 +225,51 @@ struct MyMatchesView: View {
                     players: players
                 ),
                 startDate: item.startDate,
-                endDate: item.endDate
+                endDate: item.endDate,
+                status: .pending,
+                decidedAt: nil,
+                createdAt: Date()
             )
-            selectedChatMatchContext = nil  // 不再用靜態 context 卡
-            isMatchInvite = true
+            inviteStore.add(invite)
+            toast = .init(kind: .success, text: L10n.string("邀請已發送給 \(player.name)"))
+            // 不再自動進入聊天 — 用戶從「聊天」tab 進入查看,符合「自動生成新對話框」需求
         } else {
-            // 賽事/兜底 — 保留舊邏輯
+            // 賽事/兜底 — 保留舊提示與 selectedChatMatchContext
             selectedChatMatchContext = target.chatContext
-            isMatchInvite = false
-        }
-        selectedChat = chat
-
-        if !isMatchInvite {
-            // 賽事路徑保留舊提示;約球路徑由 ChatDetailView 自己 push 邀請氣泡。
+            selectedChat = chat
             toast = .init(kind: .success, text: L10n.string("已為你開啟與 \(player.name) 的私信"))
         }
     }
 
-    /// ChatDetailView 模擬完成後回拋。接受 → registrants +1, players ++,
-    /// 滿員時 status 升 .confirmed。婉拒 → toast。無論成敗釋放並發鎖。
-    private func handleInviteResolved(matchID: UUID, friend: FollowPlayer, accepted: Bool) {
-        defer { pendingInvitation = nil }
+    private func makeInviteActions() -> InviteMatchActions {
+        InviteMatchActions(
+            acceptInvite: { invite in
+                applyInviteAccept(invite)
+            },
+            undoAcceptInvite: { invite in
+                applyInviteUndoAccept(invite)
+            }
+        )
+    }
 
-        guard accepted else {
-            toast = .init(kind: .warning, text: L10n.string("\(friend.name) 婉拒了邀請"))
-            return
-        }
-        guard let idx = upcomingMatches.firstIndex(where: { $0.id == matchID }) else { return }
+    /// 接受 invite 的副作用:registrants +1,players 字串 +1,滿員時 status 升 .confirmed,
+    /// 滿員時注冊到 BookingStore.externalSlots(避免用戶在離開重進前報名到衝突時段)。
+    private func applyInviteAccept(_ invite: InviteStore.Invite) {
+        guard let idx = upcomingMatches.firstIndex(where: { $0.id == invite.matchID }) else { return }
         var match = upcomingMatches[idx]
+        guard !match.registrants.contains(where: { $0.name == invite.inviteeName }) else { return }
 
-        // 防重 +1(InvitePickerSheet 已禁用,這是兜底)
-        guard !match.registrants.contains(where: { $0.name == friend.name }) else { return }
-
-        // 1. registrants +1
         match.registrants.append(MatchRegistrant(
-            name: friend.name,
-            gender: friend.gender,
-            ntrp: friend.ntrp,
+            name: invite.inviteeName,
+            gender: invite.inviteeGender,
+            ntrp: invite.inviteeNTRP,
             isOrganizer: false
         ))
-
-        // 2. players 字串 currentPlayers +1
         let (cur, mx) = match.playerCounts
         let newCurrent = cur + 1
         let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
         match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
 
-        // 3. 滿員時 status 升級 + 登記到 BookingStore.externalSlots
-        //    (view 上的 .task 只在重建時跑一次,新確認的場次必須立刻登記,
-        //     否則用戶可能在離開重進前報名到衝突時段。registerExternal 按 id 去重。)
         if newCurrent >= mx {
             match.status = .confirmed
             let label = "\(match.title) \(match.dateLabel) \(match.timeRange)"
@@ -289,14 +280,33 @@ struct MyMatchesView: View {
                 label: label
             ))
         }
-
         upcomingMatches[idx] = match
 
-        // 4. 同步 HomeView(若有 sourceMatchID)
-        onInviteAccepted?(matchID, friend, match.sourceMatchID)
+        // 通知 HomeView 同步 currentPlayers(Task 9 會把 onInviteAccepted/onInviteUndoAccepted 拆成兩個 callback)
+        onInviteAccepted?(invite.matchID, FollowPlayer.from(invite: invite), match.sourceMatchID)
+    }
 
-        toast = .init(kind: .success, text: L10n.string("\(friend.name) 已接受邀請"))
-        UINotificationFeedbackGenerator().notificationOccurred(.success)
+    /// Undo Accept 的副作用:remove registrant,players -1,若原本滿員則 status 回 .pending,
+    /// 從 BookingStore.externalSlots 移除。
+    private func applyInviteUndoAccept(_ invite: InviteStore.Invite) {
+        guard let idx = upcomingMatches.firstIndex(where: { $0.id == invite.matchID }) else { return }
+        var match = upcomingMatches[idx]
+        guard let rIdx = match.registrants.firstIndex(where: { $0.name == invite.inviteeName }) else { return }
+
+        match.registrants.remove(at: rIdx)
+        let (cur, mx) = match.playerCounts
+        let newCurrent = max(0, cur - 1)
+        let ntrpRange = match.players.components(separatedBy: "NTRP ").last ?? ""
+        match.players = "\(newCurrent)/\(mx) · NTRP \(ntrpRange)"
+
+        // 撤回後若曾經滿員 → 退回 pending,並從 BookingStore.externalSlots 移除
+        if cur >= mx {
+            match.status = .pending
+            bookingStore.removeExternal(id: match.id)
+        }
+        upcomingMatches[idx] = match
+
+        onInviteUndoAccepted?(invite.matchID, match.sourceMatchID)
     }
 
     var body: some View {
@@ -391,15 +401,10 @@ struct MyMatchesView: View {
             ChatDetailView(
                 chat: chat,
                 matchContext: selectedChatMatchContext,
-                pendingInvitation: pendingInvitation,
-                onInviteResolved: handleInviteResolved
+                matchLookup: { id in upcomingMatches.first(where: { $0.id == id }) },
+                matchActions: makeInviteActions()
             )
-            .onDisappear {
-                selectedChatMatchContext = nil
-                // 用戶在 1.6s 內退出 → onInviteResolved 沒被調 → 兜底清 pending,
-                // 避免 pendingInvitation 永久卡住,後續邀請被並發鎖擋。
-                pendingInvitation = nil
-            }
+            .onDisappear { selectedChatMatchContext = nil }
         }
         .alert("取消約球", isPresented: $showCancelAlert) {
             Button("再想想", role: .cancel) {
@@ -422,6 +427,7 @@ struct MyMatchesView: View {
                             persistCancelledMock(match)
                         }
                         upcomingMatches.removeAll { $0.id == match.id }
+                        inviteStore.expireAll(matchID: match.id)
                         // 通知 HomeView 處理首頁副作用(遞減或合成新 MockMatch)。
                         onMatchCancelled?(CancelledMatchPayload(
                             sourceMatchID: removedSourceID,
@@ -1155,7 +1161,7 @@ private extension MyMatchesView {
 
 // MARK: - Data
 
-private enum MyMatchStatus: String {
+enum MyMatchStatus: String {
     case confirmed = "已確認"
     case pending = "等待中"
     case completed = "已完成"
@@ -1181,14 +1187,14 @@ private enum MatchActionStyle {
     case filled, outlined
 }
 
-private struct MatchRegistrant {
+struct MatchRegistrant {
     let name: String
     let gender: Gender
     let ntrp: String
     let isOrganizer: Bool
 }
 
-private struct MyMatchItem: Identifiable {
+struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
     let isOrganizer: Bool
@@ -1316,7 +1322,7 @@ private func relativeMockMatchRange(
     return (start: start, end: end)
 }
 
-private var mockUpcomingMatchesInitial: [MyMatchItem] {
+var mockUpcomingMatchesInitial: [MyMatchItem] {
     let r1 = relativeMockMatchRange(daysFromNow: 1, startHour: 10, endHour: 12)
     let r2 = relativeMockMatchRange(daysFromNow: 3, startHour: 14, endHour: 16)
     let r3 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, startMinute: 30, endHour: 20)
@@ -2021,17 +2027,19 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 // MARK: - Preview
 
 #Preview("iPhone SE") {
-    MyMatchesView(sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
         .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
+        .environment(InviteStore())
 }
 
 #Preview("iPhone 15 Pro") {
-    MyMatchesView(sharedChats: .constant([]))
+    MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
         .environment(BookingStore())
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
+        .environment(InviteStore())
 }
