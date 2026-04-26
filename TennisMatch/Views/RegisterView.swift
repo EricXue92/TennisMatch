@@ -1232,6 +1232,8 @@ let allCourts: [TennisCourt] = [
 struct CourtPickerView: View {
     @Binding var selected: Set<TennisCourt>
     var singleSelect: Bool = false
+    /// 多选模式下的上限。`nil` 表示不限。达到上限后未选中的 row 置灰且不响应。
+    var maxSelection: Int? = nil
     @Environment(\.dismiss) private var dismiss
     @State private var searchText = ""
     @State private var selectedCity: City = .hongKong
@@ -1273,20 +1275,22 @@ struct CourtPickerView: View {
                         Section(LocalizedStringKey(district)) {
                             ForEach(courts) { court in
                                 let isSelected = selected.contains(court)
+                                let atLimit = !singleSelect && maxSelection.map { selected.count >= $0 } ?? false
+                                let disabled = !isSelected && atLimit
                                 Button {
                                     if singleSelect {
                                         selected = [court]
                                         dismiss()
                                     } else if isSelected {
                                         selected.remove(court)
-                                    } else {
+                                    } else if !atLimit {
                                         selected.insert(court)
                                     }
                                 } label: {
                                     HStack {
                                         Text("📍 \(court.name)")
                                             .font(Typography.fieldValue)
-                                            .foregroundColor(Theme.textPrimary)
+                                            .foregroundColor(disabled ? Theme.textSecondary : Theme.textPrimary)
                                         Spacer()
                                         if isSelected {
                                             Image(systemName: "checkmark.circle.fill")
@@ -1297,6 +1301,7 @@ struct CourtPickerView: View {
                                         }
                                     }
                                 }
+                                .disabled(disabled)
                             }
                         }
                     }

@@ -264,7 +264,12 @@ struct ProfileView: View {
 
             recordRow(label: "總場次", value: "\(totalMatches)")
             recordRow(label: "本月場次", value: "\(monthlyMatches)")
-            recordRow(label: "常去球場", value: userStore.selectedCourt?.name ?? "未設定")
+            recordRow(
+                label: "偏好球場",
+                value: userStore.selectedCourts.isEmpty
+                    ? "未設定"
+                    : userStore.selectedCourts.map(\.name).joined(separator: "、")
+            )
         }
         .padding(Spacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
