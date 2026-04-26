@@ -121,6 +121,12 @@ struct ProfileView: View {
                             .foregroundColor(Theme.primary)
                     }
                 }
+                .overlay {
+                    Circle()
+                        .strokeBorder(Color.white.opacity(0.45), lineWidth: 2)
+                        .padding(-3)
+                }
+                .shadow(color: .black.opacity(0.18), radius: 8, x: 0, y: 3)
 
                 // Name + tags + bio
                 VStack(alignment: .leading, spacing: 6) {
@@ -218,11 +224,32 @@ struct ProfileView: View {
             .padding(.bottom, Spacing.md)
         }
         .background(
-            // Only the header's green backing bleeds into the safe area,
-            // so the status bar sits over brand color but the scroll
-            // content stays within safe area.
-            Theme.primary
-                .ignoresSafeArea(edges: .top)
+            // Header backing 渐变 + 右上柔光 + 底部弧形,让绿色 hero 不再是平坦实色块。
+            // ignoresSafeArea 确保 status bar 仍盖着品牌色;clipShape 在底部留 16pt 圆角
+            // 与下方卡片(corner 16)曲率一致。
+            ZStack {
+                LinearGradient(
+                    colors: [Theme.primary, Theme.primaryEmerald],
+                    startPoint: .top,
+                    endPoint: .bottom
+                )
+                RadialGradient(
+                    colors: [Color.white.opacity(0.22), .clear],
+                    center: .topTrailing,
+                    startRadius: 5,
+                    endRadius: 220
+                )
+            }
+            .clipShape(
+                UnevenRoundedRectangle(
+                    topLeadingRadius: 0,
+                    bottomLeadingRadius: 16,
+                    bottomTrailingRadius: 16,
+                    topTrailingRadius: 0,
+                    style: .continuous
+                )
+            )
+            .ignoresSafeArea(edges: .top)
         )
     }
 
@@ -248,17 +275,21 @@ struct ProfileView: View {
     }
 
     private func statCard(value: String, label: LocalizedStringKey) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: 2) {
             Text(value)
-                .font(Typography.largeStat)
+                .font(Typography.body)
                 .foregroundColor(.white)
             Text(label)
                 .font(Typography.micro)
                 .foregroundColor(.white.opacity(0.85))
         }
         .frame(maxWidth: .infinity)
-        .frame(height: 60)
-        .background(.white.opacity(0.15))
+        .frame(height: 46)
+        .background(.white.opacity(0.20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 10, style: .continuous)
+                .strokeBorder(Color.white.opacity(0.30), lineWidth: 0.5)
+        }
         .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
     }
 
@@ -331,55 +362,62 @@ struct ProfileView: View {
     }
 
     private func tournamentRow(_ record: TournamentRecord) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack {
-                Text(record.name)
-                    .font(Typography.captionMedium)
-                    .foregroundColor(Theme.textPrimary)
-                Spacer()
-                Text(LocalizedStringKey(record.round))
-                    .font(Typography.micro)
-                    .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
-                    .padding(.horizontal, Spacing.xs)
-                    .frame(height: 22)
-                    .background(record.isChampion ? Theme.goldBg : Theme.primaryLight)
-                    .clipShape(Capsule())
-            }
+        // 冠军行加左侧 3pt 金色细条 — 非冠军占同等宽度的透明 lane,保持对齐。
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            RoundedRectangle(cornerRadius: 1.5, style: .continuous)
+                .fill(record.isChampion ? Theme.goldText : Color.clear)
+                .frame(width: 3)
 
-            HStack(spacing: Spacing.md) {
-                HStack(spacing: 4) {
-                    Image(systemName: "calendar")
-                        .font(Typography.micro)
-                        .foregroundColor(Theme.textSecondary)
-                    Text(record.date)
-                        .font(Typography.fieldLabel)
-                        .foregroundColor(Theme.textCaption)
-                }
-                HStack(spacing: 4) {
-                    Image(systemName: "person.2")
-                        .font(Typography.micro)
-                        .foregroundColor(Theme.textSecondary)
-                    Text(record.draw)
-                        .font(Typography.fieldLabel)
-                        .foregroundColor(Theme.textCaption)
-                }
-            }
-
-            if !record.scores.isEmpty {
-                HStack(spacing: Spacing.xs) {
-                    ForEach(record.scores, id: \.self) { score in
-                        Text(score)
-                            .font(Typography.smallMedium)
-                            .foregroundColor(Theme.textPrimary)
-                            .padding(.horizontal, Spacing.xs)
-                            .frame(height: 24)
-                            .background(Theme.inputBg)
-                            .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
-                    }
+            VStack(alignment: .leading, spacing: 6) {
+                HStack {
+                    Text(record.name)
+                        .font(Typography.captionMedium)
+                        .foregroundColor(Theme.textPrimary)
                     Spacer()
-                    Text(LocalizedStringKey(record.result))
+                    Text(LocalizedStringKey(record.round))
                         .font(Typography.micro)
-                        .foregroundColor(record.isWin ? Theme.primary : Theme.requiredText)
+                        .foregroundColor(record.isChampion ? Theme.goldText : Theme.primary)
+                        .padding(.horizontal, Spacing.xs)
+                        .frame(height: 22)
+                        .background(record.isChampion ? Theme.goldBg : Theme.primaryLight)
+                        .clipShape(Capsule())
+                }
+
+                HStack(spacing: Spacing.md) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "calendar")
+                            .font(Typography.micro)
+                            .foregroundColor(Theme.textSecondary)
+                        Text(record.date)
+                            .font(Typography.fieldLabel)
+                            .foregroundColor(Theme.textCaption)
+                    }
+                    HStack(spacing: 4) {
+                        Image(systemName: "person.2")
+                            .font(Typography.micro)
+                            .foregroundColor(Theme.textSecondary)
+                        Text(record.draw)
+                            .font(Typography.fieldLabel)
+                            .foregroundColor(Theme.textCaption)
+                    }
+                }
+
+                if !record.scores.isEmpty {
+                    HStack(spacing: Spacing.xs) {
+                        ForEach(record.scores, id: \.self) { score in
+                            Text(score)
+                                .font(Typography.smallMedium)
+                                .foregroundColor(Theme.textPrimary)
+                                .padding(.horizontal, Spacing.xs)
+                                .frame(height: 24)
+                                .background(Theme.inputBg)
+                                .clipShape(RoundedRectangle(cornerRadius: 4, style: .continuous))
+                        }
+                        Spacer()
+                        Text(LocalizedStringKey(record.result))
+                            .font(Typography.micro)
+                            .foregroundColor(record.isWin ? Theme.primary : Theme.requiredText)
+                    }
                 }
             }
         }
