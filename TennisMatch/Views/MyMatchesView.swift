@@ -57,7 +57,6 @@ struct MyMatchesView: View {
     @State private var dmMatchContext: String?
     @State private var registrantMatch: MyMatchItem?
     @State private var selectedCompletedMatch: MyMatchItem?
-    @State private var selectedRegistrantPlayer: PublicPlayerData?
     /// 在 1.6s 模擬期內鎖住,防止用戶連發兩個邀請彼此覆蓋。
     /// .onDisappear / handleInviteResolved 會清掉。
     @State private var pendingInvitation: PendingDMInvitation?
@@ -613,13 +612,11 @@ struct MyMatchesView: View {
             NavigationStack {
                 List {
                     ForEach(Array(match.registrants.enumerated()), id: \.offset) { i, registrant in
-                        Button {
-                            selectedRegistrantPlayer = mockPublicPlayerData(
-                                name: registrant.name,
-                                gender: registrant.gender,
-                                ntrp: registrant.ntrp
-                            )
-                        } label: {
+                        NavigationLink(value: mockPublicPlayerData(
+                            name: registrant.name,
+                            gender: registrant.gender,
+                            ntrp: registrant.ntrp
+                        )) {
                             HStack(spacing: Spacing.sm) {
                                 ZStack {
                                     Circle()
@@ -647,18 +644,14 @@ struct MyMatchesView: View {
                                         .background(Theme.primaryLight)
                                         .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
                                 }
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 12, weight: .semibold))
-                                    .foregroundColor(Theme.textHint)
                             }
                         }
-                        .buttonStyle(.plain)
                     }
                 }
                 .listStyle(.plain)
                 .navigationTitle("報名者 (\(match.playerCounts.current)/\(match.playerCounts.max))")
                 .navigationBarTitleDisplayMode(.inline)
-                .navigationDestination(item: $selectedRegistrantPlayer) { player in
+                .navigationDestination(for: PublicPlayerData.self) { player in
                     PublicProfileView(player: player)
                 }
                 .toolbar {
