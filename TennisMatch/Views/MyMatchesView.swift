@@ -1209,13 +1209,6 @@ private enum MatchActionStyle {
     case filled, outlined
 }
 
-struct MatchRegistrant {
-    let name: String
-    let gender: Gender
-    let ntrp: String
-    let isOrganizer: Bool
-}
-
 struct MyMatchItem: Identifiable {
     let id = UUID()
     let title: String
