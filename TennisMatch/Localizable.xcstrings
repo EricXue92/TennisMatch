@@ -1842,6 +1842,12 @@
             "state" : "translated",
             "value" : "已报名"
           }
+        },
+        "zh-Hant" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已報名"
+          }
         }
       }
     },
