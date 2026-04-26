@@ -19,16 +19,6 @@ struct OutgoingInvitationPayload: Equatable {
     let players: String      // "2/4 · NTRP 3.5-4.5"
 }
 
-/// MyMatchesView → ChatDetailView 傳的「待模擬」邀請。`matchID` 對應
-/// MyMatchItem.id,模擬完通過 onInviteResolved(matchID, invitee, accepted) 回拋。
-struct PendingDMInvitation {
-    let matchID: UUID
-    let invitee: FollowPlayer
-    let payload: OutgoingInvitationPayload
-    let startDate: Date
-    let endDate: Date
-}
-
 struct ChatDetailView: View {
     let chat: MockChat
     var matchContext: String? = nil
@@ -43,11 +33,6 @@ struct ChatDetailView: View {
     var matchLookup: (UUID) -> MyMatchItem? = { _ in nil }
     /// 接受/反悔的副作用 — 由 HomeView 寫 upcomingMatches/matches。
     var matchActions: InviteMatchActions = .noop
-    /// 待模擬的 DM 邀請。若非 nil,進 view 立刻 push 外發邀請氣泡,1.6s 後查
-    /// MockFriendSchedule 模擬接受/婉拒並通過 onInviteResolved 回拋。
-    var pendingInvitation: PendingDMInvitation? = nil
-    /// 模擬結束時上拋:(matchID, invitee, accepted)。
-    var onInviteResolved: ((UUID, FollowPlayer, Bool) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(BookingStore.self) private var bookingStore
     @Environment(InviteStore.self) private var inviteStore
@@ -69,8 +54,6 @@ struct ChatDetailView: View {
     // Mock 階段：婉拒狀態僅保存在 @State 中，離開頁面即重置。
     // 正式版應持久化至 UserDefaults 或資料庫，注意 @AppStorage JSON 有大小限制。
     @State private var declinedInvitationIDs: Set<UUID> = []
-    /// 防止 .task(id:) 因父層 state 變動再次觸發時重跑模擬。
-    @State private var lastHandledInvitationID: UUID? = nil
     /// 點已決定的灰卡 → confirmationDialog 詢問是否撤回。
     @State private var undoTarget: InviteStore.Invite?
 
@@ -296,37 +279,6 @@ struct ChatDetailView: View {
             Text(invite.status == .accepted
                  ? "撤回後,該球友將從報名列表移除,約球可能恢復至「招募中」"
                  : "撤回後,可重新讓該球友考慮")
-        }
-        .task(id: pendingInvitation?.matchID) {
-            guard let p = pendingInvitation,
-                  p.matchID != lastHandledInvitationID else { return }
-            lastHandledInvitationID = p.matchID
-
-            // 1. 立刻 push 外發邀請氣泡
-            let outTs = AppDateFormatter.hourMinute.string(from: Date())
-            sentMessages.append(ChatBubble(
-                .outgoingInvitation(p.payload), timestamp: outTs
-            ))
-
-            // 2. 等 1.6s,讓用戶看到外發氣泡
-            try? await Task.sleep(nanoseconds: 1_600_000_000)
-            guard !Task.isCancelled else { return }
-
-            // 3. 查檔期決定接受 / 婉拒
-            let inTs = AppDateFormatter.hourMinute.string(from: Date())
-            if let conflict = MockFriendSchedule.conflict(
-                for: p.invitee.name, start: p.startDate, end: p.endDate
-            ) {
-                let body = "不好意思,那時段我已有\(conflict.label),下次再約 🙏"
-                sentMessages.append(ChatBubble(.incoming(body), timestamp: inTs))
-                onInviteResolved?(p.matchID, p.invitee, false)
-            } else {
-                sentMessages.append(ChatBubble(.incoming("好的,我接受！"), timestamp: inTs))
-                sentMessages.append(ChatBubble(.systemMessage(
-                    "🎾 約球已確認！\(p.payload.dateLabel) 在\(p.payload.location)"
-                )))
-                onInviteResolved?(p.matchID, p.invitee, true)
-            }
         }
     }
 

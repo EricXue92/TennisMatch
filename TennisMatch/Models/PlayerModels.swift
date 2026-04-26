@@ -46,3 +46,14 @@ let mockFollowerOnlyPlayers: [FollowPlayer] = [
 
 /// 完整粉絲列表 = 互關 + 單向粉絲
 let mockAllFollowers: [FollowPlayer] = mockMutualFollowPlayers + mockFollowerOnlyPlayers
+
+extension FollowPlayer {
+    static func from(invite: InviteStore.Invite) -> FollowPlayer {
+        FollowPlayer(
+            name: invite.inviteeName,
+            gender: invite.inviteeGender,
+            ntrp: invite.inviteeNTRP,
+            latestActivity: ""
+        )
+    }
+}
