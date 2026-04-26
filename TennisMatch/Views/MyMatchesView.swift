@@ -1333,6 +1333,10 @@ var mockUpcomingMatchesInitial: [MyMatchItem] {
     let r3 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, startMinute: 30, endHour: 20)
     let r4 = relativeMockMatchRange(daysFromNow: 6, startHour: 18, endHour: 20)
     let r5 = relativeMockMatchRange(daysFromNow: 8, startHour: 8, endHour: 10)
+    // 拉球:r6 = 我已報名 Kelly 的拉球(對應首頁同時段那筆 Kelly 拉球)
+    //       r7 = 我發起的拉球(對應首頁 isOwnMatch: true 那筆)
+    let r6 = relativeMockMatchRange(daysFromNow: 2, startHour: 7, endHour: 9)
+    let r7 = relativeMockMatchRange(daysFromNow: 5, startHour: 16, endHour: 18)
     return [
         MyMatchItem(
             title: "莎拉 發起的單打",
@@ -1415,6 +1419,41 @@ var mockUpcomingMatchesInitial: [MyMatchItem] {
             registrants: [
                 MatchRegistrant(name: "Michael", gender: .male, ntrp: "5.0", isOrganizer: true),
                 MatchRegistrant(name: "小李",    gender: .male, ntrp: "4.5", isOrganizer: false),
+            ]
+        ),
+        // 拉球 — 我已報名 Kelly 發起的早場拉球(對應首頁 day+2 07:00 那筆)
+        MyMatchItem(
+            title: "Kelly 發起的拉球",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 2),   // 後天
+            location: "維多利亞公園網球場",
+            timeRange: "07:00 - 09:00",
+            players: "2/2 · NTRP 3.5-4.0",
+            weather: "🌤 24°C",
+            startDate: r6.start,
+            endDate: r6.end,
+            matchType: "拉球",
+            registrants: [
+                MatchRegistrant(name: "Kelly", gender: .female, ntrp: "3.8", isOrganizer: true),
+                MatchRegistrant(name: "小李",  gender: .male,   ntrp: "3.5", isOrganizer: false),
+            ]
+        ),
+        // 拉球 — 我發起的拉球(對應首頁 day+5 16:00 isOwnMatch: true 那筆,招募中)
+        MyMatchItem(
+            title: "我發起的拉球",
+            isOrganizer: true,
+            status: .pending,
+            dateLabel: relativeDateLabel(daysFromNow: 5),   // 5 天後
+            location: "香港公園",
+            timeRange: "16:00 - 18:00",
+            players: "1/2 · NTRP 3.0-4.0",
+            weather: "☀️ 27°C",
+            startDate: r7.start,
+            endDate: r7.end,
+            matchType: "拉球",
+            registrants: [
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
             ]
         ),
     ]

@@ -369,4 +369,66 @@ let initialMockMatches: [MockMatch] = [
         genderLabel: "男", hour: 7, dayOfWeek: mockDayOfWeek(10),
         currentPlayers: 1, maxPlayers: 2
     ),
+    // MARK: 拉球 (rally / hitting practice)
+    // day -1 19:00:已過期未滿 → isAutoCancelled,驗證自動取消顯示
+    MockMatch(
+        name: "Tony", gender: .male, matchType: "拉球",
+        weather: "🌙 22°C", dateTime: "\(mockDate(-1)) 19:00",
+        startDate: mockStartDate(-1, hour: 19),
+        location: "九龍公園", fee: "AA ¥80",
+        ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "26-35",
+        genderLabel: "男", hour: 19, dayOfWeek: mockDayOfWeek(-1),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    // day +1 10:30:與「莎拉 單打 10:00-12:00」時間衝突,驗證報名衝突攔截
+    MockMatch(
+        name: "嘉俐", gender: .female, matchType: "拉球",
+        weather: "☀️ 25°C", dateTime: "\(mockDate(1)) 10:30",
+        startDate: mockStartDate(1, hour: 10, minute: 30),
+        location: "京士柏運動場", fee: "AA ¥90",
+        ntrpLow: 3.0, ntrpHigh: 3.5, ageRange: "26-35",
+        genderLabel: "女", hour: 10, dayOfWeek: mockDayOfWeek(1),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    // day +2 07:00:已滿員(2/2),驗證 isFull 視覺;與 #拉球-Kelly(我已報名)時間吻合
+    MockMatch(
+        name: "Kelly", gender: .female, matchType: "拉球",
+        weather: "🌤 24°C", dateTime: "\(mockDate(2)) 07:00",
+        startDate: mockStartDate(2, hour: 7),
+        location: "維多利亞公園網球場", fee: "AA ¥70",
+        ntrpLow: 3.5, ntrpHigh: 4.0, ageRange: "26-35",
+        genderLabel: "女", hour: 7, dayOfWeek: mockDayOfWeek(2),
+        currentPlayers: 2, maxPlayers: 2
+    ),
+    // day +3 14:00:與「我發起的雙打 14:00-16:00」完全重疊,驗證 own-match 衝突
+    MockMatch(
+        name: "宏達", gender: .male, matchType: "拉球",
+        weather: "⛅ 26°C", dateTime: "\(mockDate(3)) 14:00",
+        startDate: mockStartDate(3, hour: 14),
+        location: "歌和老街公園", fee: "AA ¥100",
+        ntrpLow: 3.5, ntrpHigh: 4.5, ageRange: "26-35",
+        genderLabel: "男", hour: 14, dayOfWeek: mockDayOfWeek(3),
+        currentPlayers: 1, maxPlayers: 2
+    ),
+    // day +4 09:00:招募中(1/4),拉球的雙邊輪換玩法;NTRP 跨度大,測寬鬆條件
+    MockMatch(
+        name: "陳叔", gender: .male, matchType: "拉球",
+        weather: "☀️ 28°C", dateTime: "\(mockDate(4)) 09:00",
+        startDate: mockStartDate(4, hour: 9),
+        location: "沙田公園", fee: "AA ¥60",
+        ntrpLow: 2.5, ntrpHigh: 5.0, ageRange: "36-45",
+        genderLabel: "男", hour: 9, dayOfWeek: mockDayOfWeek(4),
+        currentPlayers: 1, maxPlayers: 4
+    ),
+    // day +5 16:00:isOwnMatch — 我發起的拉球(對應 MyMatchesView 同時段那筆)
+    MockMatch(
+        name: "小李", gender: .male, matchType: "拉球",
+        weather: "☀️ 27°C", dateTime: "\(mockDate(5)) 16:00",
+        startDate: mockStartDate(5, hour: 16),
+        location: "香港公園", fee: "AA ¥80",
+        ntrpLow: 3.0, ntrpHigh: 4.0, ageRange: "26-35",
+        genderLabel: "男", hour: 16, dayOfWeek: mockDayOfWeek(5),
+        currentPlayers: 1, maxPlayers: 2,
+        isOwnMatch: true
+    ),
 ]
