@@ -1032,6 +1032,63 @@ nonisolated let mockTournaments: [MockTournament] = [
             TournamentPlayer(name: "美琪", ntrp: "3.5"),
         ]
     ),
+    // 我發起的賽事 — 報名中,測試「管理報名者 / 取消賽事」入口
+    MockTournament(
+        name: "灣仔週末快打盃",
+        format: "淘汰賽", matchType: "單打", ntrpRange: "3.0-4.0",
+        status: "報名中",
+        dateRange: "2026/05/16 - 05/16",
+        location: "維多利亞公園網球場",
+        participants: "5/8",
+        fee: "150 港幣",
+        organizer: "小李",
+        organizerGender: .male,
+        gradientColors: [Theme.gradGreenLight, Theme.gradGreenDeep],
+        rules: [
+            "單淘汰制，一盤定勝負(搶七)",
+            "每場比賽限時 60 分鐘",
+            "報名截止:賽前 24 小時",
+            "天氣不佳順延至次週同一時段"
+        ],
+        playerList: [
+            TournamentPlayer(name: "小李", ntrp: "3.5"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.5"),
+            TournamentPlayer(name: "俊傑", ntrp: "4.0"),
+            TournamentPlayer(name: "阿杰", ntrp: "3.0"),
+            TournamentPlayer(name: "美琪", ntrp: "3.5"),
+        ],
+        isOwnTournament: true
+    ),
+    // 我發起的賽事 — 進行中,測試「賽程查看 / 已開賽不可取消」邏輯
+    MockTournament(
+        name: "小李盃春季循環賽",
+        format: "循環賽", matchType: "雙打", ntrpRange: "3.0-4.0",
+        status: "進行中",
+        dateRange: "2026/04/15 - 05/15",
+        location: "九龍仔公園",
+        participants: "8/8",
+        fee: "200 港幣",
+        organizer: "小李",
+        organizerGender: .male,
+        gradientColors: [Theme.gradSkyLight, Theme.accentBlueAlt],
+        rules: [
+            "雙打循環賽,每隊兩人",
+            "每場比賽採用超級搶十",
+            "雙方需在 7 天內完成比賽並回報比分",
+            "棄賽超過兩場淘汰出局"
+        ],
+        playerList: [
+            TournamentPlayer(name: "小李", ntrp: "3.5"),
+            TournamentPlayer(name: "王強", ntrp: "4.0"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.5"),
+            TournamentPlayer(name: "大衛", ntrp: "4.0"),
+            TournamentPlayer(name: "Kelly", ntrp: "3.5"),
+            TournamentPlayer(name: "美琪", ntrp: "3.5"),
+            TournamentPlayer(name: "俊傑", ntrp: "4.0"),
+            TournamentPlayer(name: "雅婷", ntrp: "3.0"),
+        ],
+        isOwnTournament: true
+    ),
 ]
 
 // MARK: - Preview
