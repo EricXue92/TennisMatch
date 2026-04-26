@@ -427,6 +427,10 @@ struct MyMatchesView: View {
                             // 進而導致用戶重複取消、首頁堆出多張合成卡。
                             persistCancelledMock(match)
                         }
+                        // 兩條分支都需清掉 externalSlots:.task 把所有 confirmed upcoming
+                        // 按 item.id 注入了 externalSlots,若不在這裡移除,殘留時段會繼續觸發
+                        // BookingStore.conflict,導致「全部取消後仍提示時間衝突」。
+                        bookingStore.removeExternal(id: match.id)
                         upcomingMatches.removeAll { $0.id == match.id }
                         inviteStore.expireAll(matchID: match.id)
                         // 通知 HomeView 處理首頁副作用(遞減或合成新 MockMatch)。
@@ -1337,6 +1341,12 @@ var mockUpcomingMatchesInitial: [MyMatchItem] {
     //       r7 = 我發起的拉球(對應首頁 isOwnMatch: true 那筆)
     let r6 = relativeMockMatchRange(daysFromNow: 2, startHour: 7, endHour: 9)
     let r7 = relativeMockMatchRange(daysFromNow: 5, startHour: 16, endHour: 18)
+    // r8: 今天傍晚已報名雙打 — 測「即將開始」氛圍 / 滿員確認
+    // r9: 後天晚場拉球 — 多一筆已確認拉球,避免拉球只剩早場 Kelly
+    // r10: 下週三我發起的單打 — 招募中(1/2),測遠期 own-match 顯示
+    let r8 = relativeMockMatchRange(daysFromNow: 0, startHour: 19, endHour: 21)
+    let r9 = relativeMockMatchRange(daysFromNow: 2, startHour: 19, endHour: 21)
+    let r10 = relativeMockMatchRange(daysFromNow: 10, startHour: 9, endHour: 11)
     return [
         MyMatchItem(
             title: "莎拉 發起的單打",
@@ -1456,6 +1466,60 @@ var mockUpcomingMatchesInitial: [MyMatchItem] {
                 MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
             ]
         ),
+        // 今天傍晚 — 已報名 Peter 的雙打,滿員確認;測「即將開始」邊界(距今 < 3h 時應有提示)
+        MyMatchItem(
+            title: "Peter 發起的雙打",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 0),   // 今天
+            location: "九龍公園",
+            timeRange: "19:00 - 21:00",
+            players: "4/4 · NTRP 4.0-4.5",
+            weather: "🌙 24°C",
+            startDate: r8.start,
+            endDate: r8.end,
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "Peter",  gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李",   gender: .male,   ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "麗莎",   gender: .female, ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "Michael", gender: .male,  ntrp: "4.5", isOrganizer: false),
+            ]
+        ),
+        // 後天晚場拉球 — 已報名 思慧 的拉球;補拉球的多時段,避免只剩早場 Kelly
+        MyMatchItem(
+            title: "思慧 發起的拉球",
+            isOrganizer: false,
+            status: .confirmed,
+            dateLabel: relativeDateLabel(daysFromNow: 2),   // 後天
+            location: "將軍澳運動場",
+            timeRange: "19:00 - 21:00",
+            players: "2/2 · NTRP 3.0-3.5",
+            weather: "🌙 23°C",
+            startDate: r9.start,
+            endDate: r9.end,
+            matchType: "拉球",
+            registrants: [
+                MatchRegistrant(name: "思慧", gender: .female, ntrp: "3.0", isOrganizer: true),
+                MatchRegistrant(name: "小李", gender: .male,   ntrp: "3.5", isOrganizer: false),
+            ]
+        ),
+        // 下週三 — 我發起的單打,招募中(1/2);測遠期 own-match 顯示 + 招募中沒人時的「邀請好友」入口
+        MyMatchItem(
+            title: "我發起的單打",
+            isOrganizer: true,
+            status: .pending,
+            dateLabel: relativeDateLabel(daysFromNow: 10),  // 10 天後
+            location: "京士柏運動場",
+            timeRange: "09:00 - 11:00",
+            players: "1/2 · NTRP 3.0-4.0",
+            weather: "☀️ 26°C",
+            startDate: r10.start,
+            endDate: r10.end,
+            registrants: [
+                MatchRegistrant(name: "小李", gender: .male, ntrp: "3.5", isOrganizer: true),
+            ]
+        ),
     ]
 }
 
@@ -1465,6 +1529,14 @@ private var mockCompletedMatches: [MyMatchItem] {
     let c3 = relativeMockMatchRange(daysFromNow: -16, startHour: 16, endHour: 18)
     let c4 = relativeMockMatchRange(daysFromNow: -24, startHour: 10, endHour: 12)
     let c5 = relativeMockMatchRange(daysFromNow: -31, startHour: 8, endHour: 10)
+    // c6: 上週末雙打,測「最近完成」進評論流程
+    // c7: 我發起的拉球完成,補完成 tab 缺拉球場景
+    // c8: 1.5 個月前單打,測「沒有評論」展示
+    // c9: 2 個多月前雙打,測較久遠歷史滾動
+    let c6 = relativeMockMatchRange(daysFromNow: -3, startHour: 16, endHour: 18)
+    let c7 = relativeMockMatchRange(daysFromNow: -7, startHour: 19, endHour: 21)
+    let c8 = relativeMockMatchRange(daysFromNow: -45, startHour: 7, endHour: 9)
+    let c9 = relativeMockMatchRange(daysFromNow: -65, startHour: 15, endHour: 17)
     return [
         MyMatchItem(
             title: "王強 發起的雙打",
@@ -1554,6 +1626,77 @@ private var mockCompletedMatches: [MyMatchItem] {
                 MatchRegistrant(name: "阿豪", gender: .male, ntrp: "4.0", isOrganizer: false),
             ]
         ),
+        MyMatchItem(
+            title: "Peter 發起的雙打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -3),   // 3 天前
+            location: "香港網球中心",
+            timeRange: "16:00 - 18:00",
+            players: "4/4 · NTRP 4.0-4.5",
+            weather: "☀️ 26°C",
+            startDate: c6.start,
+            endDate: c6.end,
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "Peter",   gender: .male,   ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李",    gender: .male,   ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "Michael", gender: .male,   ntrp: "4.5", isOrganizer: false),
+                MatchRegistrant(name: "麗莎",    gender: .female, ntrp: "4.5", isOrganizer: false),
+            ]
+        ),
+        MyMatchItem(
+            title: "我發起的拉球",
+            isOrganizer: true,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -7),   // 7 天前
+            location: "九龍仔公園",
+            timeRange: "19:00 - 21:00",
+            players: "2/2 · NTRP 3.0-4.0",
+            weather: "🌙 25°C",
+            startDate: c7.start,
+            endDate: c7.end,
+            matchType: "拉球",
+            registrants: [
+                MatchRegistrant(name: "小李",   gender: .male,   ntrp: "3.5", isOrganizer: true),
+                MatchRegistrant(name: "嘉俐",   gender: .female, ntrp: "3.5", isOrganizer: false),
+            ]
+        ),
+        MyMatchItem(
+            title: "陳教練 發起的單打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -45),  // 45 天前
+            location: "香港網球中心",
+            timeRange: "07:00 - 09:00",
+            players: "2/2 · NTRP 4.5-5.0",
+            weather: "🌤 20°C",
+            startDate: c8.start,
+            endDate: c8.end,
+            registrants: [
+                MatchRegistrant(name: "陳教練", gender: .male, ntrp: "5.0", isOrganizer: true),
+                MatchRegistrant(name: "小李",   gender: .male, ntrp: "4.5", isOrganizer: false),
+            ]
+        ),
+        MyMatchItem(
+            title: "麗莎 發起的雙打",
+            isOrganizer: false,
+            status: .completed,
+            dateLabel: relativeDateLabel(daysFromNow: -65),  // 65 天前
+            location: "跑馬地遊樂場",
+            timeRange: "15:00 - 17:00",
+            players: "4/4 · NTRP 3.5-4.5",
+            weather: "⛅ 18°C",
+            startDate: c9.start,
+            endDate: c9.end,
+            matchType: "雙打",
+            registrants: [
+                MatchRegistrant(name: "麗莎",  gender: .female, ntrp: "4.5", isOrganizer: true),
+                MatchRegistrant(name: "小李",  gender: .male,   ntrp: "4.0", isOrganizer: false),
+                MatchRegistrant(name: "詠琪",  gender: .female, ntrp: "3.5", isOrganizer: false),
+                MatchRegistrant(name: "家明",  gender: .male,   ntrp: "4.0", isOrganizer: false),
+            ]
+        ),
     ]
 }
 
@@ -1561,6 +1704,12 @@ private var mockInvitations: [MyMatchInvitation] {
     let i1 = relativeMockMatchRange(daysFromNow: 2, startHour: 14, endHour: 16)
     let i2 = relativeMockMatchRange(daysFromNow: 4, startHour: 18, endHour: 20)
     let i3 = relativeMockMatchRange(daysFromNow: 6, startHour: 9, endHour: 11)
+    // i4: 明天傍晚拉球 — 補拉球邀請場景 + 近期邀請(明天)
+    // i5: 3 天後晚場單打 — 高 NTRP,測「水平差太多」的提示
+    // i6: 9 天後上午雙打 — 遠期邀請,測按時間排序
+    let i4 = relativeMockMatchRange(daysFromNow: 1, startHour: 17, endHour: 19)
+    let i5 = relativeMockMatchRange(daysFromNow: 3, startHour: 19, startMinute: 30, endHour: 21, endMinute: 30)
+    let i6 = relativeMockMatchRange(daysFromNow: 9, startHour: 11, endHour: 13)
     return [
         MyMatchInvitation(
             inviterName: "艾美",
@@ -1591,6 +1740,36 @@ private var mockInvitations: [MyMatchInvitation] {
             durationHours: 2,
             startDate: i3.start,
             endDate: i3.end
+        ),
+        MyMatchInvitation(
+            inviterName: "雅婷",
+            gender: .female,
+            matchType: "拉球",
+            details: "\(relativeDateShort(daysFromNow: 1)) · 京士柏 · NTRP 3.0",   // 明天
+            time: "17:00",
+            durationHours: 2,
+            startDate: i4.start,
+            endDate: i4.end
+        ),
+        MyMatchInvitation(
+            inviterName: "Peter",
+            gender: .male,
+            matchType: "單打",
+            details: "\(relativeDateShort(daysFromNow: 3)) · 香港網球中心 · NTRP 4.5-5.0",  // 3 天後
+            time: "19:30",
+            durationHours: 2,
+            startDate: i5.start,
+            endDate: i5.end
+        ),
+        MyMatchInvitation(
+            inviterName: "林叔",
+            gender: .male,
+            matchType: "雙打",
+            details: "\(relativeDateShort(daysFromNow: 9)) · 九龍仔公園 · NTRP 3.0-4.0",   // 9 天後
+            time: "11:00",
+            durationHours: 2,
+            startDate: i6.start,
+            endDate: i6.end
         ),
     ]
 }

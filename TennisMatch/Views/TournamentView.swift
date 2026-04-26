@@ -1059,6 +1059,36 @@ nonisolated let mockTournaments: [MockTournament] = [
         ],
         isOwnTournament: true
     ),
+    // 我發起的賽事 — 已完成,測試「查看戰績 / 賽事歷史」入口
+    MockTournament(
+        name: "小李盃冬季快打賽",
+        format: "淘汰賽", matchType: "單打", ntrpRange: "3.0-4.0",
+        status: "已完成",
+        dateRange: "2026/02/06 - 02/07",
+        location: "九龍仔公園",
+        participants: "8/8",
+        fee: "150 港幣",
+        organizer: "小李",
+        organizerGender: .male,
+        gradientColors: [Theme.gradGrayLight, Theme.gradGrayDeep],
+        rules: [
+            "單淘汰制,一盤定勝負(搶七)",
+            "每場比賽限時 50 分鐘",
+            "獎金分配:冠軍 60% / 亞軍 30% / 季軍 10%",
+            "選手需自備球拍與球衣"
+        ],
+        playerList: [
+            TournamentPlayer(name: "小李", ntrp: "3.5"),
+            TournamentPlayer(name: "嘉欣", ntrp: "3.5"),
+            TournamentPlayer(name: "俊傑", ntrp: "4.0"),
+            TournamentPlayer(name: "阿杰", ntrp: "3.0"),
+            TournamentPlayer(name: "王強", ntrp: "4.0"),
+            TournamentPlayer(name: "大衛", ntrp: "4.0"),
+            TournamentPlayer(name: "美琪", ntrp: "3.5"),
+            TournamentPlayer(name: "志明", ntrp: "3.5"),
+        ],
+        isOwnTournament: true
+    ),
     // 我發起的賽事 — 進行中,測試「賽程查看 / 已開賽不可取消」邏輯
     MockTournament(
         name: "小李盃春季循環賽",
