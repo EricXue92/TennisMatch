@@ -109,9 +109,17 @@ struct ProfileView: View {
                     Circle()
                         .fill(.white)
                         .frame(width: 64, height: 64)
-                    Text(userStore.avatarInitial)
-                        .font(Typography.title)
-                        .foregroundColor(Theme.primary)
+                    if let data = userStore.avatarImageData, let uiImage = UIImage(data: data) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFill()
+                            .frame(width: 64, height: 64)
+                            .clipShape(Circle())
+                    } else {
+                        Text(userStore.avatarInitial)
+                            .font(Typography.title)
+                            .foregroundColor(Theme.primary)
+                    }
                 }
 
                 // Name + tags + bio

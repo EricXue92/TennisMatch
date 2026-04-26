@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import PhotosUI
 
 struct EditProfileView: View {
     @Environment(\.dismiss) private var dismiss
@@ -37,6 +38,10 @@ struct EditProfileView: View {
     @State private var showAddSlot = false
     @State private var showDiscardAlert = false
 
+    // 頭像選擇 — 草稿態,儲存時才寫回 UserStore.avatarImageData。
+    @State private var avatarItem: PhotosPickerItem?
+    @State private var avatarData: Data?
+
     private let ntrpMin: Double = 1.0
     private let ntrpMax: Double = 7.0
     private let regionOptions = ["香港", "上海", "深圳", "廣州"]
@@ -62,7 +67,8 @@ struct EditProfileView: View {
         selectedCourts.map(\.id) != userStore.selectedCourts.map(\.id) ||
         partnerLevelLow != userStore.partnerLevelLow ||
         partnerLevelHigh != userStore.partnerLevelHigh ||
-        slotsChanged
+        slotsChanged ||
+        avatarData != userStore.avatarImageData
     }
 
     var body: some View {
@@ -72,7 +78,9 @@ struct EditProfileView: View {
             ScrollView {
                 VStack(spacing: Spacing.md) {
                     avatarSection
-                    formCard
+                    basicInfoCard
+                    skillCard
+                    locationTimeCard
                     saveButton
                 }
                 .padding(.horizontal, Spacing.md)
@@ -102,6 +110,15 @@ struct EditProfileView: View {
                 partnerLevelLow = userStore.partnerLevelLow
                 partnerLevelHigh = userStore.partnerLevelHigh
                 preferredSlots = userStore.preferredSlots
+                avatarData = userStore.avatarImageData
+            }
+        }
+        .onChange(of: avatarItem) { _, newItem in
+            guard let newItem else { return }
+            Task {
+                if let data = try? await newItem.loadTransferable(type: Data.self) {
+                    avatarData = data
+                }
             }
         }
         .sheet(isPresented: $showCourtPicker) {
@@ -152,135 +169,233 @@ struct EditProfileView: View {
     // MARK: - Avatar
 
     private var avatarSection: some View {
-        VStack(spacing: 6) {
-            ZStack(alignment: .bottomTrailing) {
-                ZStack {
-                    Circle()
-                        .fill(Theme.primaryLight)
-                        .frame(width: 80, height: 80)
-                    Text(name.isEmpty ? userStore.avatarInitial : String(name.suffix(1)))
-                        .font(.system(size: 32, weight: .bold))
-                        .foregroundColor(.white)
-                }
+        VStack(spacing: 12) {
+            PhotosPicker(selection: $avatarItem, matching: .images) {
+                ZStack(alignment: .bottomTrailing) {
+                    // Gradient ring + thumb
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Theme.primary, Theme.primaryEmerald, Theme.accentGreen],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+                            .shadow(color: Theme.primary.opacity(0.25), radius: 12, y: 6)
 
-                Circle()
-                    .fill(Theme.textDark)
-                    .frame(width: 24, height: 24)
-                    .overlay(
+                        Circle()
+                            .fill(Theme.surface)
+                            .frame(width: 92, height: 92)
+
+                        avatarThumb
+                    }
+
+                    // Camera badge — white-ringed green chip
+                    ZStack {
+                        Circle()
+                            .fill(Theme.surface)
+                            .frame(width: 34, height: 34)
+                        Circle()
+                            .fill(Theme.primary)
+                            .frame(width: 28, height: 28)
                         Image(systemName: "camera.fill")
-                            .font(Typography.fieldLabel)
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.white)
-                    )
-                    .offset(x: 2, y: 2)
+                    }
+                    .shadow(color: Theme.primary.opacity(0.35), radius: 6, y: 2)
+                    .offset(x: 4, y: 4)
+                }
+                .accessibilityLabel("更換頭像")
             }
+            .buttonStyle(.plain)
 
-            Text("更換照片")
-                .font(Typography.caption)
-                .foregroundColor(Theme.primary)
+            // Pill-style affordance — clearer hit target than plain text.
+            HStack(spacing: 5) {
+                Image(systemName: "photo.on.rectangle")
+                    .font(.system(size: 11, weight: .semibold))
+                Text("更換照片")
+                    .font(Typography.smallMedium)
+            }
+            .foregroundColor(Theme.primary)
+            .padding(.horizontal, 14)
+            .padding(.vertical, 7)
+            .background(
+                Capsule().fill(Theme.primaryLight)
+            )
+            .overlay(
+                Capsule().strokeBorder(Theme.primary.opacity(0.18), lineWidth: 0.5)
+            )
+            .allowsHitTesting(false) // 真正點擊已由整個 PhotosPicker 處理
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, Spacing.sm)
+        .padding(.top, Spacing.lg)
+        .padding(.bottom, Spacing.md)
+        .background(
+            // 後方柔和綠色光暈,呼應網球場光線氛圍。
+            RadialGradient(
+                colors: [Theme.primaryLight.opacity(0.85), Color.clear],
+                center: .center,
+                startRadius: 20,
+                endRadius: 170
+            )
+        )
     }
 
-    // MARK: - Form Card
-
-    private var formCard: some View {
-        VStack(spacing: 0) {
-            // 用戶名
-            formRow(label: "用戶名") {
-                TextField("請輸入用戶名", text: $name)
-                    .font(Typography.bodyMedium)
-                    .foregroundColor(Theme.textBody)
+    @ViewBuilder
+    private var avatarThumb: some View {
+        if let data = avatarData, let uiImage = UIImage(data: data) {
+            Image(uiImage: uiImage)
+                .resizable()
+                .scaledToFill()
+                .frame(width: 84, height: 84)
+                .clipShape(Circle())
+        } else {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Theme.primaryLight, Theme.surface],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: 84, height: 84)
+                Text(name.isEmpty ? userStore.avatarInitial : String(name.suffix(1)))
+                    .font(.system(size: 36, weight: .bold, design: .rounded))
+                    .foregroundColor(Theme.primary)
             }
-            formDivider
+        }
+    }
 
-            // 性別
-            formRow(label: "性別") {
-                HStack(spacing: Spacing.lg) {
-                    radioButton(label: "男", isSelected: selectedGender == .male) {
-                        selectedGender = .male
+    // MARK: - Section Cards
+
+    private var basicInfoCard: some View {
+        sectionCard(title: "基本資料", icon: "person.text.rectangle.fill") {
+            VStack(spacing: 0) {
+                formRow(label: "用戶名") {
+                    TextField("請輸入用戶名", text: $name)
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(Theme.textBody)
+                }
+                formDivider
+
+                formRow(label: "性別") {
+                    HStack(spacing: Spacing.lg) {
+                        radioButton(label: "男", isSelected: selectedGender == .male) {
+                            selectedGender = .male
+                        }
+                        radioButton(label: "女", isSelected: selectedGender == .female) {
+                            selectedGender = .female
+                        }
+                        Spacer()
                     }
-                    radioButton(label: "女", isSelected: selectedGender == .female) {
-                        selectedGender = .female
+                }
+                formDivider
+
+                formRow(label: "年齡") {
+                    Picker("", selection: $ageRange) {
+                        ForEach(UserStore.ageRangeOptions, id: \.self) { range in
+                            Text(range).tag(range)
+                        }
                     }
+                    .pickerStyle(.menu)
+                    .tint(Theme.textBody)
                     Spacer()
                 }
-            }
-            formDivider
+                formDivider
 
-            // 年齡
-            formRow(label: "年齡") {
-                Picker("", selection: $ageRange) {
-                    ForEach(UserStore.ageRangeOptions, id: \.self) { range in
-                        Text(range).tag(range)
-                    }
-                }
-                .pickerStyle(.menu)
-                .tint(Theme.textBody)
-                Spacer()
-            }
-            formDivider
-
-            // 個人簡介
-            formRow(label: "個人簡介") {
-                TextField("一句話介紹自己", text: $bio)
-                    .font(Typography.bodyMedium)
-                    .foregroundColor(Theme.textBody)
-            }
-            formDivider
-
-            // NTRP 水平
-            ntrpSliderSection
-            formDivider
-
-            // 偏好球場（最多 3 個）
-            formRow(label: "偏好球場") {
-                Button {
-                    courtPickerSelection = Set(selectedCourts)
-                    showCourtPicker = true
-                } label: {
-                    HStack {
-                        Text(selectedCourts.isEmpty
-                             ? "選擇球場"
-                             : selectedCourts.map(\.name).joined(separator: "、"))
-                            .font(Typography.bodyMedium)
-                            .foregroundColor(Theme.textBody)
-                            .lineLimit(2)
-                            .multilineTextAlignment(.trailing)
-                        Spacer(minLength: Spacing.xs)
-                        Image(systemName: "chevron.right")
-                            .font(Typography.smallMedium)
-                            .foregroundColor(Theme.textSecondary)
-                    }
+                formRow(label: "個人簡介") {
+                    TextField("一句話介紹自己", text: $bio)
+                        .font(Typography.bodyMedium)
+                        .foregroundColor(Theme.textBody)
                 }
             }
-            formDivider
-
-            // 偏好球友水平
-            partnerLevelSliderSection
-            formDivider
-
-            // 所在地區
-            formRow(label: "所在地區") {
-                Picker("", selection: $region) {
-                    ForEach(regionOptions, id: \.self) { r in
-                        Text(r).tag(r)
-                    }
-                }
-                .pickerStyle(.menu)
-                .tint(Theme.textBody)
-                Spacer()
-            }
-            formDivider
-
-            // 偏好打球時間
-            preferredTimeSection
         }
-        .padding(.horizontal, Spacing.md)
-        .padding(.vertical, Spacing.sm)
-        .background(Theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
+    }
+
+    private var skillCard: some View {
+        sectionCard(title: "球技偏好", icon: "figure.tennis") {
+            VStack(spacing: 0) {
+                ntrpSliderSection
+                formDivider
+
+                formRow(label: "偏好球場") {
+                    Button {
+                        courtPickerSelection = Set(selectedCourts)
+                        showCourtPicker = true
+                    } label: {
+                        HStack {
+                            Text(selectedCourts.isEmpty
+                                 ? "選擇球場"
+                                 : selectedCourts.map(\.name).joined(separator: "、"))
+                                .font(Typography.bodyMedium)
+                                .foregroundColor(selectedCourts.isEmpty ? Theme.textHint : Theme.textBody)
+                                .lineLimit(2)
+                                .multilineTextAlignment(.trailing)
+                            Spacer(minLength: Spacing.xs)
+                            Image(systemName: "chevron.right")
+                                .font(Typography.smallMedium)
+                                .foregroundColor(Theme.textSecondary)
+                        }
+                    }
+                }
+                formDivider
+
+                partnerLevelSliderSection
+            }
+        }
+    }
+
+    private var locationTimeCard: some View {
+        sectionCard(title: "場地與時段", icon: "mappin.and.ellipse") {
+            VStack(spacing: 0) {
+                formRow(label: "所在地區") {
+                    Picker("", selection: $region) {
+                        ForEach(regionOptions, id: \.self) { r in
+                            Text(r).tag(r)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(Theme.textBody)
+                    Spacer()
+                }
+                formDivider
+
+                preferredTimeSection
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func sectionCard<Content: View>(
+        title: String,
+        icon: String,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Theme.primary)
+                    .frame(width: 22, height: 22)
+                    .background(Theme.primaryLight)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                Text(title)
+                    .font(Typography.labelSemibold)
+                    .foregroundColor(Theme.textPrimary)
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.xs)
+
+            content()
+                .padding(.horizontal, Spacing.md)
+                .padding(.vertical, Spacing.sm)
+                .background(Theme.surface)
+                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .shadow(color: .black.opacity(0.06), radius: 6, y: 2)
+        }
     }
 
     // MARK: - Preferred Time Section
@@ -380,6 +495,7 @@ struct EditProfileView: View {
                 userStore.partnerLevelLow = partnerLevelLow
                 userStore.partnerLevelHigh = partnerLevelHigh
                 userStore.preferredSlots = preferredSlots
+                userStore.avatarImageData = avatarData
                 dismiss()
             } label: {
                 Text("儲存修改")

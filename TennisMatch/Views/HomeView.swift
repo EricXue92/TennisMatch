@@ -14,7 +14,6 @@ struct HomeView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(BookingStore.self) private var bookingStore
     @Environment(NotificationStore.self) private var notificationStore
-    @Environment(CreditScoreStore.self) private var creditScoreStore
     @Environment(InviteStore.self) private var inviteStore
     @State private var showDrawer = false
     @State private var showTournaments = false
@@ -254,70 +253,97 @@ struct HomeView: View {
 // MARK: - Header
 
 private extension HomeView {
-    var headerSection: some View {
-        ZStack(alignment: .topLeading) {
-            Theme.primary.ignoresSafeArea(edges: .top)
-
-            VStack(spacing: 0) {
-                // Top row: hamburger + weather
-                HStack {
-                    Button {
-                        withAnimation(.easeOut(duration: 0.25)) {
-                            showDrawer = true
-                        }
-                    } label: {
-                        VStack(spacing: 3.5) {
-                            ForEach(0..<3, id: \.self) { _ in
-                                RoundedRectangle(cornerRadius: 1)
-                                    .fill(.white)
-                                    .frame(width: 22, height: 2)
-                            }
-                        }
-                        .frame(width: 44, height: 44)
-                        .overlay(alignment: .topTrailing) {
-                            Circle()
-                                .fill(Theme.badge)
-                                .frame(width: 8, height: 8)
-                                .offset(x: 2, y: 6)
-                        }
-                    }
-
-                    Spacer()
-
-                    Text("☀️ 24°C")
-                        .font(Typography.bodyMedium)
-                        .foregroundColor(.white)
-                }
-                .padding(.horizontal, Spacing.md)
-
-                // Stats cards
-                HStack(spacing: Spacing.xs) {
-                    statCard(label: "信譽積分", value: "\(creditScoreStore.score)")
-                    statCard(label: "場次", value: "\(bookingStore.signedUpMatchIDs.count)")
-                    statCard(label: "NTRP", value: userStore.ntrpText)
-                }
-                .padding(.horizontal, Spacing.md)
-                .padding(.top, Spacing.sm)
-                .padding(.bottom, Spacing.md)
-            }
+    /// 根據時間給出問候 — 早 / 午 / 晚。
+    var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        switch hour {
+        case 5..<11:  return "早安"
+        case 11..<14: return "午安"
+        case 14..<18: return "下午好"
+        case 18..<23: return "晚上好"
+        default:      return "夜深了"
         }
-        .frame(height: 160)
-        .background(Theme.primary)
     }
 
-    func statCard(label: LocalizedStringKey, value: String) -> some View {
-        VStack(spacing: 4) {
-            Text(label)
-                .font(Typography.fieldLabel)
-                .foregroundColor(.white.opacity(0.9))
-            Text(value)
-                .font(Typography.title)
-                .foregroundColor(.white)
+    var headerSection: some View {
+        HStack(alignment: .center, spacing: Spacing.sm) {
+            Button {
+                withAnimation(.easeOut(duration: 0.25)) {
+                    showDrawer = true
+                }
+            } label: {
+                VStack(spacing: 3.5) {
+                    ForEach(0..<3, id: \.self) { _ in
+                        RoundedRectangle(cornerRadius: 1)
+                            .fill(.white)
+                            .frame(width: 22, height: 2)
+                    }
+                }
+                .frame(width: 44, height: 44)
+                .overlay(alignment: .topTrailing) {
+                    Circle()
+                        .fill(Theme.badge)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 2, y: 6)
+                }
+            }
+
+            // 問候 + 副標
+            VStack(alignment: .leading, spacing: 1) {
+                HStack(spacing: 5) {
+                    Text(greeting + "，")
+                        .font(.system(.subheadline, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.92))
+                    Text(userStore.displayName)
+                        .font(.system(.subheadline, weight: .bold))
+                        .foregroundColor(.white)
+                    Text("👋")
+                        .font(.system(size: 14))
+                }
+                Text("揮拍時刻，找到合適的球友")
+                    .font(.system(size: 11))
+                    .foregroundColor(.white.opacity(0.78))
+            }
+
+            Spacer()
+
+            // 天氣 chip
+            HStack(spacing: 4) {
+                Text("☀️")
+                    .font(.system(size: 12))
+                Text("24°C")
+                    .font(Typography.smallMedium)
+                    .foregroundColor(.white)
+            }
+            .padding(.horizontal, 9)
+            .padding(.vertical, 5)
+            .background(
+                Capsule().fill(.white.opacity(0.18))
+            )
+            .overlay(
+                Capsule().strokeBorder(.white.opacity(0.25), lineWidth: 0.5)
+            )
         }
-        .frame(maxWidth: .infinity)
-        .frame(height: 60)
-        .background(.white.opacity(0.15))
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .padding(.horizontal, Spacing.md)
+        .padding(.top, Spacing.xs)
+        .padding(.bottom, Spacing.sm)
+        // bg 用 ignoresSafeArea(edges: .top) 將綠色延伸到狀態列下方,
+        // 容器本身仍然吃 safe area,所以 hamburger / 天氣 chip 不會跟系統圖示重疊。
+        .background(
+            LinearGradient(
+                colors: [Theme.primary, Theme.primaryDark],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .overlay(alignment: .topTrailing) {
+                Circle()
+                    .fill(Color.white.opacity(0.08))
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 30)
+                    .offset(x: 60, y: -90)
+            }
+            .ignoresSafeArea(edges: .top)
+        )
     }
 }
 
@@ -536,14 +562,18 @@ private extension HomeView {
                 Spacer()
 
                 Text(match.weather)
-                    .font(Typography.small)
-                    .foregroundColor(Theme.textCaption)
+                    .font(Typography.smallMedium)
+                    .foregroundColor(Theme.textBody)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Theme.inputBg)
+                    .clipShape(Capsule())
             }
 
-            // Detail rows
-            detailRow(icon: "📅", text: match.dateTimeDisplay)
-            detailRow(icon: "📍", text: match.location)
-            detailRow(icon: "👥", text: match.players)
+            // Detail rows — SF Symbol 圖示 + 文本
+            detailRow(symbol: "calendar", text: match.dateTimeDisplay)
+            detailRow(symbol: "mappin.and.ellipse", text: match.location)
+            detailRow(symbol: "person.2.fill", text: match.players)
 
             // Bottom: tags + sign up button
             HStack(spacing: Spacing.xs) {
@@ -933,11 +963,12 @@ private extension HomeView {
         matches.insert(newMatch, at: 0)
     }
 
-    func detailRow(icon: String, text: String) -> some View {
-        HStack(spacing: 4) {
-            Text(icon)
-                .font(Typography.small)
-                .foregroundColor(Theme.textSecondary)
+    func detailRow(symbol: String, text: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: symbol)
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(Theme.primary)
+                .frame(width: 14)
             Text(text)
                 .font(Typography.small)
                 .foregroundColor(Theme.textBody)

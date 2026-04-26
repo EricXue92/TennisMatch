@@ -13,10 +13,22 @@ struct RecommendedPlayersSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("📈 推薦")
-                .font(Typography.button)
-                .foregroundColor(Theme.textPrimary)
-                .padding(.horizontal, Spacing.md)
+            HStack(spacing: 6) {
+                Image(systemName: "sparkles")
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(Theme.primary)
+                    .frame(width: 22, height: 22)
+                    .background(Theme.primaryLight)
+                    .clipShape(RoundedRectangle(cornerRadius: 6, style: .continuous))
+                Text("為你推薦")
+                    .font(Typography.labelSemibold)
+                    .foregroundColor(Theme.textPrimary)
+                Text("水平相近的球友")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textCaption)
+                Spacer()
+            }
+            .padding(.horizontal, Spacing.md)
 
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: Spacing.xs) {
@@ -42,12 +54,29 @@ struct RecommendedPlayersSection: View {
 
     private func recommendCard(name: String, gender: Gender, ntrp: String) -> some View {
         HStack(spacing: Spacing.sm) {
-            Circle()
-                .fill(Theme.avatarPlaceholder)
-                .frame(width: 36, height: 36)
+            // 漸層環頭像 — 性別主導色,女粉 / 男藍 / 全綠
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gender == .female
+                                ? [Theme.genderFemale.opacity(0.85), Theme.primary]
+                                : [Theme.genderMale.opacity(0.85), Theme.primary],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 44, height: 44)
+                Circle()
+                    .fill(Theme.surface)
+                    .frame(width: 38, height: 38)
+                Circle()
+                    .fill(Theme.avatarPlaceholder)
+                    .frame(width: 34, height: 34)
+            }
 
-            VStack(alignment: .leading, spacing: 4) {
-                HStack(spacing: 2) {
+            VStack(alignment: .leading, spacing: 5) {
+                HStack(spacing: 3) {
                     Text(name)
                         .font(Typography.captionMedium)
                         .foregroundColor(Theme.textPrimary)
@@ -57,40 +86,48 @@ struct RecommendedPlayersSection: View {
                         .foregroundColor(gender == .female ? Theme.genderFemale : Theme.genderMale)
                 }
 
+                // NTRP 改成 chip 樣式,提升可讀性
                 Text("NTRP \(ntrp)")
-                    .font(Typography.fieldLabel)
-                    .foregroundColor(Theme.textCaption)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(Theme.primary)
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Theme.primaryLight)
+                    .clipShape(Capsule())
 
-                // 關注狀態由 followStore 驅動
                 let isFollowing = followStore.isFollowing(name)
                 Button {
                     followStore.toggle(name)
                 } label: {
-                    Text(isFollowing ? LocalizedStringKey("已關注") : LocalizedStringKey("關注"))
-                        .font(Typography.micro)
-                        .foregroundColor(isFollowing ? Theme.primary : .white)
-                        .frame(width: 60, height: 24)
-                        .background(isFollowing ? Color.clear : Theme.primary)
-                        .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8, style: .continuous)
-                                .stroke(isFollowing ? Theme.primary : Color.clear, lineWidth: 1)
-                        )
+                    HStack(spacing: 3) {
+                        Image(systemName: isFollowing ? "checkmark" : "plus")
+                            .font(.system(size: 9, weight: .bold))
+                        Text(isFollowing ? LocalizedStringKey("已關注") : LocalizedStringKey("關注"))
+                            .font(Typography.micro)
+                    }
+                    .foregroundColor(isFollowing ? Theme.primary : .white)
+                    .frame(width: 64, height: 24)
+                    .background(isFollowing ? Theme.primaryLight : Theme.primary)
+                    .clipShape(Capsule())
+                    .overlay(
+                        Capsule()
+                            .stroke(isFollowing ? Theme.primary.opacity(0.4) : .clear, lineWidth: 1)
+                    )
                 }
             }
         }
-        .frame(width: 170, alignment: .leading)
+        .frame(width: 174, alignment: .leading)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)
         .background(Theme.surface)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
         .overlay {
-            RoundedRectangle(cornerRadius: 12, style: .continuous)
-                .stroke(Theme.inputBorder, lineWidth: 1)
+            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                .stroke(Theme.inputBorder, lineWidth: 0.5)
         }
+        .shadow(color: .black.opacity(0.04), radius: 4, y: 2)
         .contentShape(Rectangle())
         .onTapGesture {
-            // 點擊卡片導航至公開個人頁
             selectedPlayer = mockPublicPlayerData(name: name, gender: gender, ntrp: ntrp)
         }
     }

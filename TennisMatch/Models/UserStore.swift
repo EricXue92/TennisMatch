@@ -47,6 +47,10 @@ final class UserStore {
     /// 偏好時段。
     var preferredSlots: [PreferredTimeSlot]
 
+    /// 用戶頭像原始資料(JPEG/PNG)。Mock 階段直接記憶體保存,
+    /// 接後端時改成 URL + 本地快取。`nil` 表示沿用預設文字頭像。
+    var avatarImageData: Data?
+
     init(
         displayName: String = "小李",
         gender: Gender = .male,
@@ -57,7 +61,8 @@ final class UserStore {
         selectedCourts: [TennisCourt] = [],
         partnerLevelLow: Double = 3.0,
         partnerLevelHigh: Double = 4.5,
-        preferredSlots: [PreferredTimeSlot] = []
+        preferredSlots: [PreferredTimeSlot] = [],
+        avatarImageData: Data? = nil
     ) {
         self.displayName = displayName
         self.gender = gender
@@ -69,6 +74,7 @@ final class UserStore {
         self.partnerLevelLow = partnerLevelLow
         self.partnerLevelHigh = partnerLevelHigh
         self.preferredSlots = preferredSlots
+        self.avatarImageData = avatarImageData
     }
 
     // MARK: - 年齡範圍選項
