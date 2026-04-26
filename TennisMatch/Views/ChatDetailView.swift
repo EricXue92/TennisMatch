@@ -38,6 +38,11 @@ struct ChatDetailView: View {
     var onRemoveChat: (() -> Void)? = nil
     /// 封鎖用戶時回調，參數為被封鎖者名稱
     var onBlockUser: ((String) -> Void)? = nil
+    /// 由 HomeView 提供,讓 actionRow 能查詢「該約球當前的 (current, max) / 是否取消」。
+    /// nil → 視為已取消(渲染 .expired(.cancelled))。
+    var matchLookup: (UUID) -> MyMatchItem? = { _ in nil }
+    /// 接受/反悔的副作用 — 由 HomeView 寫 upcomingMatches/matches。
+    var matchActions: InviteMatchActions = .noop
     /// 待模擬的 DM 邀請。若非 nil,進 view 立刻 push 外發邀請氣泡,1.6s 後查
     /// MockFriendSchedule 模擬接受/婉拒並通過 onInviteResolved 回拋。
     var pendingInvitation: PendingDMInvitation? = nil
@@ -45,6 +50,7 @@ struct ChatDetailView: View {
     var onInviteResolved: ((UUID, FollowPlayer, Bool) -> Void)? = nil
     @Environment(\.dismiss) private var dismiss
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(InviteStore.self) private var inviteStore
     @State private var messageText = ""
     @State private var sentMessages: [ChatBubble] = []
     @State private var selectedPhotoItem: PhotosPickerItem?
@@ -138,6 +144,15 @@ struct ChatDetailView: View {
             }
         }
         messages.append(contentsOf: sentMessages)
+
+        // DM 邀請卡 — 從 InviteStore 動態合併,讓接受/拒絕/反悔即時反映
+        if case .personal(let name, _, _) = chat.type {
+            for invite in inviteStore.invitesForChat(name) {
+                let ts = AppDateFormatter.hourMinute.string(from: invite.createdAt)
+                messages.append(ChatBubble(.dmInvitation(invite.id), timestamp: ts))
+            }
+        }
+
         return messages
     }
 
@@ -325,6 +340,8 @@ struct ChatDetailView: View {
             invitationCard(messageID: message.id, date: date, location: location, startDate: start, endDate: end)
         case .outgoingInvitation(let payload):
             outgoingInvitationCard(payload: payload, timestamp: message.timestamp)
+        case .dmInvitation(let inviteID):
+            dmInvitationCard(inviteID: inviteID)
         case .systemMessage(let text):
             systemMessageBubble(text)
         }
@@ -595,6 +612,99 @@ struct ChatDetailView: View {
         }
     }
 
+    // MARK: - DM Invitation Card (interactive)
+
+    @ViewBuilder
+    private func dmInvitationCard(inviteID: UUID) -> some View {
+        if let invite = inviteStore.invites.first(where: { $0.id == inviteID }) {
+            let match = matchLookup(invite.matchID)
+            let busy = MockFriendSchedule.conflict(
+                for: invite.inviteeName,
+                start: invite.startDate,
+                end: invite.endDate
+            )
+            let display = displayState(for: invite, match: match, friendBusy: busy)
+
+            VStack(spacing: 0) {
+                if case .actionable(true, let label?) = display {
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                        Text("\(invite.inviteeName)那時段已有\(label)")
+                    }
+                    .font(Typography.small)
+                    .foregroundColor(Theme.warningText)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(Spacing.sm)
+                    .background(Theme.warningBg)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("🎾 約球邀請")
+                        .font(Typography.captionMedium)
+                        .foregroundColor(Theme.textSecondary)
+                    Text(invite.payload.title)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(Theme.textPrimary)
+                    Text("📅 \(invite.payload.dateLabel) \(invite.payload.timeRange)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                    Text("📍 \(invite.payload.location)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                    Text("👥 \(invite.payload.players)")
+                        .font(Typography.fieldLabel)
+                        .foregroundColor(Theme.textBody)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(Spacing.md)
+
+                Divider()
+
+                // Task 7 將替換為 actionRow(...)
+                Text("(actions)")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textHint)
+                    .padding(Spacing.sm)
+            }
+            .background(Theme.surface)
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(Theme.inputBorder, lineWidth: 1)
+            )
+            .clipShape(RoundedRectangle(cornerRadius: 12))
+            .padding(.horizontal, Spacing.md)
+            .opacity(display.isMuted ? 0.7 : 1.0)
+        }
+    }
+
+    // MARK: - Display State Derivation
+
+    private func displayState(for invite: InviteStore.Invite,
+                              match: MyMatchItem?,
+                              friendBusy: FriendBusySlot?) -> InviteCardDisplay {
+        switch invite.status {
+        case .accepted:
+            return .accepted(at: invite.decidedAt ?? invite.createdAt)
+        case .declined:
+            return .declined(at: invite.decidedAt ?? invite.createdAt)
+        case .pending:
+            guard let m = match else {
+                return .expired(reason: .cancelled)
+            }
+            if m.startDate < Date() {
+                return .expired(reason: .timePassed)
+            }
+            let (cur, mx) = m.playerCounts
+            if cur >= mx {
+                return .expired(reason: .full(current: cur, max: mx))
+            }
+            return .actionable(
+                hasConflict: friendBusy != nil,
+                conflictLabel: friendBusy?.label
+            )
+        }
+    }
+
     // MARK: - Input Bar
 
     private func sendMessage() {
@@ -724,6 +834,7 @@ private struct ChatBubble: Identifiable {
         case outgoingImage(Data)
         case invitation(date: String, location: String, startDate: Date, endDate: Date)
         case outgoingInvitation(OutgoingInvitationPayload)
+        case dmInvitation(UUID)
         case systemMessage(String)
     }
 }
