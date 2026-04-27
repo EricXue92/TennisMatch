@@ -16,6 +16,7 @@ struct HomeView: View {
     @Environment(TournamentStore.self) private var tournamentStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(InviteStore.self) private var inviteStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -50,6 +51,8 @@ struct HomeView: View {
     /// Top toast for booking-conflict warnings shown when the user taps 報名
     /// on a match whose start window overlaps an existing booking.
     @State private var conflictToast: String?
+    /// Soft conflict pending confirmation — stores match + conflicting label for alert.
+    @State private var softConflictPending: (match: MockMatch, label: String)? = nil
     /// Selected player for navigating to PublicProfileView
     @State private var selectedPlayer: PublicPlayerData?
 
@@ -94,7 +97,7 @@ struct HomeView: View {
 
             // Custom tab bar
             CustomTabBar(selectedTab: $selectedTab, chatUnreadCount: chatUnreadCount) {
-                showCreateMatch = true
+                tryShowCreateMatch()
             }
 
             // 側邊抽屜
@@ -212,6 +215,25 @@ struct HomeView: View {
         }
         .overlay(alignment: .top) {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
+        }
+        .alert(
+            "時段衝突",
+            isPresented: Binding(
+                get: { softConflictPending != nil },
+                set: { if !$0 { softConflictPending = nil } }
+            ),
+            presenting: softConflictPending
+        ) { pending in
+            Button("仍要報名", role: .destructive) {
+                let m = pending.match
+                softConflictPending = nil
+                presentSignUpSheet(for: m)
+            }
+            Button("再想想", role: .cancel) {
+                softConflictPending = nil
+            }
+        } message: { pending in
+            Text("該時段已有未審核報名「\(pending.label)」。\n如發起人都接受,你會撞時段。確定仍要報名?")
         }
         .onAppear {
             bookingStore.runFallbackChecks()
@@ -505,7 +527,7 @@ private extension HomeView {
                     .buttonStyle(.bordered)
 
                     Button("發起約球") {
-                        showCreateMatch = true
+                        tryShowCreateMatch()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Theme.primary)
@@ -653,6 +675,15 @@ private extension HomeView {
         selectedMatchDetail = makeMatchDetail(from: match)
     }
 
+    /// 进入「发布约球」前先做信用分门槛检查。score < 70 → toast 拦截;不开 sheet。
+    private func tryShowCreateMatch() {
+        guard creditScoreStore.canPublishMatch else {
+            conflictToast = L10n.string("信譽分 \(creditScoreStore.score) 分（< 70）暫不可發起約球")
+            return
+        }
+        showCreateMatch = true
+    }
+
     func showSignUp(_ match: MockMatch) {
         guard !match.isFull else { return }
         guard !match.isExpired else { return }
@@ -665,13 +696,22 @@ private extension HomeView {
             conflictToast = L10n.string("該時段已與「\(conflict.label)」衝突,請先取消已預訂的時段")
             return
         }
+        if let soft = bookingStore.softConflict(start: range.start, end: range.end, excluding: match.id) {
+            // pending 软冲突 — 弹二次确认,用户决定是否仍要海投。
+            softConflictPending = (match: match, label: soft.label)
+            return
+        }
         // 賽事冲突拦截:涵盖自己發起 + 已報名的 tournament(P2-#3b)。
         if let tConflict = tournamentStore.conflict(start: range.start, end: range.end) {
             conflictToast = L10n.string("該時段已與賽事「\(tConflict.label)」衝突,請先取消賽事報名")
             return
         }
 
-        // Phase 2a: 显示字段直接从 startDate 派生,确保与底层 Date 一致。
+        presentSignUpSheet(for: match)
+    }
+
+    /// 实际触发报名 sheet — 假定冲突检查已通过(包括强制提交后调用)。
+    private func presentSignUpSheet(for match: MockMatch) {
         let endDate = match.startDate.addingTimeInterval(2 * 3600)
         let date = AppDateFormatter.yearMonthDay.string(from: match.startDate)
         let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
@@ -679,8 +719,6 @@ private extension HomeView {
         let timeRange = "\(startTime) - \(endTime)"
 
         signUpMatchId = match.id
-
-        // Build info with incremented player count (preview of after sign-up)
         let newCount = match.currentPlayers + 1
         let playersStr = "\(newCount)/\(match.maxPlayers)"
 

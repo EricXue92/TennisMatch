@@ -72,9 +72,10 @@ struct CreditScoreHistoryView: View {
                 .foregroundColor(Theme.textPrimary)
             ruleRow(sign: "+", amount: "1", text: "完成一場約球")
             ruleRow(sign: "+", amount: "1", text: "獲得球友好評")
-            ruleRow(sign: "-", amount: "1", text: "24 小時內取消")
-            ruleRow(sign: "-", amount: "2", text: "2 小時內取消")
-            ruleRow(sign: "-", amount: "10", text: "爽約未到場")
+            ruleRow(sign: "-", amount: "1", text: "撤回報名(距開場 2-24 小時)")
+            ruleRow(sign: "-", amount: "2", text: "撤回報名(距開場不足 2 小時)")
+            ruleRow(sign: "-", amount: "4", text: "確認後取消(距開場不足 4 小時)")
+            ruleRow(sign: "-", amount: "5", text: "爽約未到場")
 
             Divider().padding(.vertical, 4)
             Text("帳號處罰")
@@ -85,7 +86,7 @@ struct CreditScoreHistoryView: View {
                     .font(Typography.captionMedium)
                     .foregroundColor(Theme.requiredText)
                     .frame(width: 40, alignment: .leading)
-                Text("凍結帳號 1 個月")
+                Text("禁止發起約球(仍可報名)")
                     .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }
@@ -94,7 +95,7 @@ struct CreditScoreHistoryView: View {
                     .font(Typography.captionMedium)
                     .foregroundColor(Theme.requiredText)
                     .frame(width: 40, alignment: .leading)
-                Text("永久封號")
+                Text("封號 3 個月")
                     .font(Typography.caption)
                     .foregroundColor(Theme.textBody)
             }

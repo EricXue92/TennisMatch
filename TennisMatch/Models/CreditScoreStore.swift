@@ -7,21 +7,16 @@
 //  规则(与 CreditScoreHistoryView 内的 rulesCard 对齐):
 //    +1  完成一场约球
 //    +1  获得球友好评
-//    -1  临时取消(距开场 2-24 小时)
-//    -2  临时取消(距开场不足 2 小时)
-//    -10 爽约未到场
+//    -1  pending 撤回(距开场 2-24 小时)
+//    -2  pending 撤回(距开场不足 2 小时)
+//    -4  已确认报名取消(距开场不足 4 小时)
+//    -5  爽约未到场
 //
 //  账号处罚:
-//    信誉分低于 70 → 冻结账号 1 个月
-//    信誉分低于 60 → 永久封号
+//    < 70  禁止发起约球(仍可报名他人发起的局)
+//    < 60  封号 3 个月
 //
 //  Mock 阶段不持久化:重启 app 即恢复初始 score / entries。
-//  接后端时:每次启动从 /credit-score 接口拉取,本地变动通过 mutation 回写。
-//
-//  CLAUDE.md 边界 case #3:连续爽约 → 降低信用分。爽约的检测目前需要服务端
-//  在比赛结束后做考勤对账(参与者互评是否到场),前端只暴露"临时取消"
-//  这一可在客户端判定的扣分入口,以及一个开发期可调用的 recordNoShow API,
-//  供后续接入举报/对账流程时调用。
 //
 
 import Foundation
@@ -37,10 +32,13 @@ final class CreditScoreStore {
 
     /// `score < lowScoreThreshold` 时,UI 应展示提醒条幅。
     static let lowScoreThreshold = 60
-    /// 信誉分低于此值 → 冻结账号 1 个月。
-    static let freezeThreshold = 70
-    /// 信誉分低于此值 → 永久封号。
+    /// 信誉分低于此值 → 禁止发起约球。
+    static let publishGateThreshold = 70
+    /// 信誉分低于此值 → 封号 3 个月。
     static let banThreshold = 60
+    /// 已弃用别名 — 老代码在迁移期内仍引用 `freezeThreshold`,实际语义已改为「禁止发起约球」。
+    @available(*, deprecated, renamed: "publishGateThreshold")
+    static let freezeThreshold = publishGateThreshold
 
     init(
         score: Int = 80,
@@ -51,6 +49,12 @@ final class CreditScoreStore {
     }
 
     var isLowScore: Bool { score < CreditScoreStore.lowScoreThreshold }
+
+    /// 是否仍允许发起约球(< 70 → false)。
+    var canPublishMatch: Bool { score >= CreditScoreStore.publishGateThreshold }
+
+    /// 是否已封号(< 60 → true,三个月内禁所有写操作)。
+    var isBanned: Bool { score < CreditScoreStore.banThreshold }
 
     /// 应用一次变动 — 自动夹紧到 0…100,并把记录插入到最前面。
     func apply(delta: Int, reason: String, detail: String, dateLabel: String? = nil) {
@@ -84,9 +88,24 @@ final class CreditScoreStore {
         return deduction
     }
 
-    /// 爽约未到场 — 扣 10 分。目前仅供后续 "举报未到场 / 对账" 流程接入。
+    /// 已确认报名取消 — 仅当距开场不足 4 小时时扣 4 分;≥4h 不扣分。
+    /// 与 `recordCancellation(hoursBeforeStart:)` 区分:后者用于 pending 撤回(tiered -1/-2)。
+    /// 返回实际扣除的分数(绝对值),0 表示不扣分。
+    @discardableResult
+    func recordConfirmedCancellation(hoursBeforeStart: Double, detail: String) -> Int {
+        guard hoursBeforeStart < 4 else { return 0 }
+        let hours = max(0, Int(hoursBeforeStart.rounded(.down)))
+        apply(
+            delta: -4,
+            reason: "確認後取消",
+            detail: "\(detail) · 距開場 \(hours) 小時"
+        )
+        return 4
+    }
+
+    /// 爽约未到场 — 扣 5 分。供后端考勤上报回来时调用。
     func recordNoShow(detail: String) {
-        apply(delta: -10, reason: "爽約未到場", detail: detail)
+        apply(delta: -5, reason: "爽約未到場", detail: detail)
     }
 
     /// 完成一场约球 — 加 1 分。当后端的赛后考勤上报回来时调用。

@@ -476,8 +476,8 @@ struct MyMatchesView: View {
                             players: match.players
                         ))
                     }
-                    // 阶梯扣分: ≥24h → 0, 2-24h → -1, <2h → -2
-                    let deduction = creditScoreStore.recordCancellation(
+                    // 已确认报名取消:< 4h 扣 4 分,≥ 4h 不扣分。
+                    let deduction = creditScoreStore.recordConfirmedCancellation(
                         hoursBeforeStart: hoursToStart,
                         detail: "\(match.title) · \(match.location)"
                     )
@@ -486,7 +486,7 @@ struct MyMatchesView: View {
                         notificationStore.push(MatchNotification(
                             type: .cancelled,
                             title: "信譽積分 -\(deduction)",
-                            body: "距開場不足 \(hoursToStart < 2 ? "2" : "24") 小時取消，已扣除 \(deduction) 分信譽積分（當前 \(creditScoreStore.score) 分）",
+                            body: "距開場不足 4 小時取消已確認約球,已扣除 \(deduction) 分信譽積分（當前 \(creditScoreStore.score) 分）",
                             time: "剛剛",
                             isRead: false
                         ))
@@ -510,9 +510,9 @@ struct MyMatchesView: View {
                     }
                     // 检查账号冻结/封禁
                     if creditScoreStore.score < CreditScoreStore.banThreshold {
-                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 60，帳號已被永久封禁"))
-                    } else if creditScoreStore.score < CreditScoreStore.freezeThreshold {
-                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 70，帳號將凍結 1 個月"))
+                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 60，帳號封禁 3 個月"))
+                    } else if creditScoreStore.score < CreditScoreStore.publishGateThreshold {
+                        toast = .init(kind: .warning, text: L10n.string("信譽分低於 70，暫不可發起約球"))
                     } else if creditDeducted {
                         toast = .init(kind: .warning, text: L10n.string("已取消約球，扣 \(deduction) 分信譽"))
                     } else {
@@ -537,8 +537,17 @@ struct MyMatchesView: View {
         ) { match in
             Button("確認撤回", role: .destructive) {
                 if let aid = match.applicationID {
+                    let hoursToStart = match.startDate.timeIntervalSince(.now) / 3600
                     bookingStore.cancelApplication(aid)
-                    toast = .init(kind: .success, text: L10n.string("已撤回申請"))
+                    let deduction = creditScoreStore.recordCancellation(
+                        hoursBeforeStart: hoursToStart,
+                        detail: "\(match.title) · \(match.location)"
+                    )
+                    if deduction > 0 {
+                        toast = .init(kind: .warning, text: L10n.string("已撤回申請,扣 \(deduction) 分信譽"))
+                    } else {
+                        toast = .init(kind: .success, text: L10n.string("已撤回申請"))
+                    }
                 }
                 applicationToWithdraw = nil
             }

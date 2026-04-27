@@ -201,6 +201,21 @@ final class BookingStore {
         return nil
     }
 
+    /// 软冲突 — 仅命中当前用户处于 `pendingReview` 状态的报名。返回值供 UI 提示
+    /// 「该时段已有未审核报名,确认仍要提交?」。`pendingReview` 不算占名额,所以
+    /// 不在 `conflict(...)` 里;但用户体验需要看见。
+    func softConflict(start: Date, end: Date, excluding: UUID? = nil) -> ConflictHit? {
+        for app in applications where app.applicantID == currentUserID && app.status == .pendingReview {
+            guard app.matchID != excluding,
+                  let m = matches[app.matchID] else { continue }
+            let mEnd = m.startDate.addingTimeInterval(2 * 3600)
+            if m.startDate < end && start < mEnd {
+                return ConflictHit(id: app.matchID, label: "\(m.name) \(m.dateTimeDisplay)")
+            }
+        }
+        return nil
+    }
+
     // MARK: - Fallback: deadline scan
 
     func runApprovalDeadlines(now: Date = .now) {
