@@ -413,7 +413,7 @@ struct CreateMatchView: View {
                     Text("需要我審核報名者")
                         .font(Typography.labelSemibold)
                         .foregroundColor(Theme.textPrimary)
-                    Text("開啟後,報名者需等你接受;12h 內未處理,系統自動通過。")
+                    Text("開啟後,報名者需等你接受;最晚賽前 12h 系統自動通過,夜間不打擾。")
                         .font(Typography.caption)
                         .foregroundColor(Theme.textSecondary)
                 }
