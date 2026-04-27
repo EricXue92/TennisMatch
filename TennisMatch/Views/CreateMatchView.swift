@@ -202,29 +202,29 @@ struct CreateMatchView: View {
         Button {
             withAnimation(.easeInOut(duration: 0.2)) {
                 showDatePicker.toggle()
-                if showDatePicker { activeTimePicker = nil }
+                if showDatePicker {
+                    activeTimePicker = nil
+                    // 一打開就視為「正在選日期」,避免使用者點選預設的今天時
+                    // .graphical DatePicker 不觸發 onChange 導致 dateWasEdited 始終為 false。
+                    dateWasEdited = true
+                }
             }
         } label: {
-            HStack(spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
                 Image(systemName: "calendar")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(showDatePicker ? Theme.primary : Theme.textSecondary)
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("日期")
-                        .font(Typography.micro)
-                        .foregroundColor(showDatePicker ? Theme.primary : Theme.textSecondary)
-                    Text(dateWasEdited ? dateFormatted : "選擇日期")
-                        .font(.system(.title3, design: .rounded).weight(.semibold))
-                        .foregroundColor(dateWasEdited ? Theme.textPrimary : Theme.textSecondary)
-                }
+                    .font(Typography.bodyMedium)
+                    .foregroundColor(showDatePicker ? Theme.primary : Theme.textPrimary)
+                Text(dateWasEdited ? dateFormatted : "選擇日期")
+                    .font(Typography.caption)
+                    .foregroundColor(dateWasEdited ? Theme.textPrimary : Theme.textSecondary)
                 Spacer()
             }
+            .frame(height: 44)
             .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .background(showDatePicker ? Theme.chipSelectedBg : Theme.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Theme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .stroke(showDatePicker ? Theme.primary : Theme.border,
                             lineWidth: showDatePicker ? 1.5 : 1)
             )
@@ -304,22 +304,23 @@ struct CreateMatchView: View {
     private func timePill(label: String, value: String, active: Bool, edited: Bool,
                           action: @escaping () -> Void) -> some View {
         Button(action: action) {
-            VStack(alignment: .leading, spacing: 2) {
+            HStack(spacing: Spacing.xs) {
                 Text(label)
-                    .font(Typography.micro)
-                    .foregroundColor(active ? Theme.primary : Theme.textSecondary)
+                    .font(Typography.caption)
+                    .foregroundColor(Theme.textSecondary)
                 Text(value)
-                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .font(Typography.caption)
                     .foregroundColor(edited ? Theme.textPrimary : Theme.textSecondary)
                     .monospacedDigit()
+                Spacer()
             }
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .frame(height: 44)
             .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .background(active ? Theme.chipSelectedBg : Theme.surfaceMuted)
-            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .background(Theme.surface)
+            .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             .overlay(
-                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .stroke(active ? Theme.primary : Theme.border, lineWidth: active ? 1.5 : 1)
             )
         }
