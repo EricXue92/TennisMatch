@@ -950,7 +950,7 @@ private extension HomeView {
         default: genderLabel = "不限"
         }
 
-        let newMatch = MockMatch(
+        var newMatch = MockMatch(
             name: userStore.displayName,
             gender: userStore.gender,
             matchType: info.matchType,
@@ -969,6 +969,9 @@ private extension HomeView {
             maxPlayers: info.matchType == "雙打" ? 4 : 2,
             isOwnMatch: true
         )
+        newMatch.hostID = userStore.id
+        newMatch.requiresApproval = info.requiresApproval
+        newMatch.approvalDeadline = info.approvalDeadline
         matches.insert(newMatch, at: 0)
     }
 
