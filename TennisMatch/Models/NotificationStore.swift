@@ -14,6 +14,17 @@ import Foundation
 import Observation
 import SwiftUI
 
+/// Phase E: 业务事件 kind(后端字段一致)。与 `NotificationType`(图标/颜色)分离 —
+/// 同一个 kind 在 UI 上仍用 NotificationType 渲染。新通知必填,旧 mock seed 可省。
+enum NotificationKind: String, Codable {
+    case applicationReceived       // host: 有人报名了
+    case approvalDeadlineSoon      // host: 你还没处理,2h 后自动通过
+    case applicationAutoApproved   // applicant: 自动通过了
+    case applicationRejected       // applicant: 被拒了
+    case waitlistedToApproved      // applicant: 候补递补成功
+    case applicationExpired        // applicant: 球局过期未处理
+}
+
 enum NotificationType {
     case signUp, accepted, cancelled, updated
 
@@ -54,6 +65,11 @@ struct MatchNotification: Identifiable {
     /// Mock 阶段直接传字符串;接后端时换成 timestamp + 渲染时格式化。
     let time: String
     var isRead: Bool
+    /// Phase E: 业务事件 kind(用于后端字段对齐 + 行为路由)。旧 mock seed 不带。
+    var kind: NotificationKind? = nil
+    /// Phase E: 同 key + 未读 时,`upsert` 会覆盖现有条目,避免「N 人报名」连续刷屏。
+    /// 命名约定:`received-{matchID}`、`auto-{matchID}-{applicantID}` 等。
+    var coalesceKey: String? = nil
 
     var icon: String { type.icon }
     var iconBg: Color { type.iconBg }
@@ -76,6 +92,28 @@ final class NotificationStore {
     /// 新通知插入到最前面,便于按时间倒序展示。
     func push(_ notification: MatchNotification) {
         notifications.insert(notification, at: 0)
+    }
+
+    /// Phase E:同 `coalesceKey` + 未读 时覆盖现有条目,否则 push。
+    /// 用例:host 在短时间内收到「A 报名」「B 报名」「C 报名」,合并成最新一条,
+    /// 避免红点 / 列表被同类事件刷屏。读过的旧条目保持不变(历史可见)。
+    func upsert(_ notification: MatchNotification) {
+        if let key = notification.coalesceKey,
+           let idx = notifications.firstIndex(where: {
+               $0.coalesceKey == key && !$0.isRead
+           }) {
+            notifications[idx] = notification
+        } else {
+            notifications.insert(notification, at: 0)
+        }
+    }
+
+    /// Phase E:把 `coalesceKey` 匹配的所有通知标为已读。
+    /// host 进入 MatchDetailView 时调用 — 走过一次审核区块即视为「看过这批申请」。
+    func markSeen(coalesceKey: String) {
+        for i in notifications.indices where notifications[i].coalesceKey == coalesceKey {
+            notifications[i].isRead = true
+        }
     }
 
     func markAllRead() {

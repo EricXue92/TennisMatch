@@ -17,6 +17,7 @@ struct MatchDetailView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(NotificationStore.self) private var notificationStore
     @Environment(TournamentStore.self) private var tournamentStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
@@ -80,6 +81,10 @@ struct MatchDetailView: View {
             // Phase E: 进入详情页扫一次截止时间 / 候补递补,
             // 让 host/applicant 看到的状态与时间一致。BookingStore 内部 2s 去抖。
             bookingStore.runFallbackChecks()
+            // Phase E: host 进入详情视为「看过这批申请」,清相关 coalesce 通知红点。
+            if let mid = match.matchId, isHostWithApproval {
+                notificationStore.markSeen(coalesceKey: "received-\(mid.uuidString)")
+            }
         }
         .overlay(alignment: .top) {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
@@ -852,6 +857,8 @@ private let inviteContacts: [InviteContact] = [
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore(currentUserID: UUID()))
+    .environment(NotificationStore())
+    .environment(TournamentStore())
     .environment(InviteStore())
 }
 
@@ -862,6 +869,8 @@ private let inviteContacts: [InviteContact] = [
     .environment(FollowStore())
     .environment(UserStore())
     .environment(BookingStore(currentUserID: UUID()))
+    .environment(NotificationStore())
+    .environment(TournamentStore())
     .environment(InviteStore())
 }
 

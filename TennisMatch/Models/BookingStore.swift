@@ -51,6 +51,10 @@ final class BookingStore {
 
     private var lastFallbackRunAt: Date = .distantPast
 
+    /// Phase E: 业务通知出口。weak 避免循环 — 两个 store 都是 app 生命周期单例。
+    /// 测试默认 nil,emission 全部静默 no-op。
+    weak var notificationStore: NotificationStore?
+
     init(currentUserID: UUID) {
         self.currentUserID = currentUserID
         loadApplications()
@@ -88,6 +92,16 @@ final class BookingStore {
         )
         applications.append(app)
         persist()
+        // Phase E: 入 pending → 通知 host「有人报名」。autoConfirmed 直接确认不再噪声。
+        if initial == .pendingReview {
+            notify(
+                type: .signUp,
+                kind: .applicationReceived,
+                title: "新的報名",
+                body: "有人報名你發起的\(match.matchType)約球",
+                coalesceKey: "received-\(match.id.uuidString)"
+            )
+        }
         return app
     }
 
@@ -109,8 +123,17 @@ final class BookingStore {
         applications[idx].resolvedAt = now
         applications[idx].resolvedBy = currentUserID
         applications[idx].note = note
+        let rejected = applications[idx]
         promoteWaitlist(now: now)
         persist()
+        // Phase E: applicant 收到「被拒」通知。每条独立(无 coalesce)。
+        notify(
+            type: .cancelled,
+            kind: .applicationRejected,
+            title: "報名未通過",
+            body: matchSummary(for: rejected.matchID, suffix: "的報名未獲通過"),
+            coalesceKey: nil
+        )
     }
 
     // MARK: - Applicant actions
@@ -189,6 +212,10 @@ final class BookingStore {
         // 单 match 局部计数缓存(避免遍历过程中 approvedCount 抖动)
         var localApproved: [UUID: Int] = [:]
 
+        // Phase E: 收集本次扫描产生的状态变更,扫描结束后统一发通知(避免边迭代边写)。
+        var autoApprovedIDs: [UUID] = []
+        var expiredIDs: [UUID] = []
+
         for (idx, app) in pendingSorted {
             guard let match = matches[app.matchID] else { continue }
             guard let deadline = match.approvalDeadline, now >= deadline else { continue }
@@ -197,6 +224,7 @@ final class BookingStore {
                 applications[idx].status = .expired
                 applications[idx].resolvedAt = now
                 applications[idx].resolvedBy = nil
+                expiredIDs.append(app.matchID)
                 continue
             }
 
@@ -207,13 +235,35 @@ final class BookingStore {
                 applications[idx].resolvedAt = now
                 applications[idx].resolvedBy = nil
                 localApproved[match.id] = count + 1
+                autoApprovedIDs.append(app.matchID)
             } else {
                 applications[idx].status = .waitlisted
                 applications[idx].resolvedAt = now
                 applications[idx].resolvedBy = nil
+                // 转 waitlist 不发通知 — 避免噪声(spec §9)。
             }
         }
         persist()
+
+        // Phase E: 通知 applicant。
+        for matchID in autoApprovedIDs {
+            notify(
+                type: .accepted,
+                kind: .applicationAutoApproved,
+                title: "報名自動通過",
+                body: matchSummary(for: matchID, suffix: "已自動接受你的報名"),
+                coalesceKey: "auto-\(matchID.uuidString)"
+            )
+        }
+        for matchID in expiredIDs {
+            notify(
+                type: .cancelled,
+                kind: .applicationExpired,
+                title: "報名已過期",
+                body: matchSummary(for: matchID, suffix: "已過期,報名未處理"),
+                coalesceKey: "expired-\(matchID.uuidString)"
+            )
+        }
     }
 
     // MARK: - Fallback driver
@@ -233,6 +283,7 @@ final class BookingStore {
         let matchIDs = Set(applications.compactMap {
             $0.status == .waitlisted ? $0.matchID : nil
         })
+        var promotedMatches: [UUID] = []
         for matchID in matchIDs {
             guard let match = matches[matchID], match.startDate >= now else { continue }
             let cap = max(0, match.maxPlayers - 1)
@@ -251,9 +302,22 @@ final class BookingStore {
                 applications[idx].status = .approved
                 applications[idx].resolvedAt = now
                 applications[idx].resolvedBy = nil
+                promotedMatches.append(matchID)
             }
         }
         persist()
+
+        // Phase E: 候补递补成功 → 通知 applicant。每个 match 一次合并 key,
+        // 同 match 多人递补时合成一条最新通知。
+        for matchID in Set(promotedMatches) {
+            notify(
+                type: .accepted,
+                kind: .waitlistedToApproved,
+                title: "候補成功",
+                body: matchSummary(for: matchID, suffix: "你已從候補晉升為正式參加者"),
+                coalesceKey: "promoted-\(matchID.uuidString)"
+            )
+        }
     }
 
     // MARK: - Helpers
@@ -288,6 +352,36 @@ final class BookingStore {
     /// 临时供旧 view 读取的「已加入」聚合视图。Phase D 完成后 view 改读 applications,该方法可删。
     func legacyAcceptedSnapshot() -> [MatchApplication] {
         applications.filter { $0.applicantID == currentUserID && Self.occupiesSlot($0.status) }
+    }
+
+    // MARK: - Notification helpers (Phase E)
+
+    /// 统一发送通知 — 没有 NotificationStore 时静默 no-op,便于测试 / 早期 init 调用。
+    fileprivate func notify(
+        type: NotificationType,
+        kind: NotificationKind,
+        title: String,
+        body: String,
+        coalesceKey: String?
+    ) {
+        guard let store = notificationStore else { return }
+        let note = MatchNotification(
+            type: type,
+            title: title,
+            body: body,
+            time: "剛剛",
+            isRead: false,
+            kind: kind,
+            coalesceKey: coalesceKey
+        )
+        store.upsert(note)
+    }
+
+    /// 拼通知 body 的「{matchType} {dateTimeDisplay} {suffix}」摘要。
+    /// match 不在 registry 时 fallback 成纯 suffix(避免空字符串)。
+    fileprivate func matchSummary(for matchID: UUID, suffix: String) -> String {
+        guard let m = matches[matchID] else { return suffix }
+        return "\(m.matchType) \(m.dateTimeDisplay) — \(suffix)"
     }
 }
 
