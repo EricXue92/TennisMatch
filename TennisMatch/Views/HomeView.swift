@@ -693,7 +693,8 @@ private extension HomeView {
             players: playersStr,
             isFull: newCount >= match.maxPlayers,
             startDate: match.startDate,
-            endDate: endDate
+            endDate: endDate,
+            requiresApproval: match.requiresApproval
         )
     }
 
@@ -739,7 +740,8 @@ private extension HomeView {
             participantList: [
                 MatchParticipant(name: hostName, gender: hostGender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
             ],
-            isOwnMatch: match.isOwnMatch
+            isOwnMatch: match.isOwnMatch,
+            requiresApproval: match.requiresApproval
         )
     }
 

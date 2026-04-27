@@ -558,6 +558,8 @@ struct MatchDetailData: Identifiable, Hashable {
     let weather: MatchWeather
     let participantList: [MatchParticipant]
     var isOwnMatch: Bool = false
+    /// Phase D: 是否需要 host 审核报名 — 影响 SignUpConfirmSheet 文案
+    var requiresApproval: Bool = false
 
     /// Parses `"1/2 人"` → (current: 1, max: 2). Falls back to (0, 0).
     var playerCounts: (current: Int, max: Int) {

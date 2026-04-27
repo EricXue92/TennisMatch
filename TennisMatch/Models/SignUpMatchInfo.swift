@@ -26,6 +26,8 @@ struct SignUpMatchInfo: Identifiable {
     /// Phase 2a: 起止绝对时间(全部场景必填,用于"加入日历"等)。
     let startDate: Date
     let endDate: Date
+    /// Phase D: 是否需要 host 审核 — 控制 SignUpConfirmSheet 文案分支
+    var requiresApproval: Bool = false
 
     /// 从 MatchDetailData 构造，便于 MatchDetailView 复用共享报名组件
     init(from detail: MatchDetailData) {
@@ -43,12 +45,14 @@ struct SignUpMatchInfo: Identifiable {
         self.timeRange = detail.timeRange
         self.startDate = detail.startDate
         self.endDate = detail.endDate
+        self.requiresApproval = detail.requiresApproval
     }
 
     init(organizerName: String, organizerGender: Gender, dateTime: String,
          location: String, matchType: String, ntrpRange: String,
          fee: String, notes: String, players: String, isFull: Bool,
-         startDate: Date, endDate: Date) {
+         startDate: Date, endDate: Date,
+         requiresApproval: Bool = false) {
         self.organizerName = organizerName
         self.organizerGender = organizerGender
         self.dateTime = dateTime
@@ -61,5 +65,6 @@ struct SignUpMatchInfo: Identifiable {
         self.isFull = isFull
         self.startDate = startDate
         self.endDate = endDate
+        self.requiresApproval = requiresApproval
     }
 }
