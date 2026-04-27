@@ -181,7 +181,7 @@ struct CreateMatchView: View {
             datePillRow
 
             if showDatePicker {
-                wheelDatePicker
+                calendarDatePicker
                     .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
@@ -231,40 +231,23 @@ struct CreateMatchView: View {
         }
     }
 
-    private var wheelDatePicker: some View {
-        VStack(spacing: Spacing.sm) {
-            DatePicker(
-                "",
-                selection: Binding(
-                    get: { selectedDate },
-                    set: { newValue in
-                        selectedDate = newValue
-                        dateWasEdited = true
-                    }
-                ),
-                in: Calendar.current.startOfDay(for: .now)...,
-                displayedComponents: .date
-            )
-            .datePickerStyle(.wheel)
-            .labelsHidden()
-            .frame(maxWidth: .infinity)
-            .frame(height: 160)
-
-            HStack {
-                Spacer()
-                Button {
+    private var calendarDatePicker: some View {
+        DatePicker(
+            "",
+            selection: Binding(
+                get: { selectedDate },
+                set: { newValue in
+                    selectedDate = newValue
+                    dateWasEdited = true
                     withAnimation(.easeInOut(duration: 0.2)) { showDatePicker = false }
-                } label: {
-                    Text("完成")
-                        .font(Typography.buttonMedium)
-                        .foregroundColor(.white)
-                        .padding(.horizontal, Spacing.md)
-                        .frame(height: 36)
-                        .background(Theme.primary)
-                        .clipShape(Capsule())
                 }
-            }
-        }
+            ),
+            in: Calendar.current.startOfDay(for: .now)...,
+            displayedComponents: .date
+        )
+        .datePickerStyle(.graphical)
+        .labelsHidden()
+        .tint(Theme.primary)
         .padding(Spacing.sm)
         .background(Theme.surface)
         .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
