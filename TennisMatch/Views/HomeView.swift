@@ -16,6 +16,7 @@ struct HomeView: View {
     @Environment(TournamentStore.self) private var tournamentStore
     @Environment(NotificationStore.self) private var notificationStore
     @Environment(InviteStore.self) private var inviteStore
+    @Environment(CreditScoreStore.self) private var creditScoreStore
     @State private var showDrawer = false
     @State private var showTournaments = false
     @State private var selectedTab = 0
@@ -96,7 +97,7 @@ struct HomeView: View {
 
             // Custom tab bar
             CustomTabBar(selectedTab: $selectedTab, chatUnreadCount: chatUnreadCount) {
-                showCreateMatch = true
+                tryShowCreateMatch()
             }
 
             // 側邊抽屜
@@ -526,7 +527,7 @@ private extension HomeView {
                     .buttonStyle(.bordered)
 
                     Button("發起約球") {
-                        showCreateMatch = true
+                        tryShowCreateMatch()
                     }
                     .buttonStyle(.borderedProminent)
                     .tint(Theme.primary)
@@ -672,6 +673,15 @@ private extension HomeView {
 
     func navigateToDetail(_ match: MockMatch) {
         selectedMatchDetail = makeMatchDetail(from: match)
+    }
+
+    /// 进入「发布约球」前先做信用分门槛检查。score < 70 → toast 拦截;不开 sheet。
+    private func tryShowCreateMatch() {
+        guard creditScoreStore.canPublishMatch else {
+            conflictToast = L10n.string("信譽分 \(creditScoreStore.score) 分（< 70）暫不可發起約球")
+            return
+        }
+        showCreateMatch = true
     }
 
     func showSignUp(_ match: MockMatch) {
