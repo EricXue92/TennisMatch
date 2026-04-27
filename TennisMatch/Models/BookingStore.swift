@@ -105,6 +105,7 @@ final class BookingStore {
         applications[idx].resolvedAt = now
         applications[idx].resolvedBy = currentUserID
         applications[idx].note = note
+        promoteWaitlist(now: now)
         persist()
     }
 
@@ -116,6 +117,7 @@ final class BookingStore {
         applications[idx].status = .cancelledBySelf
         applications[idx].resolvedAt = now
         applications[idx].resolvedBy = currentUserID
+        promoteWaitlist(now: now)
         persist()
     }
 
@@ -203,6 +205,35 @@ final class BookingStore {
                 localApproved[match.id] = count + 1
             } else {
                 applications[idx].status = .waitlisted
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+            }
+        }
+        persist()
+    }
+
+    // MARK: - Fallback: waitlist promotion
+
+    func promoteWaitlist(now: Date = .now) {
+        let matchIDs = Set(applications.compactMap {
+            $0.status == .waitlisted ? $0.matchID : nil
+        })
+        for matchID in matchIDs {
+            guard let match = matches[matchID], match.startDate >= now else { continue }
+            let cap = max(0, match.maxPlayers - 1)
+            let approvedNow = approvedCount(for: matchID)
+            let slots = cap - approvedNow
+            guard slots > 0 else { continue }
+
+            let queueIdx = applications
+                .enumerated()
+                .filter { $0.element.matchID == matchID && $0.element.status == .waitlisted }
+                .sorted { $0.element.appliedAt < $1.element.appliedAt }
+                .prefix(slots)
+                .map { $0.offset }
+
+            for idx in queueIdx {
+                applications[idx].status = .approved
                 applications[idx].resolvedAt = now
                 applications[idx].resolvedBy = nil
             }
