@@ -741,7 +741,9 @@ private extension HomeView {
                 MatchParticipant(name: hostName, gender: hostGender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
             ],
             isOwnMatch: match.isOwnMatch,
-            requiresApproval: match.requiresApproval
+            requiresApproval: match.requiresApproval,
+            hostID: match.hostID,
+            approvalDeadline: match.approvalDeadline
         )
     }
 
