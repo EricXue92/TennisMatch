@@ -66,6 +66,10 @@ final class BookingStore {
         matches.removeValue(forKey: matchID)
     }
 
+    func match(for matchID: UUID) -> MockMatch? {
+        matches[matchID]
+    }
+
     // MARK: - Apply
 
     @discardableResult
