@@ -40,8 +40,6 @@ struct CreateMatchView: View {
     @State private var selectedStartTime = "09:00"
     @State private var selectedEndTime = "10:00"
     @State private var showDatePicker = false
-    @State private var showStartTimePicker = false
-    @State private var showEndTimePicker = false
     @State private var selectedCourt: TennisCourt?
     @State private var showCourtPicker = false
     @State private var ntrpLow: Double = 2.5
@@ -52,7 +50,6 @@ struct CreateMatchView: View {
     @State private var costType: String = "AA制"
     @State private var costAmount: String = ""
     @State private var notes: String = ""
-    @State private var requiresApproval: Bool = false
     @State private var validationToast: String?
 
     // MARK: - Court picker bridge
@@ -130,8 +127,6 @@ struct CreateMatchView: View {
             sectionDivider
             levelSection
             sectionDivider
-            approvalSection
-            sectionDivider
             genderSection
             sectionDivider
             costSection
@@ -178,157 +173,295 @@ struct CreateMatchView: View {
     // MARK: - Date & Time
 
     private var dateTimeSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("日期與時間")
                 .font(Typography.labelSemibold)
                 .foregroundColor(Theme.textPrimary)
 
-            // Date
-            Button {
-                showDatePicker.toggle()
-                showStartTimePicker = false
-                showEndTimePicker = false
-            } label: {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: "calendar")
-                        .font(Typography.bodyMedium)
-                        .foregroundColor(Theme.textPrimary)
-                    Text(dateFormatted)
-                        .font(Typography.caption)
-                        .foregroundColor(dateWasEdited ? Theme.textPrimary : Theme.textSecondary)
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .frame(height: 44)
-                .padding(.horizontal, Spacing.sm)
-                .background(Theme.surface)
-                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8, style: .continuous)
-                        .stroke(Theme.border, lineWidth: 1)
-                )
-            }
+            datePillRow
 
             if showDatePicker {
-                DatePicker("", selection: $selectedDate, in: Date()..., displayedComponents: .date)
-                    .datePickerStyle(.graphical)
-                    .tint(Theme.primary)
-                    .onChange(of: selectedDate) { _, _ in
-                        dateWasEdited = true
-                        showDatePicker = false
-                    }
+                wheelDatePicker
+                    .transition(.opacity.combined(with: .move(edge: .top)))
             }
 
-            // Time range
+            timeRangeRow
+
+            if let picker = activeTimePicker {
+                wheelTimePicker(for: picker)
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.2), value: showDatePicker)
+        .animation(.easeInOut(duration: 0.2), value: activeTimePicker)
+    }
+
+    // MARK: - Date · 滚轮选择
+
+    private var datePillRow: some View {
+        Button {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                showDatePicker.toggle()
+                if showDatePicker { activeTimePicker = nil }
+            }
+        } label: {
             HStack(spacing: Spacing.sm) {
-                Button {
-                    showStartTimePicker.toggle()
-                    showEndTimePicker = false
-                    showDatePicker = false
-                } label: {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "clock")
-                            .font(Typography.bodyMedium)
-                            .foregroundColor(Theme.textPrimary)
-                        Text(startTimeEdited ? selectedStartTime : "開始時間")
-                            .font(Typography.caption)
-                            .foregroundColor(startTimeEdited ? Theme.textPrimary : Theme.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: 44)
-                    .padding(.horizontal, Spacing.sm)
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Theme.border, lineWidth: 1)
-                    )
+                Image(systemName: "calendar")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(showDatePicker ? Theme.primary : Theme.textSecondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("日期")
+                        .font(Typography.micro)
+                        .foregroundColor(showDatePicker ? Theme.primary : Theme.textSecondary)
+                    Text(dateWasEdited ? dateFormatted : "選擇日期")
+                        .font(.system(.title3, design: .rounded).weight(.semibold))
+                        .foregroundColor(dateWasEdited ? Theme.textPrimary : Theme.textSecondary)
                 }
-
-                Text("~")
-                    .font(Typography.bodyMedium)
-                    .foregroundColor(Theme.textSecondary)
-
-                Button {
-                    showEndTimePicker.toggle()
-                    showStartTimePicker = false
-                    showDatePicker = false
-                } label: {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "clock")
-                            .font(Typography.bodyMedium)
-                            .foregroundColor(Theme.textPrimary)
-                        Text(endTimeEdited ? selectedEndTime : "結束時間")
-                            .font(Typography.caption)
-                            .foregroundColor(endTimeEdited ? Theme.textPrimary : Theme.textSecondary)
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: 44)
-                    .padding(.horizontal, Spacing.sm)
-                    .background(Theme.surface)
-                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8, style: .continuous)
-                            .stroke(Theme.border, lineWidth: 1)
-                    )
-                }
+                Spacer()
             }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(showDatePicker ? Theme.chipSelectedBg : Theme.surfaceMuted)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(showDatePicker ? Theme.primary : Theme.border,
+                            lineWidth: showDatePicker ? 1.5 : 1)
+            )
+        }
+    }
 
-            if showStartTimePicker {
-                VStack(spacing: 0) {
-                    HStack {
-                        Spacer()
-                        Button("完成") {
-                            showStartTimePicker = false
-                        }
-                        .font(Typography.bodyMedium)
-                        .foregroundColor(Theme.primary)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .padding(.trailing, Spacing.sm)
+    private var wheelDatePicker: some View {
+        VStack(spacing: Spacing.sm) {
+            DatePicker(
+                "",
+                selection: Binding(
+                    get: { selectedDate },
+                    set: { newValue in
+                        selectedDate = newValue
+                        dateWasEdited = true
                     }
-                    Picker("", selection: $selectedStartTime) {
-                        ForEach(timeSlots, id: \.self) { slot in
-                            Text(slot).tag(slot)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .labelsHidden()
-                    .onChange(of: selectedStartTime) { _, newValue in
-                        startTimeEdited = true
-                        if selectedEndTime <= newValue {
-                            if let idx = timeSlots.firstIndex(of: newValue), idx + 1 < timeSlots.count {
-                                selectedEndTime = timeSlots[idx + 1]
-                                endTimeEdited = true
-                            }
-                        }
-                    }
-                }
-            }
+                ),
+                in: Calendar.current.startOfDay(for: .now)...,
+                displayedComponents: .date
+            )
+            .datePickerStyle(.wheel)
+            .labelsHidden()
+            .frame(maxWidth: .infinity)
+            .frame(height: 160)
 
-            if showEndTimePicker {
-                VStack(spacing: 0) {
-                    HStack {
-                        Spacer()
-                        Button("完成") {
-                            showEndTimePicker = false
-                        }
-                        .font(Typography.bodyMedium)
-                        .foregroundColor(Theme.primary)
-                        .frame(minWidth: 44, minHeight: 44)
-                        .padding(.trailing, Spacing.sm)
-                    }
-                    Picker("", selection: $selectedEndTime) {
-                        ForEach(endTimeSlots, id: \.self) { slot in
-                            Text(slot).tag(slot)
-                        }
-                    }
-                    .pickerStyle(.wheel)
-                    .labelsHidden()
-                    .onChange(of: selectedEndTime) { _, _ in
-                        endTimeEdited = true
-                    }
+            HStack {
+                Spacer()
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { showDatePicker = false }
+                } label: {
+                    Text("完成")
+                        .font(Typography.buttonMedium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.md)
+                        .frame(height: 36)
+                        .background(Theme.primary)
+                        .clipShape(Capsule())
                 }
             }
         }
+        .padding(Spacing.sm)
+        .background(Theme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Theme.divider, lineWidth: 1)
+        )
+    }
+
+    // MARK: - Time · 双 pill + 时长徽章
+
+    private var timeRangeRow: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.sm) {
+                timePill(label: "開始", value: startTimeEdited ? selectedStartTime : "—:—",
+                         active: activeTimePicker == .start, edited: startTimeEdited) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        activeTimePicker = activeTimePicker == .start ? nil : .start
+                        showDatePicker = false
+                    }
+                }
+
+                Image(systemName: "arrow.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(Theme.textSecondary)
+
+                timePill(label: "結束", value: endTimeEdited ? selectedEndTime : "—:—",
+                         active: activeTimePicker == .end, edited: endTimeEdited) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        activeTimePicker = activeTimePicker == .end ? nil : .end
+                        showDatePicker = false
+                    }
+                }
+            }
+
+            if let label = durationLabel {
+                HStack(spacing: 4) {
+                    Image(systemName: "timer")
+                        .font(.system(size: 11, weight: .medium))
+                    Text(label)
+                        .font(Typography.smallMedium)
+                }
+                .foregroundColor(Theme.primary)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, 4)
+                .background(Theme.chipSelectedBg)
+                .clipShape(Capsule())
+                .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            }
+        }
+        .animation(.easeInOut(duration: 0.18), value: durationLabel)
+    }
+
+    private func timePill(label: String, value: String, active: Bool, edited: Bool,
+                          action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text(label)
+                    .font(Typography.micro)
+                    .foregroundColor(active ? Theme.primary : Theme.textSecondary)
+                Text(value)
+                    .font(.system(.title3, design: .rounded).weight(.semibold))
+                    .foregroundColor(edited ? Theme.textPrimary : Theme.textSecondary)
+                    .monospacedDigit()
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(active ? Theme.chipSelectedBg : Theme.surfaceMuted)
+            .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 12, style: .continuous)
+                    .stroke(active ? Theme.primary : Theme.border, lineWidth: active ? 1.5 : 1)
+            )
+        }
+    }
+
+    // MARK: - 滚轮时间选择器
+
+    private func wheelTimePicker(for which: TimePickerKind) -> some View {
+        let isStart = which == .start
+        let slots: [String] = isStart
+            ? timeSlots.filter { !isSlotPast($0) }
+            : timeSlots.filter { $0 > selectedStartTime }
+        let currentValue = isStart ? selectedStartTime : selectedEndTime
+        let binding = Binding<String>(
+            get: { slots.contains(currentValue) ? currentValue : (slots.first ?? currentValue) },
+            set: { newValue in
+                if isStart {
+                    selectedStartTime = newValue
+                    startTimeEdited = true
+                    if let bumped = bumpedEndIfNeeded(after: newValue) {
+                        selectedEndTime = bumped
+                        endTimeEdited = true
+                    }
+                } else {
+                    selectedEndTime = newValue
+                    endTimeEdited = true
+                }
+            }
+        )
+
+        return VStack(spacing: Spacing.sm) {
+            Picker("", selection: binding) {
+                ForEach(slots, id: \.self) { slot in
+                    Text(slot)
+                        .font(.system(.body, design: .rounded).weight(.medium))
+                        .monospacedDigit()
+                        .tag(slot)
+                }
+            }
+            .pickerStyle(.wheel)
+            .frame(maxWidth: .infinity)
+            .frame(height: 160)
+
+            HStack {
+                Spacer()
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { activeTimePicker = nil }
+                } label: {
+                    Text("完成")
+                        .font(Typography.buttonMedium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, Spacing.md)
+                        .frame(height: 36)
+                        .background(Theme.primary)
+                        .clipShape(Capsule())
+                }
+            }
+        }
+        .padding(Spacing.sm)
+        .background(Theme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
+        .overlay(
+            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                .stroke(Theme.divider, lineWidth: 1)
+        )
+    }
+
+    private func isSlotPast(_ slot: String) -> Bool {
+        let p = parseTime(slot)
+        return isMinutePast(hour: p.hour, minute: p.minute)
+    }
+
+    // MARK: - Time helpers
+
+    private enum TimePickerKind { case start, end }
+    @State private var activeTimePicker: TimePickerKind?
+
+    private func parseTime(_ s: String) -> (hour: Int, minute: Int) {
+        let parts = s.split(separator: ":")
+        guard parts.count == 2,
+              let h = Int(parts[0]),
+              let m = Int(parts[1]) else { return (10, 0) }
+        return (h, m)
+    }
+
+    private func formatTime(hour: Int, minute: Int) -> String {
+        String(format: "%02d:%02d", hour, minute)
+    }
+
+    private func bumpedEndIfNeeded(after start: String) -> String? {
+        guard let startIdx = timeSlots.firstIndex(of: start),
+              startIdx + 1 < timeSlots.count else { return nil }
+        if !endTimeEdited || selectedEndTime <= start {
+            return timeSlots[min(startIdx + 2, timeSlots.count - 1)] // 默认 +1h
+        }
+        return nil
+    }
+
+    private var selectedIsToday: Bool {
+        Calendar.current.isDateInToday(selectedDate)
+    }
+
+    /// 選的是「今天」時,該 hour:minute 是否已經過去。
+    private func isMinutePast(hour: Int, minute: Int) -> Bool {
+        guard selectedIsToday else { return false }
+        let cal = Calendar.current
+        let now = Date()
+        let nowHour = cal.component(.hour, from: now)
+        let nowMinute = cal.component(.minute, from: now)
+        if hour < nowHour { return true }
+        if hour > nowHour { return false }
+        return minute <= nowMinute
+    }
+
+    private var durationLabel: String? {
+        guard startTimeEdited, endTimeEdited,
+              let s = timeSlots.firstIndex(of: selectedStartTime),
+              let e = timeSlots.firstIndex(of: selectedEndTime),
+              e > s else { return nil }
+        let halves = e - s
+        let hours = Double(halves) / 2
+        if hours.truncatingRemainder(dividingBy: 1) == 0 {
+            return "時長 \(Int(hours)) 小時"
+        }
+        return "時長 \(hours.formatted(.number.precision(.fractionLength(1)))) 小時"
     }
 
     @State private var dateWasEdited = false
@@ -402,81 +535,6 @@ struct CreateMatchView: View {
 
             NTRPRangeSlider(low: $ntrpLow, high: $ntrpHigh, range: ntrpMin...ntrpMax)
         }
-    }
-
-    // MARK: - Approval
-
-    private var approvalSection: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Toggle(isOn: $requiresApproval) {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("需要我審核報名者")
-                        .font(Typography.labelSemibold)
-                        .foregroundColor(Theme.textPrimary)
-                    Text("開啟後,報名者需等你接受;最晚賽前 12h 系統自動通過,夜間不打擾。")
-                        .font(Typography.caption)
-                        .foregroundColor(Theme.textSecondary)
-                }
-            }
-            .tint(Theme.primary)
-            .disabled(!canEnableApproval)
-
-            if showLeadTimeWarn {
-                Text("時間太短,無法開啟審核")
-                    .font(Typography.caption)
-                    .foregroundColor(.orange)
-            } else if requiresApproval,
-                      let deadline = computedDeadline,
-                      let start = composedStartDate {
-                Text("將於賽前 \(leadTimeText(start: start, deadline: deadline))（\(deadline, format: .dateTime.month().day().hour().minute())）自動處理")
-                    .font(Typography.caption)
-                    .foregroundColor(Theme.textSecondary)
-            }
-        }
-    }
-
-    /// 由 selectedDate + selectedStartTime 拼出的开始绝对时间。
-    /// 用户尚未选完日期/时间时返回 nil — UI 据此关闭开关。
-    private var composedStartDate: Date? {
-        guard dateWasEdited && startTimeEdited else { return nil }
-        let hourStr = selectedStartTime.prefix(2)
-        let minuteStr = selectedStartTime.dropFirst(3).prefix(2)
-        guard let hour = Int(hourStr), let minute = Int(minuteStr) else { return nil }
-        var comps = Calendar.current.dateComponents([.year, .month, .day], from: selectedDate)
-        comps.hour = hour
-        comps.minute = minute
-        return Calendar.current.date(from: comps)
-    }
-
-    private var canEnableApproval: Bool {
-        guard let start = composedStartDate else { return false }
-        return ApprovalDeadlineCalculator.canEnableApproval(publishedAt: .now, startDate: start)
-    }
-
-    /// 已选完日期/时间但 lead time 太短 — 才显示橙色提示。
-    /// 还没选时不提示,避免一进表单就看到红字。
-    private var showLeadTimeWarn: Bool {
-        composedStartDate != nil && !canEnableApproval
-    }
-
-    private var computedDeadline: Date? {
-        guard let start = composedStartDate else { return nil }
-        return ApprovalDeadlineCalculator.deadline(
-            requiresApproval: requiresApproval,
-            publishedAt: .now,
-            startDate: start
-        )
-    }
-
-    /// caption 用「赛前 Xh Ym / Xm」相对描述,避免「凌晨 1:59 自动处理」
-    /// 这样令人困惑的绝对时间。绝对时间还是括号里给一份。
-    private func leadTimeText(start: Date, deadline: Date) -> String {
-        let totalMinutes = max(0, Int((start.timeIntervalSince(deadline) / 60).rounded()))
-        let hours = totalMinutes / 60
-        let minutes = totalMinutes % 60
-        if hours == 0 { return "\(minutes) 分鐘" }
-        if minutes == 0 { return "\(hours) 小時" }
-        return "\(hours) 小時 \(minutes) 分"
     }
 
     // MARK: - Gender
@@ -701,8 +759,8 @@ struct CreateMatchView: View {
             costType: costType,
             costAmount: costAmount,
             notes: notes,
-            requiresApproval: requiresApproval && canEnableApproval,
-            approvalDeadline: computedDeadline
+            requiresApproval: false,
+            approvalDeadline: nil
         )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         showConfirmation = false
