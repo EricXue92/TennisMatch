@@ -24,15 +24,15 @@
 
 ### 7-Step Roadmap
 
-| Step           | 范围                                                  | 涵盖 Task  | 状态            |
-| -------------- | ----------------------------------------------------- | ---------- | --------------- |
-| ① 收尾 Phase A | UserProfile.id + MatchRegistrant 抽离                 | 4, 5       | ✅ done         |
-| ② 收尾 Phase B | MockMatch 加 hostID/requiresApproval/approvalDeadline | 6          | ✅ done         |
-| ③ Phase C-上   | BookingStore 骨架 + apply/approve/reject              | 8, 9       | ✅ done         |
-| ④ Phase C-下   | deadline / waitlist / 去抖(TDD 核心)                  | 10, 11, 12 | ⚠️ 只差 Task 12 |
-| ⑤ Phase D      | View 全量迁移到 applications                          | 13–17      | ⬜ todo         |
-| ⑥ Phase E      | 新 UI:CreateMatch / MatchDetail host 区块 / 通知      | 18, 19, 20 | ⬜ todo         |
-| ⑦ Phase F      | scenePhase + debug + 全测 + 手动 checklist            | 21, 22, 23 | ⬜ todo         |
+| Step           | 范围                                                  | 涵盖 Task  | 状态    |
+| -------------- | ----------------------------------------------------- | ---------- | ------- |
+| ① 收尾 Phase A | UserProfile.id + MatchRegistrant 抽离                 | 4, 5       | ✅ done |
+| ② 收尾 Phase B | MockMatch 加 hostID/requiresApproval/approvalDeadline | 6          | ✅ done |
+| ③ Phase C-上   | BookingStore 骨架 + apply/approve/reject              | 8, 9       | ✅ done |
+| ④ Phase C-下   | deadline / waitlist / 去抖(TDD 核心)                  | 10, 11, 12 | ✅ done |
+| ⑤ Phase D      | View 全量迁移到 applications                          | 13–17      | ⬜ todo |
+| ⑥ Phase E      | 新 UI:CreateMatch / MatchDetail host 区块 / 通知      | 18, 19, 20 | ⬜ todo |
+| ⑦ Phase F      | scenePhase + debug + 全测 + 手动 checklist            | 21, 22, 23 | ⬜ todo |
 
 > Tasks 1–11 在 2026-04-26 期间已先在 `feat/confirm-fallback` 分支完成,后于 main 上重做了 Task 2/3/7(commit `547e9a9`、`c83bc9d`)— 这两笔与本分支内容重复,合并到 main 时统一处理。
 
@@ -49,7 +49,7 @@
 - ✅ Task 9 · approve / reject / cancelApplication API(commit `fb31750`)
 - ✅ Task 10 · runApprovalDeadlines(commit `589d0ce`)
 - ✅ Task 11 · promoteWaitlist(commit `8d9a77d`)
-- ⬜ Task 12 · runFallbackChecks + 去抖
+- ✅ Task 12 · runFallbackChecks + 去抖(commit `66e44ae`,13/13 测试 PASS)
 - ⬜ Task 13 · HomeView 改用 apply
 - ⬜ Task 14 · SignUpConfirmSheet 文案分支
 - ⬜ Task 15 · MyMatchesView 消费 applications + pending 卡片
@@ -65,6 +65,7 @@
 ### 进度日志
 
 - **2026-04-27**:核对发现旧分支已完成 Tasks 1–11(11 commits,26 测试 PASS),复用之;后续从 Task 12 起在 `feat/confirm-fallback` 上推进。
+- **2026-04-27**:Task 12(runFallbackChecks + 2s 去抖)完成 — commit `66e44ae`,subagent 实现,13/13 PASS。Phase C 整段收尾 ✅。下一步 Step ⑤ Phase D。
 
 ---
 
