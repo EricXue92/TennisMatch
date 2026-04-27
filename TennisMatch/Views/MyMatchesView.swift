@@ -426,6 +426,9 @@ struct MyMatchesView: View {
             }
         }
         .background(Theme.inputBg)
+        .onAppear {
+            bookingStore.runFallbackChecks()
+        }
         .navigationDestination(item: $selectedChat) { chat in
             ChatDetailView(
                 chat: chat,
@@ -937,6 +940,20 @@ private extension MyMatchesView {
                     .background(Theme.primary)
                     .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
             }
+            #if DEBUG
+            Menu {
+                Button("⏩ 跳到所有 deadline 之後") {
+                    bookingStore.runFallbackChecks(now: .now.addingTimeInterval(365 * 24 * 3600))
+                }
+                Button("🔧 強制遞補 waitlist") {
+                    bookingStore.promoteWaitlist()
+                }
+            } label: {
+                Text("🔧")
+                    .font(.system(size: 18))
+            }
+            .accessibilityLabel("Debug menu")
+            #endif
         }
         .padding(.horizontal, Spacing.md)
         .padding(.vertical, Spacing.md)

@@ -413,7 +413,7 @@ struct CreateMatchView: View {
                     Text("需要我審核報名者")
                         .font(Typography.labelSemibold)
                         .foregroundColor(Theme.textPrimary)
-                    Text("開啟後,報名者需等你接受;12h 內未處理,系統自動通過。")
+                    Text("開啟後,報名者需等你接受;最晚賽前 12h 系統自動通過,夜間不打擾。")
                         .font(Typography.caption)
                         .foregroundColor(Theme.textSecondary)
                 }
@@ -425,8 +425,10 @@ struct CreateMatchView: View {
                 Text("時間太短,無法開啟審核")
                     .font(Typography.caption)
                     .foregroundColor(.orange)
-            } else if requiresApproval, let deadline = computedDeadline {
-                Text("將於 \(deadline, format: .dateTime.month().day().hour().minute()) 自動處理")
+            } else if requiresApproval,
+                      let deadline = computedDeadline,
+                      let start = composedStartDate {
+                Text("將於賽前 \(leadTimeText(start: start, deadline: deadline))（\(deadline, format: .dateTime.month().day().hour().minute())）自動處理")
                     .font(Typography.caption)
                     .foregroundColor(Theme.textSecondary)
             }
@@ -464,6 +466,17 @@ struct CreateMatchView: View {
             publishedAt: .now,
             startDate: start
         )
+    }
+
+    /// caption 用「赛前 Xh Ym / Xm」相对描述,避免「凌晨 1:59 自动处理」
+    /// 这样令人困惑的绝对时间。绝对时间还是括号里给一份。
+    private func leadTimeText(start: Date, deadline: Date) -> String {
+        let totalMinutes = max(0, Int((start.timeIntervalSince(deadline) / 60).rounded()))
+        let hours = totalMinutes / 60
+        let minutes = totalMinutes % 60
+        if hours == 0 { return "\(minutes) 分鐘" }
+        if minutes == 0 { return "\(hours) 小時" }
+        return "\(hours) 小時 \(minutes) 分"
     }
 
     // MARK: - Gender

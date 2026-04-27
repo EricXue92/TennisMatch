@@ -23,6 +23,7 @@ struct TennisMatchApp: App {
     @State private var ratingFeedbackStore = RatingFeedbackStore()
     @State private var tournamentStore = TournamentStore()
     @State private var inviteStore = InviteStore()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -57,6 +58,11 @@ struct TennisMatchApp: App {
                 if !didWireNotifications {
                     bookingStore.notificationStore = notificationStore
                     didWireNotifications = true
+                }
+            }
+            .onChange(of: scenePhase) { _, new in
+                if new == .active {
+                    bookingStore.runFallbackChecks()
                 }
             }
         }

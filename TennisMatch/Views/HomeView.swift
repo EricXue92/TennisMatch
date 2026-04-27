@@ -213,6 +213,9 @@ struct HomeView: View {
         .overlay(alignment: .top) {
             calendarToastBanner($conflictToast, systemImage: "exclamationmark.triangle.fill")
         }
+        .onAppear {
+            bookingStore.runFallbackChecks()
+        }
     }
 
     // MARK: - Home Tab
