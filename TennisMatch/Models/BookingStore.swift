@@ -172,6 +172,44 @@ final class BookingStore {
         return nil
     }
 
+    // MARK: - Fallback: deadline scan
+
+    func runApprovalDeadlines(now: Date = .now) {
+        let pendingSorted = applications
+            .enumerated()
+            .filter { $0.element.status == .pendingReview }
+            .sorted { $0.element.appliedAt < $1.element.appliedAt }
+
+        // 单 match 局部计数缓存(避免遍历过程中 approvedCount 抖动)
+        var localApproved: [UUID: Int] = [:]
+
+        for (idx, app) in pendingSorted {
+            guard let match = matches[app.matchID] else { continue }
+            guard let deadline = match.approvalDeadline, now >= deadline else { continue }
+
+            if match.startDate < now {
+                applications[idx].status = .expired
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                continue
+            }
+
+            let count = localApproved[match.id] ?? approvedCount(for: match.id)
+            let cap = max(0, match.maxPlayers - 1)   // 减去 host 自己
+            if count < cap {
+                applications[idx].status = .autoApproved
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                localApproved[match.id] = count + 1
+            } else {
+                applications[idx].status = .waitlisted
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+            }
+        }
+        persist()
+    }
+
     // MARK: - Helpers
 
     static func occupiesSlot(_ status: BookingApprovalStatus) -> Bool {

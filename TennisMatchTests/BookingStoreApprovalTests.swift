@@ -89,4 +89,83 @@ final class BookingStoreApprovalTests: XCTestCase {
 
         XCTAssertEqual(store.applications.first?.status, .approved)
     }
+
+    func test_runApprovalDeadlines_autoApprovesPendingWithSlot() {
+        let match = MockBuilders.match(maxPlayers: 4, currentPlayers: 1)
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: match.hostID)
+        store._testInsert(app)
+
+        let afterDeadline = match.approvalDeadline!.addingTimeInterval(60)
+        store.runApprovalDeadlines(now: afterDeadline)
+
+        XCTAssertEqual(store.applications.first?.status, .autoApproved)
+    }
+
+    func test_runApprovalDeadlines_waitlistsWhenFull() {
+        let match = MockBuilders.match(maxPlayers: 4, currentPlayers: 1)
+        store.registerMatch(match)
+        for _ in 0..<4 {
+            store._testInsert(MockBuilders.application(matchID: match.id, hostID: match.hostID))
+        }
+
+        let afterDeadline = match.approvalDeadline!.addingTimeInterval(60)
+        store.runApprovalDeadlines(now: afterDeadline)
+
+        let auto = store.applications.filter { $0.status == .autoApproved }
+        let wait = store.applications.filter { $0.status == .waitlisted }
+        XCTAssertEqual(auto.count, 3)
+        XCTAssertEqual(wait.count, 1)
+    }
+
+    func test_runApprovalDeadlines_FIFOOrder() {
+        let match = MockBuilders.match(maxPlayers: 3, currentPlayers: 1)
+        store.registerMatch(match)
+        let early = MockBuilders.application(
+            matchID: match.id, hostID: match.hostID,
+            appliedAt: MockBuilders.fixedNow
+        )
+        let middle = MockBuilders.application(
+            matchID: match.id, hostID: match.hostID,
+            appliedAt: MockBuilders.fixedNow.addingTimeInterval(10)
+        )
+        let late = MockBuilders.application(
+            matchID: match.id, hostID: match.hostID,
+            appliedAt: MockBuilders.fixedNow.addingTimeInterval(20)
+        )
+        // Insert in deliberately scrambled order
+        store._testInsert(late)
+        store._testInsert(early)
+        store._testInsert(middle)
+
+        let afterDeadline = match.approvalDeadline!.addingTimeInterval(60)
+        store.runApprovalDeadlines(now: afterDeadline)
+
+        XCTAssertEqual(store.applications.first(where: { $0.id == early.id })?.status, .autoApproved)
+        XCTAssertEqual(store.applications.first(where: { $0.id == middle.id })?.status, .autoApproved)
+        XCTAssertEqual(store.applications.first(where: { $0.id == late.id })?.status, .waitlisted)
+    }
+
+    func test_runApprovalDeadlines_expiresWhenMatchPassed() {
+        let match = MockBuilders.match()
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: match.hostID)
+        store._testInsert(app)
+
+        store.runApprovalDeadlines(now: match.startDate.addingTimeInterval(60))
+
+        XCTAssertEqual(store.applications.first?.status, .expired)
+    }
+
+    func test_runApprovalDeadlines_skipsBeforeDeadline() {
+        let match = MockBuilders.match()
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: match.hostID)
+        store._testInsert(app)
+
+        let beforeDeadline = match.approvalDeadline!.addingTimeInterval(-60)
+        store.runApprovalDeadlines(now: beforeDeadline)
+
+        XCTAssertEqual(store.applications.first?.status, .pendingReview)
+    }
 }
