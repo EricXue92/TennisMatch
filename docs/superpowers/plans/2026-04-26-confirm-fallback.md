@@ -32,7 +32,7 @@
 | ④ Phase C-下   | deadline / waitlist / 去抖(TDD 核心)                  | 10, 11, 12 | ✅ done                      |
 | ⑤ Phase D      | View 全量迁移到 applications                          | 13–17      | 🟡 13–16 ✅;Task 17 deferred |
 | ⑥ Phase E      | 新 UI:CreateMatch / MatchDetail host 区块 / 通知      | 18, 19, 20 | ✅ done                      |
-| ⑦ Phase F      | scenePhase + debug + 全测 + 手动 checklist            | 21, 22, 23 | ⬜ todo                      |
+| ⑦ Phase F      | scenePhase + debug + 全测 + 手动 checklist            | 21, 22, 23 | ✅ done                      |
 
 > Tasks 1–11 在 2026-04-26 期间已先在 `feat/confirm-fallback` 分支完成,后于 main 上重做了 Task 2/3/7(commit `547e9a9`、`c83bc9d`)— 这两笔与本分支内容重复,合并到 main 时统一处理。
 
@@ -58,9 +58,9 @@
 - ✅ Task 18 · CreateMatchView「审核报名」section(commit `824a697`;`PublishedMatchInfo` 增 `requiresApproval`/`approvalDeadline`,`HomeView.addPublishedMatch` 透传 + `hostID = userStore.id`)
 - ✅ Task 19 · MatchDetailView host 审核区块(commit `4a0e8c5`;`MatchDetailData` 增 `hostID`/`approvalDeadline`,`hostReviewCard` 显示 pending+waitlist,< 2h 橙色 banner,`onAppear` 触发 `runFallbackChecks`)
 - ✅ Task 20 · NotificationStore kinds + coalesceKey(commit `0534d6c`;6 种 `NotificationKind` + `coalesceKey`,`NotificationStore.upsert`/`markSeen`,BookingStore weak `notificationStore` 注入,`apply`/`reject`/`runApprovalDeadlines`/`promoteWaitlist` 各转换点发通知,`TennisMatchApp.task` 接线,host 进入 detail 时 `markSeen`)
-- ⬜ Task 21 · TennisMatchApp scenePhase 监听
-- ⬜ Task 22 · Debug 隐藏菜单
-- ⬜ Task 23 · 全量测试 + 手动 UI checklist
+- ✅ Task 21 · TennisMatchApp scenePhase 监听(commit `33bd431`)
+- ✅ Task 22 · Debug 隐藏菜单(commit `33bd431`,MyMatchesView `#if DEBUG` Menu)
+- ✅ Task 23 · 全量测试 + 手动 UI checklist(commit `270d3b8`,31 测试 PASS,手动 checklist 待人工)
 
 ### 进度日志
 
@@ -68,6 +68,8 @@
 - **2026-04-27**:Task 12(runFallbackChecks + 2s 去抖)完成 — commit `66e44ae`,subagent 实现,13/13 PASS。Phase C 整段收尾 ✅。下一步 Step ⑤ Phase D。
 - **2026-04-27**:Phase D Tasks 13–16 完成 — 4 commits(`126c2af` / `a53ea66` / `1b9d2c6` / `cf446b0`),全量 32 测试 PASS。Task 17 因 4 处 deprecated 调用尚未迁移而 deferred(MatchDetailView / MyMatchesView / ChatDetailView 的 signUp / cancel / acceptInvitation)。手动 UI checklist 待跑(每个 task 的 Step 3)。下一步 Step ⑥ Phase E。
 - **2026-04-27**:Phase E Tasks 18–20 完成 — 3 commits(`824a697` / `4a0e8c5` / `0534d6c`),`xcodebuild test` PASS(27 测试)。手动 UI checklist 待跑(发布表单 lead-time toggle / host 审核区块 / 通知合并)。下一步 Step ⑦ Phase F(Tasks 21–23)。
+- **2026-04-27**:Phase F Tasks 21–23 完成,PR #27 合并到 main(`33bd431` scenePhase + onAppear,`270d3b8` 31 测试 PASS,`00ef65b` l10n 抽取)。confirm-fallback plan 全部 task 完成(Task 17 仍 deferred)。
+- **2026-04-27**:**功能休眠** — PR #29 把 CreateMatchView 的「需要我審核報名者」開關整個拿掉了,所有發布的 match 一律 `requiresApproval: false`,不會走 pending review 流程。後端 `MatchApplication` / `BookingApprovalStatus` / `ApprovalDeadlineCalculator` / fallback 計時器原樣保留,將來若要恢復只需把 `approvalSection` 加回 + 恢復 `publishMatch` 內的傳值。
 
 ---
 
