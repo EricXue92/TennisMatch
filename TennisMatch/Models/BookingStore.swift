@@ -212,6 +212,17 @@ final class BookingStore {
         persist()
     }
 
+    // MARK: - Fallback driver
+
+    /// 触发器入口。HomeView/MyMatchesView/MatchDetailView onAppear + scenePhase=.active 调用。
+    /// 2s 去抖 — 同秒多次 onAppear 不会重复扫描。
+    func runFallbackChecks(now: Date = .now) {
+        guard now.timeIntervalSince(lastFallbackRunAt) > Self.debounceInterval else { return }
+        lastFallbackRunAt = now
+        runApprovalDeadlines(now: now)
+        promoteWaitlist(now: now)
+    }
+
     // MARK: - Fallback: waitlist promotion
 
     func promoteWaitlist(now: Date = .now) {
@@ -366,6 +377,13 @@ extension BookingStore {
     /// 仅供单元测试插入 MatchApplication。生产代码勿用。
     func _testInsert(_ app: MatchApplication) {
         applications.append(app)
+        persist()
+    }
+
+    /// 仅供单元测试修改 MatchApplication 状态。生产代码勿用。
+    func _testSetStatus(_ status: BookingApprovalStatus, forApplicationID id: UUID) {
+        guard let idx = applications.firstIndex(where: { $0.id == id }) else { return }
+        applications[idx].status = status
         persist()
     }
 }

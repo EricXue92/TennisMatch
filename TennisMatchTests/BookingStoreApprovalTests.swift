@@ -168,4 +168,26 @@ final class BookingStoreApprovalTests: XCTestCase {
 
         XCTAssertEqual(store.applications.first?.status, .pendingReview)
     }
+
+    func test_runFallbackChecks_debounceWithin2s_skips() {
+        let match = MockBuilders.match()
+        store.registerMatch(match)
+        let app = MockBuilders.application(matchID: match.id, hostID: match.hostID)
+        store._testInsert(app)
+
+        let afterDeadline = match.approvalDeadline!.addingTimeInterval(60)
+        store.runFallbackChecks(now: afterDeadline)
+        // 第一次应通过
+        XCTAssertEqual(store.applications.first?.status, .autoApproved)
+
+        // 重置回 pendingReview 模拟新一轮 — 1s 后再调
+        store._testSetStatus(.pendingReview, forApplicationID: app.id)
+        store.runFallbackChecks(now: afterDeadline.addingTimeInterval(1))
+        // 第二次应被去抖跳过 — 状态不动
+        XCTAssertEqual(store.applications.first?.status, .pendingReview)
+
+        // 3s 后应放行
+        store.runFallbackChecks(now: afterDeadline.addingTimeInterval(3))
+        XCTAssertEqual(store.applications.first?.status, .autoApproved)
+    }
 }
