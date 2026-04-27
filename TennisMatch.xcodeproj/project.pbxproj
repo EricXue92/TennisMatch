@@ -6,8 +6,19 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		85D875D22F9E15EC00D19F76 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 85C0945F2F93C08E002F2719 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 85C094662F93C08E002F2719;
+			remoteInfo = TennisMatch;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
 		85C094672F93C08E002F2719 /* TennisMatch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TennisMatch.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		85D875CE2F9E15EC00D19F76 /* TennisMatchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = TennisMatchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -16,10 +27,22 @@
 			path = TennisMatch;
 			sourceTree = "<group>";
 		};
+		85D875CF2F9E15EC00D19F76 /* TennisMatchTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = TennisMatchTests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		85C094642F93C08E002F2719 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		85D875CB2F9E15EC00D19F76 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -33,6 +56,7 @@
 			isa = PBXGroup;
 			children = (
 				85C094692F93C08E002F2719 /* TennisMatch */,
+				85D875CF2F9E15EC00D19F76 /* TennisMatchTests */,
 				85C094682F93C08E002F2719 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -41,6 +65,7 @@
 			isa = PBXGroup;
 			children = (
 				85C094672F93C08E002F2719 /* TennisMatch.app */,
+				85D875CE2F9E15EC00D19F76 /* TennisMatchTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -70,6 +95,29 @@
 			productReference = 85C094672F93C08E002F2719 /* TennisMatch.app */;
 			productType = "com.apple.product-type.application";
 		};
+		85D875CD2F9E15EC00D19F76 /* TennisMatchTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 85D875D62F9E15EC00D19F76 /* Build configuration list for PBXNativeTarget "TennisMatchTests" */;
+			buildPhases = (
+				85D875CA2F9E15EC00D19F76 /* Sources */,
+				85D875CB2F9E15EC00D19F76 /* Frameworks */,
+				85D875CC2F9E15EC00D19F76 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				85D875D32F9E15EC00D19F76 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				85D875CF2F9E15EC00D19F76 /* TennisMatchTests */,
+			);
+			name = TennisMatchTests;
+			packageProductDependencies = (
+			);
+			productName = TennisMatchTests;
+			productReference = 85D875CE2F9E15EC00D19F76 /* TennisMatchTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -82,6 +130,10 @@
 				TargetAttributes = {
 					85C094662F93C08E002F2719 = {
 						CreatedOnToolsVersion = 26.4.1;
+					};
+					85D875CD2F9E15EC00D19F76 = {
+						CreatedOnToolsVersion = 26.4.1;
+						TestTargetID = 85C094662F93C08E002F2719;
 					};
 				};
 			};
@@ -102,12 +154,20 @@
 			projectRoot = "";
 			targets = (
 				85C094662F93C08E002F2719 /* TennisMatch */,
+				85D875CD2F9E15EC00D19F76 /* TennisMatchTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		85C094652F93C08E002F2719 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		85D875CC2F9E15EC00D19F76 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -124,7 +184,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		85D875CA2F9E15EC00D19F76 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		85D875D32F9E15EC00D19F76 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 85C094662F93C08E002F2719 /* TennisMatch */;
+			targetProxy = 85D875D22F9E15EC00D19F76 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		85C094702F93C08F002F2719 /* Debug */ = {
@@ -310,6 +385,46 @@
 			};
 			name = Release;
 		};
+		85D875D42F9E15EC00D19F76 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xuelong.TennisMatchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TennisMatch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TennisMatch";
+			};
+			name = Debug;
+		};
+		85D875D52F9E15EC00D19F76 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.xuelong.TennisMatchTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/TennisMatch.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/TennisMatch";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -327,6 +442,15 @@
 			buildConfigurations = (
 				85C094732F93C08F002F2719 /* Debug */,
 				85C094742F93C08F002F2719 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		85D875D62F9E15EC00D19F76 /* Build configuration list for PBXNativeTarget "TennisMatchTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				85D875D42F9E15EC00D19F76 /* Debug */,
+				85D875D52F9E15EC00D19F76 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

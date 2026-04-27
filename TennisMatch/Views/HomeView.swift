@@ -126,19 +126,19 @@ struct HomeView: View {
             SignUpConfirmSheet(match: info) { message in
                 if let matchId = signUpMatchId,
                    let idx = matches.firstIndex(where: { $0.id == matchId }) {
-                    matches[idx].currentPlayers += 1
-                    let accepted = makeAcceptedMatchInfo(for: matches[idx])
-                    // showSignUp 已先做过 conflict 检查;这里 signUp 二次校验属防御性。
-                    switch bookingStore.signUp(matchID: matchId, info: accepted) {
-                    case .ok, .alreadySignedUp:
-                        break
-                    case .conflict(let label):
-                        // 极少触发(只有先后异步注入的 externalSlots 才会到这一步)。
-                        conflictToast = L10n.string("該時段已與「\(label)」衝突,請先取消已預訂的時段")
-                        if matches[idx].currentPlayers > 0 {
-                            matches[idx].currentPlayers -= 1
-                        }
+                    let match = matches[idx]
+                    bookingStore.registerMatch(match)
+                    // showSignUp 已先做过 conflict 检查;此处二次校验属防御性。
+                    if let hit = bookingStore.conflict(start: info.startDate, end: info.endDate, excluding: match.id) {
+                        conflictToast = L10n.string("該時段已與「\(hit.label)」衝突,請先取消已預訂的時段")
                         return
+                    }
+                    if bookingStore.myApplication(for: match.id) == nil {
+                        let app = bookingStore.apply(to: match)
+                        // 仅 autoConfirmed(無需審核)立即占位;pendingReview 不增加 currentPlayers
+                        if app.status == .autoConfirmed {
+                            matches[idx].currentPlayers += 1
+                        }
                     }
                 }
                 pendingSignUpMessage = message
@@ -693,7 +693,8 @@ private extension HomeView {
             players: playersStr,
             isFull: newCount >= match.maxPlayers,
             startDate: match.startDate,
-            endDate: endDate
+            endDate: endDate,
+            requiresApproval: match.requiresApproval
         )
     }
 
@@ -739,7 +740,10 @@ private extension HomeView {
             participantList: [
                 MatchParticipant(name: hostName, gender: hostGender, ntrp: String(format: "%.1f", match.ntrpLow), isOrganizer: true)
             ],
-            isOwnMatch: match.isOwnMatch
+            isOwnMatch: match.isOwnMatch,
+            requiresApproval: match.requiresApproval,
+            hostID: match.hostID,
+            approvalDeadline: match.approvalDeadline
         )
     }
 
@@ -948,7 +952,7 @@ private extension HomeView {
         default: genderLabel = "不限"
         }
 
-        let newMatch = MockMatch(
+        var newMatch = MockMatch(
             name: userStore.displayName,
             gender: userStore.gender,
             matchType: info.matchType,
@@ -967,6 +971,9 @@ private extension HomeView {
             maxPlayers: info.matchType == "雙打" ? 4 : 2,
             isOwnMatch: true
         )
+        newMatch.hostID = userStore.id
+        newMatch.requiresApproval = info.requiresApproval
+        newMatch.approvalDeadline = info.approvalDeadline
         matches.insert(newMatch, at: 0)
     }
 

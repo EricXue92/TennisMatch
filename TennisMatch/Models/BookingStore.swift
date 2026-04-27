@@ -2,24 +2,17 @@
 //  BookingStore.swift
 //  TennisMatch
 //
-//  Phase 2b: 集中管理"用户已确认/报名/外部占用"的预定状态。
-//  替代旧的 BookedSlotStore + HomeView.acceptedMatches + signedUpMatchIDs 三处分散状态。
-//
-//  - accepted:          用户已加入"我的约球"的条目(报名 + 接受邀请)。
-//  - signedUpMatchIDs:  从 accepted.sourceMatchID 派生的 O(1) 镜像,持久化到 UserDefaults。
-//  - externalSlots:     mock 阶段用来注入"已占用但不在 accepted 里"的时段(例如示例数据)。
-//  接后端时:externalSlots 由订单/邀请接口拉取,不再 mock 注入。
+//  Phase 2c: applications 作为唯一来源,替代旧 accepted[]/signedUpMatchIDs。
+//  保留 externalSlots(mock 阶段的"已占用但不在 applications 里"的时段)。
 //
 
 import Foundation
 import Observation
 
-/// 跨视图记录"已被占用的时段"。`BookingStore` 内部消费,外部少量直接构造(mock seed)。
 struct BookedSlot: Identifiable, Hashable {
     let id: UUID
     let start: Date
     let end: Date
-    /// 冲突 toast 用的人类可读描述,如 `"莎拉 04/19 10:00"`。
     let label: String
 }
 
@@ -42,71 +35,146 @@ struct ConflictHit: Equatable {
 @Observable
 @MainActor
 final class BookingStore {
-    private static let signedUpKey = "signedUpMatchIDs"
+    private static let applicationsKey = "bookingStore.applications"
+    private static let debounceInterval: TimeInterval = 2.0
 
-    /// 用户已确认参加的所有约球(报名 + 接受邀请)。
-    private(set) var accepted: [AcceptedMatchInfo] = []
+    private let currentUserID: UUID
 
-    /// `accepted` 中由"报名 MockMatch"产生的条目 → 其 sourceMatchID 集合。
-    /// 用于首页显示"已报名"徽标的 O(1) 查询。
-    private(set) var signedUpMatchIDs: Set<UUID> = []
+    /// 唯一来源。所有 view 派生消费。
+    private(set) var applications: [MatchApplication] = []
 
-    /// mock 阶段的"外部占用时段"(示例邀请、示例 booking)。
-    /// 真实业务中由后端拉取,不会从 UI 主动 add。
+    /// MockMatch 索引(运行时注入,不持久化 — match data 由 view 拥有)。
+    private var matches: [UUID: MockMatch] = [:]
+
+    /// mock 阶段的"外部占用时段"。
     private(set) var externalSlots: [BookedSlot] = []
 
-    init() {
-        loadSignedUp()
+    private var lastFallbackRunAt: Date = .distantPast
+
+    /// Phase E: 业务通知出口。weak 避免循环 — 两个 store 都是 app 生命周期单例。
+    /// 测试默认 nil,emission 全部静默 no-op。
+    weak var notificationStore: NotificationStore?
+
+    init(currentUserID: UUID) {
+        self.currentUserID = currentUserID
+        loadApplications()
     }
 
-    // MARK: - Sign up flow (报名 MockMatch)
+    // MARK: - Match registry
 
-    /// 报名一个 MockMatch。返回结果由调用方展示 toast / 跳转。
+    func registerMatch(_ match: MockMatch) {
+        matches[match.id] = match
+    }
+
+    func unregisterMatch(_ matchID: UUID) {
+        matches.removeValue(forKey: matchID)
+    }
+
+    func match(for matchID: UUID) -> MockMatch? {
+        matches[matchID]
+    }
+
+    // MARK: - Apply
+
     @discardableResult
-    func signUp(matchID: UUID, info: AcceptedMatchInfo) -> SignUpResult {
-        if signedUpMatchIDs.contains(matchID) { return .alreadySignedUp }
-        if let hit = conflict(start: info.startDate, end: info.endDate, excluding: matchID) {
-            return .conflict(label: hit.label)
+    func apply(to match: MockMatch, now: Date = .now) -> MatchApplication {
+        registerMatch(match)
+        if let existing = myApplication(for: match.id) {
+            return existing
         }
-        accepted.append(info)
-        signedUpMatchIDs.insert(matchID)
-        persistSignedUp()
-        return .ok
+        let initial: BookingApprovalStatus = match.requiresApproval ? .pendingReview : .autoConfirmed
+        let app = MatchApplication(
+            matchID: match.id,
+            applicantID: currentUserID,
+            hostID: match.hostID,
+            status: initial,
+            appliedAt: now
+        )
+        applications.append(app)
+        persist()
+        // Phase E: 入 pending → 通知 host「有人报名」。autoConfirmed 直接确认不再噪声。
+        if initial == .pendingReview {
+            notify(
+                type: .signUp,
+                kind: .applicationReceived,
+                title: "新的報名",
+                body: "有人報名你發起的\(match.matchType)約球",
+                coalesceKey: "received-\(match.id.uuidString)"
+            )
+        }
+        return app
     }
 
-    // MARK: - Invitation flow (接受邀请)
+    // MARK: - Host actions
 
-    /// 接受邀请。`info.sourceMatchID` 通常为 nil(邀请没有 MockMatch 对应)。
-    @discardableResult
-    func acceptInvitation(_ info: AcceptedMatchInfo) -> AcceptResult {
-        if let hit = conflict(start: info.startDate, end: info.endDate) {
-            return .conflict(label: hit.label)
-        }
-        accepted.append(info)
-        if let src = info.sourceMatchID {
-            signedUpMatchIDs.insert(src)
-            persistSignedUp()
-        }
-        return .ok
+    func approve(applicationID: UUID, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == applicationID }) else { return }
+        guard applications[idx].status.canTransition(to: .approved) else { return }
+        applications[idx].status = .approved
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        persist()
     }
 
-    // MARK: - Cancel
-
-    /// 取消一个 accepted 条目。返回被移除的条目(供撤销 / 业务后续处理)。
-    @discardableResult
-    func cancel(acceptedID: UUID) -> AcceptedMatchInfo? {
-        guard let idx = accepted.firstIndex(where: { $0.id == acceptedID }) else { return nil }
-        let removed = accepted.remove(at: idx)
-        if let src = removed.sourceMatchID {
-            signedUpMatchIDs.remove(src)
-            persistSignedUp()
-        }
-        return removed
+    func reject(applicationID: UUID, note: String? = nil, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == applicationID }) else { return }
+        guard applications[idx].status.canTransition(to: .rejected) else { return }
+        applications[idx].status = .rejected
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        applications[idx].note = note
+        let rejected = applications[idx]
+        promoteWaitlist(now: now)
+        persist()
+        // Phase E: applicant 收到「被拒」通知。每条独立(无 coalesce)。
+        notify(
+            type: .cancelled,
+            kind: .applicationRejected,
+            title: "報名未通過",
+            body: matchSummary(for: rejected.matchID, suffix: "的報名未獲通過"),
+            coalesceKey: nil
+        )
     }
 
-    // MARK: - External slots (mock seed only)
+    // MARK: - Applicant actions
 
-    /// 同 id 已存在则覆盖,避免重复登记。
+    func cancelApplication(_ id: UUID, now: Date = .now) {
+        guard let idx = applications.firstIndex(where: { $0.id == id }) else { return }
+        guard applications[idx].status.canTransition(to: .cancelledBySelf) else { return }
+        applications[idx].status = .cancelledBySelf
+        applications[idx].resolvedAt = now
+        applications[idx].resolvedBy = currentUserID
+        promoteWaitlist(now: now)
+        persist()
+    }
+
+    // MARK: - Queries
+
+    func myApplication(for matchID: UUID) -> MatchApplication? {
+        applications.first(where: { $0.matchID == matchID && $0.applicantID == currentUserID })
+    }
+
+    func incomingApplications(for matchID: UUID) -> [MatchApplication] {
+        applications
+            .filter { $0.matchID == matchID && $0.applicantID != currentUserID }
+            .sorted { $0.appliedAt < $1.appliedAt }
+    }
+
+    var myApprovedMatches: [UUID] {
+        applications
+            .filter { $0.applicantID == currentUserID && Self.occupiesSlot($0.status) }
+            .map(\.matchID)
+    }
+
+    func isSignedUp(matchID: UUID) -> Bool {
+        myApprovedMatches.contains(matchID) ||
+            applications.contains(where: {
+                $0.matchID == matchID && $0.applicantID == currentUserID && $0.status == .pendingReview
+            })
+    }
+
+    // MARK: - External slots
+
     func registerExternal(_ slot: BookedSlot) {
         externalSlots.removeAll { $0.id == slot.id }
         externalSlots.append(slot)
@@ -116,49 +184,305 @@ final class BookingStore {
         externalSlots.removeAll { $0.id == id }
     }
 
-    // MARK: - Queries
+    // MARK: - Conflict
 
-    func isSignedUp(matchID: UUID) -> Bool {
-        signedUpMatchIDs.contains(matchID)
-    }
-
-    /// 与 `[start, end)` 重叠的第一条占用(优先 accepted,再看 externalSlots)。
-    /// `excluding`:重新登记同一 booking 时排除自身 — 既匹配 accepted.id / sourceMatchID,也匹配 externalSlots.id。
-    /// 重叠判定: `s1 < e2 && s2 < e1`。
     func conflict(start: Date, end: Date, excluding: UUID? = nil) -> ConflictHit? {
-        if let m = accepted.first(where: { info in
-            info.id != excluding && info.sourceMatchID != excluding
-                && info.startDate < end && start < info.endDate
-        }) {
-            return ConflictHit(id: m.id, label: m.conflictLabel)
+        for app in applications where app.applicantID == currentUserID && Self.occupiesSlot(app.status) {
+            guard app.matchID != excluding,
+                  let m = matches[app.matchID] else { continue }
+            let mEnd = m.startDate.addingTimeInterval(2 * 3600)
+            if m.startDate < end && start < mEnd {
+                return ConflictHit(id: app.matchID, label: "\(m.name) \(m.dateTimeDisplay)")
+            }
         }
-        if let s = externalSlots.first(where: { slot in
-            slot.id != excluding && slot.start < end && start < slot.end
-        }) {
+        for s in externalSlots where s.id != excluding && s.start < end && start < s.end {
             return ConflictHit(id: s.id, label: s.label)
         }
         return nil
     }
 
+    // MARK: - Fallback: deadline scan
+
+    func runApprovalDeadlines(now: Date = .now) {
+        let pendingSorted = applications
+            .enumerated()
+            .filter { $0.element.status == .pendingReview }
+            .sorted { $0.element.appliedAt < $1.element.appliedAt }
+
+        // 单 match 局部计数缓存(避免遍历过程中 approvedCount 抖动)
+        var localApproved: [UUID: Int] = [:]
+
+        // Phase E: 收集本次扫描产生的状态变更,扫描结束后统一发通知(避免边迭代边写)。
+        var autoApprovedIDs: [UUID] = []
+        var expiredIDs: [UUID] = []
+
+        for (idx, app) in pendingSorted {
+            guard let match = matches[app.matchID] else { continue }
+            guard let deadline = match.approvalDeadline, now >= deadline else { continue }
+
+            if match.startDate < now {
+                applications[idx].status = .expired
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                expiredIDs.append(app.matchID)
+                continue
+            }
+
+            let count = localApproved[match.id] ?? approvedCount(for: match.id)
+            let cap = max(0, match.maxPlayers - 1)   // 减去 host 自己
+            if count < cap {
+                applications[idx].status = .autoApproved
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                localApproved[match.id] = count + 1
+                autoApprovedIDs.append(app.matchID)
+            } else {
+                applications[idx].status = .waitlisted
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                // 转 waitlist 不发通知 — 避免噪声(spec §9)。
+            }
+        }
+        persist()
+
+        // Phase E: 通知 applicant。
+        for matchID in autoApprovedIDs {
+            notify(
+                type: .accepted,
+                kind: .applicationAutoApproved,
+                title: "報名自動通過",
+                body: matchSummary(for: matchID, suffix: "已自動接受你的報名"),
+                coalesceKey: "auto-\(matchID.uuidString)"
+            )
+        }
+        for matchID in expiredIDs {
+            notify(
+                type: .cancelled,
+                kind: .applicationExpired,
+                title: "報名已過期",
+                body: matchSummary(for: matchID, suffix: "已過期,報名未處理"),
+                coalesceKey: "expired-\(matchID.uuidString)"
+            )
+        }
+    }
+
+    // MARK: - Fallback driver
+
+    /// 触发器入口。HomeView/MyMatchesView/MatchDetailView onAppear + scenePhase=.active 调用。
+    /// 2s 去抖 — 同秒多次 onAppear 不会重复扫描。
+    func runFallbackChecks(now: Date = .now) {
+        guard now.timeIntervalSince(lastFallbackRunAt) > Self.debounceInterval else { return }
+        lastFallbackRunAt = now
+        runApprovalDeadlines(now: now)
+        promoteWaitlist(now: now)
+    }
+
+    // MARK: - Fallback: waitlist promotion
+
+    func promoteWaitlist(now: Date = .now) {
+        let matchIDs = Set(applications.compactMap {
+            $0.status == .waitlisted ? $0.matchID : nil
+        })
+        var promotedMatches: [UUID] = []
+        for matchID in matchIDs {
+            guard let match = matches[matchID], match.startDate >= now else { continue }
+            let cap = max(0, match.maxPlayers - 1)
+            let approvedNow = approvedCount(for: matchID)
+            let slots = cap - approvedNow
+            guard slots > 0 else { continue }
+
+            let queueIdx = applications
+                .enumerated()
+                .filter { $0.element.matchID == matchID && $0.element.status == .waitlisted }
+                .sorted { $0.element.appliedAt < $1.element.appliedAt }
+                .prefix(slots)
+                .map { $0.offset }
+
+            for idx in queueIdx {
+                applications[idx].status = .approved
+                applications[idx].resolvedAt = now
+                applications[idx].resolvedBy = nil
+                promotedMatches.append(matchID)
+            }
+        }
+        persist()
+
+        // Phase E: 候补递补成功 → 通知 applicant。每个 match 一次合并 key,
+        // 同 match 多人递补时合成一条最新通知。
+        for matchID in Set(promotedMatches) {
+            notify(
+                type: .accepted,
+                kind: .waitlistedToApproved,
+                title: "候補成功",
+                body: matchSummary(for: matchID, suffix: "你已從候補晉升為正式參加者"),
+                coalesceKey: "promoted-\(matchID.uuidString)"
+            )
+        }
+    }
+
+    // MARK: - Helpers
+
+    static func occupiesSlot(_ status: BookingApprovalStatus) -> Bool {
+        switch status {
+        case .approved, .autoApproved, .autoConfirmed: return true
+        default: return false
+        }
+    }
+
+    /// 该 match 已占用名额数(不含 host 自己)。
+    func approvedCount(for matchID: UUID) -> Int {
+        applications.filter { $0.matchID == matchID && Self.occupiesSlot($0.status) }.count
+    }
+
     // MARK: - Persistence
 
-    private func loadSignedUp() {
-        guard let data = UserDefaults.standard.data(forKey: Self.signedUpKey),
-              let ids = try? JSONDecoder().decode(Set<UUID>.self, from: data) else {
+    private func loadApplications() {
+        guard let data = UserDefaults.standard.data(forKey: Self.applicationsKey),
+              let decoded = try? JSONDecoder().decode([MatchApplication].self, from: data) else {
             return
         }
-        signedUpMatchIDs = ids
+        applications = decoded
     }
 
-    private func persistSignedUp() {
-        guard let data = try? JSONEncoder().encode(signedUpMatchIDs) else { return }
-        UserDefaults.standard.set(data, forKey: Self.signedUpKey)
+    fileprivate func persist() {
+        guard let data = try? JSONEncoder().encode(applications) else { return }
+        UserDefaults.standard.set(data, forKey: Self.applicationsKey)
+    }
+
+    /// 临时供旧 view 读取的「已加入」聚合视图。Phase D 完成后 view 改读 applications,该方法可删。
+    func legacyAcceptedSnapshot() -> [MatchApplication] {
+        applications.filter { $0.applicantID == currentUserID && Self.occupiesSlot($0.status) }
+    }
+
+    // MARK: - Notification helpers (Phase E)
+
+    /// 统一发送通知 — 没有 NotificationStore 时静默 no-op,便于测试 / 早期 init 调用。
+    fileprivate func notify(
+        type: NotificationType,
+        kind: NotificationKind,
+        title: String,
+        body: String,
+        coalesceKey: String?
+    ) {
+        guard let store = notificationStore else { return }
+        let note = MatchNotification(
+            type: type,
+            title: title,
+            body: body,
+            time: "剛剛",
+            isRead: false,
+            kind: kind,
+            coalesceKey: coalesceKey
+        )
+        store.upsert(note)
+    }
+
+    /// 拼通知 body 的「{matchType} {dateTimeDisplay} {suffix}」摘要。
+    /// match 不在 registry 时 fallback 成纯 suffix(避免空字符串)。
+    fileprivate func matchSummary(for matchID: UUID, suffix: String) -> String {
+        guard let m = matches[matchID] else { return suffix }
+        return "\(m.matchType) \(m.dateTimeDisplay) — \(suffix)"
     }
 }
 
-private extension AcceptedMatchInfo {
-    /// 冲突 toast 用的简短标签。复用 AcceptedMatchInfo 已有的展示字段,与旧 BookedSlot.label 同形式:`"organizer dateString time"`。
-    var conflictLabel: String {
-        "\(organizerName) \(dateString) \(time)"
+// MARK: - Legacy compat (Phase D 内逐步移除)
+
+extension BookingStore {
+    /// Deprecated wrapper — Phase D 完成后删。仅供未迁移的 view 临时编译。
+    @available(*, deprecated, message: "Use apply(to:) instead. Phase D 内迁移。")
+    @discardableResult
+    func signUp(matchID: UUID, info: AcceptedMatchInfo) -> SignUpResult {
+        let host = matches[matchID]?.hostID ?? UUID()
+        let initial: BookingApprovalStatus = matches[matchID]?.requiresApproval == true
+            ? .pendingReview : .autoConfirmed
+        if applications.contains(where: { $0.matchID == matchID && $0.applicantID == currentUserID }) {
+            return .alreadySignedUp
+        }
+        if let hit = conflict(start: info.startDate, end: info.endDate, excluding: matchID) {
+            return .conflict(label: hit.label)
+        }
+        applications.append(MatchApplication(
+            matchID: matchID, applicantID: currentUserID, hostID: host,
+            status: initial, appliedAt: .now
+        ))
+        persist()
+        return .ok
+    }
+
+    @available(*, deprecated, message: "Use apply(to:) for invitations. Phase D 内迁移。")
+    @discardableResult
+    func acceptInvitation(_ info: AcceptedMatchInfo) -> AcceptResult {
+        if let hit = conflict(start: info.startDate, end: info.endDate) {
+            return .conflict(label: hit.label)
+        }
+        let mid = info.sourceMatchID ?? UUID()
+        applications.append(MatchApplication(
+            matchID: mid, applicantID: currentUserID, hostID: UUID(),
+            status: .autoConfirmed, appliedAt: .now
+        ))
+        persist()
+        return .ok
+    }
+
+    @available(*, deprecated, message: "Use cancelApplication(_:) instead. Phase D 内迁移。")
+    @discardableResult
+    func cancel(acceptedID: UUID) -> AcceptedMatchInfo? {
+        guard let idx = applications.firstIndex(where: { $0.id == acceptedID }) else { return nil }
+        let removed = applications.remove(at: idx)
+        persist()
+        guard let m = matches[removed.matchID] else { return nil }
+        // NOTE: AcceptedMatchInfo has fixed `let id = UUID()` and required matchType.
+        var info = AcceptedMatchInfo(
+            organizerName: m.name,
+            matchType: m.matchType,
+            dateString: AppDateFormatter.monthDay.string(from: m.startDate),
+            time: AppDateFormatter.hourMinute.string(from: m.startDate),
+            location: m.location,
+            startDate: m.startDate,
+            endDate: m.startDate.addingTimeInterval(2*3600)
+        )
+        info.sourceMatchID = removed.matchID
+        return info
+    }
+
+    /// Deprecated 派生:旧 view 仍读 `accepted` 数组。Phase D 完成后删。
+    @available(*, deprecated, message: "派生自 applications。Phase D 内迁移到 applications 直读。")
+    var accepted: [AcceptedMatchInfo] {
+        legacyAcceptedSnapshot().compactMap { app in
+            guard let m = matches[app.matchID] else { return nil }
+            var info = AcceptedMatchInfo(
+                organizerName: m.name,
+                matchType: m.matchType,
+                dateString: AppDateFormatter.monthDay.string(from: m.startDate),
+                time: AppDateFormatter.hourMinute.string(from: m.startDate),
+                location: m.location,
+                startDate: m.startDate,
+                endDate: m.startDate.addingTimeInterval(2*3600)
+            )
+            info.sourceMatchID = app.matchID
+            return info
+        }
+    }
+
+    @available(*, deprecated, message: "Use myApprovedMatches 或 isSignedUp(matchID:)")
+    var signedUpMatchIDs: Set<UUID> { Set(myApprovedMatches) }
+}
+
+// MARK: - Test seams
+
+#if DEBUG
+extension BookingStore {
+    /// 仅供单元测试插入 MatchApplication。生产代码勿用。
+    func _testInsert(_ app: MatchApplication) {
+        applications.append(app)
+        persist()
+    }
+
+    /// 仅供单元测试修改 MatchApplication 状态。生产代码勿用。
+    func _testSetStatus(_ status: BookingApprovalStatus, forApplicationID id: UUID) {
+        guard let idx = applications.firstIndex(where: { $0.id == id }) else { return }
+        applications[idx].status = status
+        persist()
     }
 }
+#endif

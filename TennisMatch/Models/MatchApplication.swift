@@ -2,7 +2,7 @@ import Foundation
 
 /// 报名申请条目。后端友好建模 — 字段命名直接对齐 REST schema。
 /// `POST /api/applications` 的 body 就是这个结构。
-struct MatchApplication: Identifiable, Codable {
+struct MatchApplication: Identifiable, Codable, Hashable {
     let id: UUID
     let matchID: UUID
     let applicantID: UUID

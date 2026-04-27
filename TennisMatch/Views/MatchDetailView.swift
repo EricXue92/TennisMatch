@@ -17,6 +17,7 @@ struct MatchDetailView: View {
     @Environment(FollowStore.self) private var followStore
     @Environment(UserStore.self) private var userStore
     @Environment(BookingStore.self) private var bookingStore
+    @Environment(NotificationStore.self) private var notificationStore
     @Environment(TournamentStore.self) private var tournamentStore
     @State private var showInviteSheet = false
     @State private var showSignUpConfirm = false
@@ -62,6 +63,9 @@ struct MatchDetailView: View {
                     creatorCard
                     weatherCard
                     participantsCard
+                    if isHostWithApproval {
+                        hostReviewCard
+                    }
                 }
                 .padding(.horizontal, Spacing.md)
                 .padding(.bottom, 100)
@@ -73,6 +77,13 @@ struct MatchDetailView: View {
         .onAppear {
             if participants.isEmpty {
                 participants = match.participantList
+            }
+            // Phase E: 进入详情页扫一次截止时间 / 候补递补,
+            // 让 host/applicant 看到的状态与时间一致。BookingStore 内部 2s 去抖。
+            bookingStore.runFallbackChecks()
+            // Phase E: host 进入详情视为「看过这批申请」,清相关 coalesce 通知红点。
+            if let mid = match.matchId, isHostWithApproval {
+                notificationStore.markSeen(coalesceKey: "received-\(mid.uuidString)")
             }
         }
         .overlay(alignment: .top) {
@@ -355,6 +366,135 @@ private extension MatchDetailView {
     }
 }
 
+// MARK: - Host Review Card
+
+private extension MatchDetailView {
+    /// 仅发起人 + 开了审核 才显示。其它访客看不到此区块。
+    var isHostWithApproval: Bool {
+        match.hostID == userStore.id && match.requiresApproval
+    }
+
+    var pendingApplications: [MatchApplication] {
+        guard let mid = match.matchId else { return [] }
+        return bookingStore.incomingApplications(for: mid)
+            .filter { $0.status == .pendingReview }
+    }
+
+    var waitlistedApplications: [MatchApplication] {
+        guard let mid = match.matchId else { return [] }
+        return bookingStore.incomingApplications(for: mid)
+            .filter { $0.status == .waitlisted }
+    }
+
+    /// 距离自动接受截止时间不到 2 小时 — 给 host 一个橙色警告。
+    var deadlineWarn: Bool {
+        guard let d = match.approvalDeadline else { return false }
+        return Date.now > d.addingTimeInterval(-2 * 3600)
+    }
+
+    var hostReviewCard: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack {
+                Text(pendingApplications.isEmpty
+                     ? "候補隊列 (\(waitlistedApplications.count))"
+                     : "待審核 (\(pendingApplications.count))")
+                    .font(Typography.bodyMedium)
+                    .foregroundColor(Theme.textPrimary)
+                Spacer()
+            }
+
+            if deadlineWarn && !pendingApplications.isEmpty {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .foregroundColor(.orange)
+                    Text("2 小時內未處理將自動通過 \(pendingApplications.count) 名申請者")
+                        .font(Typography.caption)
+                        .foregroundColor(Theme.textBody)
+                }
+                .padding(Spacing.sm)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(Theme.pendingBg)
+                .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+
+            if pendingApplications.isEmpty && waitlistedApplications.isEmpty {
+                Text("空空如也,等待報名中…")
+                    .font(Typography.caption)
+                    .foregroundColor(Theme.textMuted)
+            } else {
+                ForEach(pendingApplications) { app in
+                    applicantRow(app, isWaitlist: false)
+                }
+                ForEach(waitlistedApplications) { app in
+                    applicantRow(app, isWaitlist: true)
+                }
+            }
+        }
+        .padding(Spacing.md)
+        .background(Theme.surface)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+    }
+
+    func applicantRow(_ app: MatchApplication, isWaitlist: Bool) -> some View {
+        HStack(spacing: Spacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(Theme.avatarPlaceholder)
+                    .frame(width: 36, height: 36)
+                Text(String(applicantName(app.applicantID).prefix(1)))
+                    .font(Typography.labelSemibold)
+                    .foregroundColor(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(applicantName(app.applicantID))
+                    .font(Typography.bodyMedium)
+                    .foregroundColor(Theme.textPrimary)
+                    .lineLimit(1)
+                Text("申請於 \(app.appliedAt, format: .relative(presentation: .named))")
+                    .font(Typography.small)
+                    .foregroundColor(Theme.textFaint)
+            }
+
+            Spacer()
+
+            Button {
+                bookingStore.approve(applicationID: app.id)
+            } label: {
+                Text(isWaitlist ? "提前補位" : "接受")
+                    .font(Typography.smallMedium)
+                    .foregroundColor(.white)
+                    .padding(.horizontal, Spacing.sm)
+                    .frame(height: 30)
+                    .background(Theme.primary)
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
+            }
+            .buttonStyle(.plain)
+
+            Button {
+                bookingStore.reject(applicationID: app.id, note: nil)
+            } label: {
+                Text("拒絕")
+                    .font(Typography.smallMedium)
+                    .foregroundColor(Theme.textBody)
+                    .padding(.horizontal, Spacing.sm)
+                    .frame(height: 30)
+                    .overlay {
+                        RoundedRectangle(cornerRadius: 8, style: .continuous)
+                            .stroke(Theme.borderMuted, lineWidth: 1)
+                    }
+            }
+            .buttonStyle(.plain)
+        }
+    }
+
+    /// Mock 阶段:无 applicantID → registrant 索引,显示 UUID 前缀代号占位。
+    /// TODO: 真后端接入后串 applicantID → User → name/ntrp(spec §6.3)。
+    func applicantName(_ id: UUID) -> String {
+        "申請者 \(id.uuidString.prefix(6))"
+    }
+}
+
 // MARK: - Bottom Bar
 
 private extension MatchDetailView {
@@ -558,6 +698,13 @@ struct MatchDetailData: Identifiable, Hashable {
     let weather: MatchWeather
     let participantList: [MatchParticipant]
     var isOwnMatch: Bool = false
+    /// Phase D: 是否需要 host 审核报名 — 影响 SignUpConfirmSheet 文案
+    var requiresApproval: Bool = false
+    /// Phase E: host 身份比对(host 审核区块只对发起人显示)。
+    /// Mock 阶段:从 HomeView 透传 MockMatch.hostID;真后端从 host 关系拉。
+    var hostID: UUID = UUID()
+    /// Phase E: 自动接受截止时间。详情页 banner 据此判断「2 小时内未处理」预警。
+    var approvalDeadline: Date? = nil
 
     /// Parses `"1/2 人"` → (current: 1, max: 2). Falls back to (0, 0).
     var playerCounts: (current: Int, max: Int) {
@@ -709,7 +856,9 @@ private let inviteContacts: [InviteContact] = [
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
+    .environment(NotificationStore())
+    .environment(TournamentStore())
     .environment(InviteStore())
 }
 
@@ -719,7 +868,9 @@ private let inviteContacts: [InviteContact] = [
     }
     .environment(FollowStore())
     .environment(UserStore())
-    .environment(BookingStore())
+    .environment(BookingStore(currentUserID: UUID()))
+    .environment(NotificationStore())
+    .environment(TournamentStore())
     .environment(InviteStore())
 }
 

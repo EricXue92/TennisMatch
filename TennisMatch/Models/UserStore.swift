@@ -15,6 +15,11 @@ import Observation
 @Observable
 @MainActor
 final class UserStore {
+    private static let idKey = "userStore.id"
+
+    /// 当前用户稳定 ID。首次启动生成并写入 UserDefaults,跨启动稳定。
+    let id: UUID
+
     /// 显示名(如 "小李")。
     var displayName: String
 
@@ -75,6 +80,15 @@ final class UserStore {
         self.partnerLevelHigh = partnerLevelHigh
         self.preferredSlots = preferredSlots
         self.avatarImageData = avatarImageData
+
+        if let saved = UserDefaults.standard.string(forKey: Self.idKey),
+           let uuid = UUID(uuidString: saved) {
+            self.id = uuid
+        } else {
+            let new = UUID()
+            UserDefaults.standard.set(new.uuidString, forKey: Self.idKey)
+            self.id = new
+        }
     }
 
     // MARK: - 年齡範圍選項

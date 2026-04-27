@@ -21,6 +21,10 @@ struct PublishedMatchInfo {
     let costType: String
     let costAmount: String
     let notes: String
+    /// 发起人是否要求审核报名者。
+    let requiresApproval: Bool
+    /// 自动接受截止时间。`requiresApproval == false` 或 lead time 太短 → nil。
+    let approvalDeadline: Date?
 }
 
 struct CreateMatchView: View {
@@ -48,6 +52,7 @@ struct CreateMatchView: View {
     @State private var costType: String = "AA制"
     @State private var costAmount: String = ""
     @State private var notes: String = ""
+    @State private var requiresApproval: Bool = false
     @State private var validationToast: String?
 
     // MARK: - Court picker bridge
@@ -124,6 +129,8 @@ struct CreateMatchView: View {
             courtSection
             sectionDivider
             levelSection
+            sectionDivider
+            approvalSection
             sectionDivider
             genderSection
             sectionDivider
@@ -397,6 +404,68 @@ struct CreateMatchView: View {
         }
     }
 
+    // MARK: - Approval
+
+    private var approvalSection: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Toggle(isOn: $requiresApproval) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("需要我審核報名者")
+                        .font(Typography.labelSemibold)
+                        .foregroundColor(Theme.textPrimary)
+                    Text("開啟後,報名者需等你接受;12h 內未處理,系統自動通過。")
+                        .font(Typography.caption)
+                        .foregroundColor(Theme.textSecondary)
+                }
+            }
+            .tint(Theme.primary)
+            .disabled(!canEnableApproval)
+
+            if showLeadTimeWarn {
+                Text("時間太短,無法開啟審核")
+                    .font(Typography.caption)
+                    .foregroundColor(.orange)
+            } else if requiresApproval, let deadline = computedDeadline {
+                Text("將於 \(deadline, format: .dateTime.month().day().hour().minute()) 自動處理")
+                    .font(Typography.caption)
+                    .foregroundColor(Theme.textSecondary)
+            }
+        }
+    }
+
+    /// 由 selectedDate + selectedStartTime 拼出的开始绝对时间。
+    /// 用户尚未选完日期/时间时返回 nil — UI 据此关闭开关。
+    private var composedStartDate: Date? {
+        guard dateWasEdited && startTimeEdited else { return nil }
+        let hourStr = selectedStartTime.prefix(2)
+        let minuteStr = selectedStartTime.dropFirst(3).prefix(2)
+        guard let hour = Int(hourStr), let minute = Int(minuteStr) else { return nil }
+        var comps = Calendar.current.dateComponents([.year, .month, .day], from: selectedDate)
+        comps.hour = hour
+        comps.minute = minute
+        return Calendar.current.date(from: comps)
+    }
+
+    private var canEnableApproval: Bool {
+        guard let start = composedStartDate else { return false }
+        return ApprovalDeadlineCalculator.canEnableApproval(publishedAt: .now, startDate: start)
+    }
+
+    /// 已选完日期/时间但 lead time 太短 — 才显示橙色提示。
+    /// 还没选时不提示,避免一进表单就看到红字。
+    private var showLeadTimeWarn: Bool {
+        composedStartDate != nil && !canEnableApproval
+    }
+
+    private var computedDeadline: Date? {
+        guard let start = composedStartDate else { return nil }
+        return ApprovalDeadlineCalculator.deadline(
+            requiresApproval: requiresApproval,
+            publishedAt: .now,
+            startDate: start
+        )
+    }
+
     // MARK: - Gender
 
     private var genderSection: some View {
@@ -618,7 +687,9 @@ struct CreateMatchView: View {
             gender: genderRequirement,
             costType: costType,
             costAmount: costAmount,
-            notes: notes
+            notes: notes,
+            requiresApproval: requiresApproval && canEnableApproval,
+            approvalDeadline: computedDeadline
         )
         UINotificationFeedbackGenerator().notificationOccurred(.success)
         showConfirmation = false

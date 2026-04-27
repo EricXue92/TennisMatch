@@ -10,11 +10,29 @@ struct SignUpConfirmSheet: View {
     @State private var message = ""
     @State private var isSubmitting = false
 
+    private var headerTitle: String {
+        match.requiresApproval ? "提交報名申請" : "確認報名"
+    }
+
+    private var subtitle: String? {
+        match.requiresApproval ? "等發起人接受,12 小時未處理將自動通過" : nil
+    }
+
+    private var primaryButtonTitle: String {
+        match.requiresApproval ? "提交申請" : "確認報名"
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.md) {
-            Text("確認報名")
+            Text(headerTitle)
                 .font(Typography.largeStat)
                 .foregroundColor(Theme.textPrimary)
+
+            if let subtitle {
+                Text(subtitle)
+                    .font(Typography.caption)
+                    .foregroundColor(Theme.textSecondary)
+            }
 
             VStack(alignment: .leading, spacing: Spacing.sm) {
                 infoRow(icon: "calendar", text: match.dateTime)
@@ -59,7 +77,7 @@ struct SignUpConfirmSheet: View {
                 onConfirm(messageSnapshot)
             } label: {
                 ZStack {
-                    Text("確認報名")
+                    Text(primaryButtonTitle)
                         .font(Typography.button)
                         .foregroundColor(.white)
                         .opacity(isSubmitting ? 0 : 1)

@@ -35,6 +35,8 @@ struct MyMatchesView: View {
     @State private var inviteTarget: InviteTarget?
     @State private var matchToCancel: MyMatchItem?
     @State private var showCancelAlert = false
+    /// Phase D: 撤回申請(pendingApproval / waitlisted)的二次確認目標
+    @State private var applicationToWithdraw: MyMatchItem?
     @State private var showManageSheet = false
     @State private var matchToManage: MyMatchItem?
     @State private var tournamentToManage: MockTournament?
@@ -147,44 +149,61 @@ struct MyMatchesView: View {
         tournamentStore.tournaments.filter { $0.isOwnTournament }
     }
 
+    /// Phase D: 直接派生自 applications。skip cancelledBySelf/rejected/expired,
+    /// pendingReview → .pendingApproval(deadline:),waitlisted → .waitlisted,
+    /// approved/autoApproved/autoConfirmed → 滿員 .confirmed,否則 .pending。
     private var acceptedMatchItems: [MyMatchItem] {
-        bookingStore.accepted.map { info in
-            let timeStr = info.time
-            let startHour = Int(timeStr.prefix(2)) ?? 10
-            let endHour = startHour + info.durationHours
-            let endTime = String(format: "%02d:00", endHour)
-            // 至少包含發起人與當前用戶(小李) — 確保「查看報名者」不會是空列表
-            let ntrpMid = ntrpMidpoint(range: info.ntrpRange)
-            let registrants: [MatchRegistrant] = [
-                MatchRegistrant(name: info.organizerName, gender: .male, ntrp: ntrpMid, isOrganizer: true),
-                MatchRegistrant(name: "小李", gender: .male, ntrp: ntrpMid, isOrganizer: false),
-            ]
-            // 滿員 → .confirmed(已成局);未滿員 → .pending(等待中,首頁仍接受報名)。
-            // info.players 形如 "3/4";解析失敗(舊默認值或非首頁來源)按 .confirmed 處理。
-            let isFull: Bool = {
-                let parts = info.players.split(separator: "/")
-                guard parts.count == 2,
-                      let cur = Int(parts[0]),
-                      let max = Int(parts[1]) else { return true }
-                return cur >= max
-            }()
-            return MyMatchItem(
-                title: "\(info.organizerName) 發起的\(info.matchType)",
-                isOrganizer: false,
-                status: isFull ? .confirmed : .pending,
-                dateLabel: "\(info.dateString)",
-                location: "\(info.location)網球場",
-                timeRange: "\(timeStr) - \(endTime)",
-                players: "\(info.players) · NTRP \(info.ntrpRange)",
-                weather: "☀️ 24°C",
-                startDate: info.startDate,
-                endDate: info.endDate,
-                matchType: info.matchType,
-                acceptedMatchID: info.id,
-                sourceMatchID: info.sourceMatchID,
-                registrants: registrants
-            )
-        }
+        bookingStore.applications
+            .filter { $0.applicantID == userStore.id }
+            .filter {
+                switch $0.status {
+                case .cancelledBySelf, .rejected, .expired: return false
+                default: return true
+                }
+            }
+            .compactMap { app -> MyMatchItem? in
+                guard let match = bookingStore.match(for: app.matchID) else { return nil }
+                let myStatus: MyMatchStatus
+                switch app.status {
+                case .pendingReview:
+                    myStatus = .pendingApproval(deadline: match.approvalDeadline)
+                case .waitlisted:
+                    myStatus = .waitlisted
+                case .approved, .autoApproved, .autoConfirmed:
+                    myStatus = match.isFull ? .confirmed : .pending
+                default:
+                    return nil
+                }
+
+                let endDate = match.startDate.addingTimeInterval(2 * 3600)
+                let dateStr = AppDateFormatter.monthDay.string(from: match.startDate)
+                let startTime = AppDateFormatter.hourMinute.string(from: match.startDate)
+                let endTime = AppDateFormatter.hourMinute.string(from: endDate)
+                let ntrpRangeStr = String(format: "%.1f-%.1f", match.ntrpLow, match.ntrpHigh)
+                let ntrpMid = ntrpMidpoint(range: ntrpRangeStr)
+                let registrants: [MatchRegistrant] = [
+                    MatchRegistrant(name: match.name, gender: .male, ntrp: ntrpMid, isOrganizer: true),
+                    MatchRegistrant(name: "小李", gender: .male, ntrp: ntrpMid, isOrganizer: false),
+                ]
+
+                return MyMatchItem(
+                    title: "\(match.name) 發起的\(match.matchType)",
+                    isOrganizer: false,
+                    status: myStatus,
+                    dateLabel: dateStr,
+                    location: "\(match.location)網球場",
+                    timeRange: "\(startTime) - \(endTime)",
+                    players: "\(match.currentPlayers)/\(match.maxPlayers) · NTRP \(ntrpRangeStr)",
+                    weather: match.weather,
+                    startDate: match.startDate,
+                    endDate: endDate,
+                    matchType: match.matchType,
+                    acceptedMatchID: nil,
+                    sourceMatchID: match.id,
+                    applicationID: app.id,
+                    registrants: registrants
+                )
+            }
     }
 
     /// 從 "3.0-4.0" 取中位 NTRP,供 registrant 顯示用。解析失敗時回退到 "3.5"。
@@ -504,6 +523,27 @@ struct MyMatchesView: View {
             if let match = matchToCancel {
                 Text(cancelAlertMessage(for: match))
             }
+        }
+        .confirmationDialog(
+            "撤回申請",
+            isPresented: Binding(
+                get: { applicationToWithdraw != nil },
+                set: { if !$0 { applicationToWithdraw = nil } }
+            ),
+            presenting: applicationToWithdraw
+        ) { match in
+            Button("確認撤回", role: .destructive) {
+                if let aid = match.applicationID {
+                    bookingStore.cancelApplication(aid)
+                    toast = .init(kind: .success, text: L10n.string("已撤回申請"))
+                }
+                applicationToWithdraw = nil
+            }
+            Button("再想想", role: .cancel) {
+                applicationToWithdraw = nil
+            }
+        } message: { match in
+            Text("撤回後可重新報名,但需重新等待審核。\n\(match.title)")
         }
         .confirmationDialog("管理約球", isPresented: $showManageSheet, presenting: matchToManage) { match in
             Button("查看報名者") {
@@ -995,6 +1035,10 @@ private extension MyMatchesView {
                     .onTapGesture {
                         selectedCompletedMatch = match
                     }
+                } else if case .pendingApproval(let deadline) = match.status {
+                    pendingApprovalActionRow(match: match, deadline: deadline)
+                } else if case .waitlisted = match.status {
+                    waitlistedActionRow(match: match)
                 } else if !match.isAutoCancelled {
                     HStack {
                         Spacer()
@@ -1026,10 +1070,55 @@ private extension MyMatchesView {
         .shadow(color: .black.opacity(0.08), radius: 4, y: 1)
     }
 
+    /// pendingApproval 卡片底部:倒數 + 撤回。撤回經 confirmationDialog 二次確認。
+    @ViewBuilder
+    func pendingApprovalActionRow(match: MyMatchItem, deadline: Date?) -> some View {
+        HStack(alignment: .center) {
+            if let deadline {
+                TimelineView(.everyMinute) { context in
+                    Text(approvalCountdownText(deadline: deadline, now: context.date))
+                        .font(Typography.smallMedium)
+                        .foregroundColor(Theme.textSecondary)
+                }
+            } else {
+                Text("等待發起人審核")
+                    .font(Typography.smallMedium)
+                    .foregroundColor(Theme.textSecondary)
+            }
+            Spacer()
+            matchActionButton("撤回申請", style: .outlined) {
+                applicationToWithdraw = match
+            }
+        }
+    }
+
+    @ViewBuilder
+    func waitlistedActionRow(match: MyMatchItem) -> some View {
+        HStack(alignment: .center) {
+            Text("候補中,有空位將自動遞補")
+                .font(Typography.smallMedium)
+                .foregroundColor(Theme.textSecondary)
+            Spacer()
+            matchActionButton("撤回申請", style: .outlined) {
+                applicationToWithdraw = match
+            }
+        }
+    }
+
+    /// 「約 N 小時後自動通過」/ 「約 N 分鐘後...」/ 「即將自動通過」
+    private func approvalCountdownText(deadline: Date, now: Date) -> String {
+        let remaining = deadline.timeIntervalSince(now)
+        if remaining <= 0 { return "即將自動通過" }
+        let hours = Int(remaining / 3600)
+        if hours >= 1 { return "約 \(hours) 小時後自動通過" }
+        let minutes = max(1, Int(remaining / 60))
+        return "約 \(minutes) 分鐘後自動通過"
+    }
+
     func dateBanner(_ match: MyMatchItem) -> some View {
         // 人员不足 + 已过开始时间 → 自动取消(覆盖 confirmed/pending 状态)。
         let autoCancelled = match.isAutoCancelled
-        let badgeText = autoCancelled ? "已自動取消" : match.status.rawValue
+        let badgeText = autoCancelled ? "已自動取消" : match.status.displayLabel
         let badgeColor = autoCancelled ? Theme.requiredText : match.status.badgeColor
         let bannerColor = autoCancelled ? Theme.requiredBg : match.status.bannerColor
         return HStack {
@@ -1183,37 +1272,45 @@ private extension MyMatchesView {
 
 // MARK: - Data
 
-enum MyMatchStatus: String {
-    case confirmed = "已確認"
-    case pending = "等待中"
-    case completed = "已完成"
+enum MyMatchStatus: Equatable {
+    case confirmed
+    case pending
+    case completed
+    /// 已提交,等發起人審核;deadline 為自動通過時間(可空)
+    case pendingApproval(deadline: Date?)
+    /// 候補中 — host 收滿後自動排隊
+    case waitlisted
+
+    var displayLabel: String {
+        switch self {
+        case .confirmed:        return "已確認"
+        case .pending:          return "等待中"
+        case .completed:        return "已完成"
+        case .pendingApproval:  return "等待審核"
+        case .waitlisted:       return "候補中"
+        }
+    }
 
     var bannerColor: Color {
         switch self {
-        case .confirmed: return Theme.confirmedBg
-        case .pending: return Theme.pendingBg
-        case .completed: return Theme.chipUnselectedBg
+        case .confirmed:                      return Theme.confirmedBg
+        case .pending, .pendingApproval:      return Theme.pendingBg
+        case .completed:                      return Theme.chipUnselectedBg
+        case .waitlisted:                     return Theme.chipUnselectedBg
         }
     }
 
     var badgeColor: Color {
         switch self {
-        case .confirmed: return Theme.primary
-        case .pending: return Theme.pendingBadge
-        case .completed: return Theme.textSecondary
+        case .confirmed:                      return Theme.primary
+        case .pending, .pendingApproval:      return Theme.pendingBadge
+        case .completed, .waitlisted:         return Theme.textSecondary
         }
     }
 }
 
 private enum MatchActionStyle {
     case filled, outlined
-}
-
-struct MatchRegistrant {
-    let name: String
-    let gender: Gender
-    let ntrp: String
-    let isOrganizer: Bool
 }
 
 struct MyMatchItem: Identifiable {
@@ -1233,6 +1330,8 @@ struct MyMatchItem: Identifiable {
     var matchType: String = "單打"
     var acceptedMatchID: UUID?  // links back to AcceptedMatchInfo for cancellation
     var sourceMatchID: UUID?    // links back to the originating HomeView match (if any)
+    /// Phase D: 對應 BookingStore.applications 中的條目;pendingApproval / waitlisted 撤回用
+    var applicationID: UUID?
     var registrants: [MatchRegistrant] = []
 
     /// Parses `"2/4 · NTRP 3.0-4.0"` → (current: 2, max: 4). Falls back to (0, 0)
@@ -2264,7 +2363,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 
 #Preview("iPhone SE") {
     MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
-        .environment(BookingStore())
+        .environment(BookingStore(currentUserID: UUID()))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
@@ -2273,7 +2372,7 @@ private func reviewsForMatch(_ match: MyMatchItem) -> [MatchReviewItem] {
 
 #Preview("iPhone 15 Pro") {
     MyMatchesView(sharedChats: .constant([]), upcomingMatches: .constant([]))
-        .environment(BookingStore())
+        .environment(BookingStore(currentUserID: UUID()))
         .environment(RatingFeedbackStore())
         .environment(UserStore())
         .environment(TournamentStore())
