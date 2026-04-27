@@ -54,6 +54,9 @@ struct ChatDetailView: View {
     // Mock 階段：婉拒狀態僅保存在 @State 中，離開頁面即重置。
     // 正式版應持久化至 UserDefaults 或資料庫，注意 @AppStorage JSON 有大小限制。
     @State private var declinedInvitationIDs: Set<UUID> = []
+    /// Phase D: 改派生自本地 set,而非 bookingStore.accepted(後者是 deprecated wrapper)。
+    /// key = "\(organizer)|\(date)|\(location)"
+    @State private var acceptedInvitationKeys: Set<String> = []
     /// 點已決定的灰卡 → confirmationDialog 詢問是否撤回。
     @State private var undoTarget: InviteStore.Invite?
 
@@ -93,12 +96,14 @@ struct ChatDetailView: View {
         }
     }
 
-    private func isInvitationAccepted(date: String, location: String) -> Bool {
+    private func invitationKey(date: String, location: String) -> String {
         let parts = date.components(separatedBy: " ")
         let dateStr = parts.first ?? date
-        return bookingStore.accepted.contains { m in
-            m.organizerName == organizerName && m.dateString == dateStr && m.location == location
-        }
+        return "\(organizerName)|\(dateStr)|\(location)"
+    }
+
+    private func isInvitationAccepted(date: String, location: String) -> Bool {
+        acceptedInvitationKeys.contains(invitationKey(date: date, location: location))
     }
 
     /// 日期分隔標籤:顯示「今天 — yyyy/MM/dd」，避免 hardcode 字串
@@ -488,6 +493,7 @@ struct ChatDetailView: View {
                             // 时段冲突拦截 + 写入已确认列表 一次完成(CLAUDE.md 边界 case #4)。
                             switch bookingStore.acceptInvitation(match) {
                             case .ok:
+                                acceptedInvitationKeys.insert(invitationKey(date: date, location: location))
                                 UINotificationFeedbackGenerator().notificationOccurred(.success)
                             case .conflict(let label):
                                 chatMenuToast = L10n.string("該時段已與「\(label)」衝突,請先取消已預訂的時段")
